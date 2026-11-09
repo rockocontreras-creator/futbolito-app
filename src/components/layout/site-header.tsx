@@ -1,23 +1,19 @@
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { APP_NAME } from "@/config/site";
+import { Suspense } from "react";
+import { Brand } from "./brand";
+import { TopNav } from "./nav-links";
+import { UserMenu, UserMenuFallback } from "./user-menu";
 
 export function SiteHeader() {
   return (
-    <header className="sticky top-0 z-30 border-b bg-background/90 backdrop-blur">
-      <div className="mx-auto flex h-14 max-w-5xl items-center justify-between px-4">
-        <Link href="/" className="flex items-center gap-2 font-bold tracking-tight">
-          <span
-            aria-hidden
-            className="grid size-7 place-items-center rounded-full bg-primary text-primary-foreground"
-          >
-            ⚽
-          </span>
-          {APP_NAME}
-        </Link>
-        <Button asChild size="sm" variant="outline">
-          <Link href="/ingresar">Ingresar</Link>
-        </Button>
+    <header className="sticky top-0 z-30 border-b bg-background/85 backdrop-blur-md">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-4">
+        <Brand />
+        <div className="flex items-center gap-3">
+          <TopNav />
+          <Suspense fallback={<UserMenuFallback />}>
+            <UserMenu />
+          </Suspense>
+        </div>
       </div>
     </header>
   );
