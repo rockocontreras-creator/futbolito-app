@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Suspense } from "react";
+import { PasswordSignInForm } from "@/components/features/auth/password-forms";
 import { BrandMark } from "@/components/layout/brand";
 import { Container } from "@/components/layout/container";
 import { Button } from "@/components/ui/button";
@@ -12,7 +14,9 @@ import { getCurrentUser } from "@/server/session";
 export const metadata: Metadata = { title: "Ingresar" };
 
 const ERRORS: Record<string, string> = {
-  Configuration: "El inicio de sesión no está bien configurado. Avísale al administrador.",
+  Configuration: "Esa forma de ingresar no está disponible ahora. Usa tu correo y contraseña.",
+  OAuthAccountNotLinked: "Ese correo ya tiene cuenta con contraseña. Ingresa con tu correo y contraseña.",
+  CredentialsSignin: "El correo, usuario o contraseña no coinciden.",
   AccessDenied: "No se pudo ingresar con esa cuenta.",
   Verification: "El enlace ya se usó o expiró. Pide uno nuevo.",
 };
@@ -42,10 +46,8 @@ async function SignInOptions({ searchParams }: { searchParams: PageProps<"/ingre
   if (await getCurrentUser()) redirect(callbackUrl);
   const error =
     typeof sp.error === "string" ? (ERRORS[sp.error] ?? "No se pudo ingresar. Inténtalo de nuevo.") : null;
-  const none = !authProviders.google && !authProviders.email;
-
   return (
-    <div className="space-y-4 rounded-2xl border bg-card p-6">
+    <div className="space-y-5 rounded-2xl border bg-card p-6">
       {error && (
         <p
           role="alert"
@@ -54,10 +56,11 @@ async function SignInOptions({ searchParams }: { searchParams: PageProps<"/ingre
           {error}
         </p>
       )}
-      {none && (
-        <p className="rounded-lg bg-foco/25 px-3 py-3 text-sm">
-          El inicio de sesión todavía no está activado. Falta configurar las claves de Google o del correo en
-          el servidor.
+      <PasswordSignInForm callbackUrl={callbackUrl} />
+
+      {(authProviders.google || authProviders.email) && (
+        <p className="flex items-center gap-3 text-[13px] text-muted-foreground before:h-px before:flex-1 before:bg-border after:h-px after:flex-1 after:bg-border">
+          o
         </p>
       )}
       {authProviders.google && (
@@ -68,30 +71,37 @@ async function SignInOptions({ searchParams }: { searchParams: PageProps<"/ingre
           </Button>
         </form>
       )}
-      {authProviders.google && authProviders.email && (
-        <p className="flex items-center gap-3 text-[13px] text-muted-foreground before:h-px before:flex-1 before:bg-border after:h-px after:flex-1 after:bg-border">
-          o con tu correo
-        </p>
-      )}
       {authProviders.email && (
         <form action={signInWithEmail} className="space-y-3">
           <input type="hidden" name="callbackUrl" value={callbackUrl} />
-          <label htmlFor="email" className="sr-only">
-            Correo
+          <label htmlFor="magic-email" className="sr-only">
+            Correo para recibir el enlace
           </label>
           <Input
-            id="email"
+            id="magic-email"
             name="email"
             type="email"
             required
             autoComplete="email"
             placeholder="tucorreo@ejemplo.cl"
           />
-          <Button type="submit" size="lg" className="w-full">
+          <Button type="submit" variant="outline" size="lg" className="w-full">
             Enviarme un enlace para entrar
           </Button>
         </form>
       )}
+
+      <p className="border-t pt-4 text-center text-[15px] text-muted-foreground">
+        ¿Primera vez?{" "}
+        <Link
+          href={
+            callbackUrl === "/" ? "/registro" : `/registro?callbackUrl=${encodeURIComponent(callbackUrl)}`
+          }
+          className="font-bold text-primary underline-offset-4 hover:underline"
+        >
+          Crea tu cuenta
+        </Link>
+      </p>
     </div>
   );
 }
