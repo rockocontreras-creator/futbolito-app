@@ -43,5 +43,12 @@ integración ya decidida): `clsx`, `tailwind-merge`, `class-variance-authority`,
 **Componentes shadcn escritos a mano** (Button, Card, Badge) porque el registro no estaba accesible al
 crear el repo. Son el código estándar; los siguientes se agregan normal con `pnpm dlx shadcn@latest add …`.
 
-**Migración inicial pendiente.** No había base de datos al crear el repo; la primera persona en configurar
-Supabase corre `pnpm db:migrate --name init` y commitea `prisma/migrations/`.
+**Migración inicial creada** (`20261109035808_init`), generada por el motor de Prisma a partir de
+`schema.prisma` y probada en un Postgres local (migración + seed). En Supabase se aplicó vía SQL Editor
+junto con el registro en `_prisma_migrations`, así que `pnpm db:migrate` y `pnpm db:deploy` la reconocen
+como aplicada.
+
+**RLS activado en todas las tablas de Supabase.** La app no usa la API REST de Supabase para datos:
+entra con Prisma como el rol `postgres` (dueño de las tablas, que no queda sujeto a RLS). Activar RLS
+sin políticas bloquea el acceso a las tablas con las llaves `anon`/`authenticated`, que quedan públicas
+en el navegador. Si algún día se usa Supabase Realtime o la API REST, hay que crear políticas.
