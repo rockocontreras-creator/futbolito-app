@@ -47,3 +47,8 @@ crear el repo. Son el código estándar; los siguientes se agregan normal con `p
 `schema.prisma` y probada en un Postgres local (migración + seed). En Supabase se aplicó vía SQL Editor
 junto con el registro en `_prisma_migrations`, así que `pnpm db:migrate` y `pnpm db:deploy` la reconocen
 como aplicada.
+
+**RLS activado en todas las tablas de Supabase.** La app no usa la API REST de Supabase para datos:
+entra con Prisma como el rol `postgres` (dueño de las tablas, que no queda sujeto a RLS). Activar RLS
+sin políticas bloquea el acceso a las tablas con las llaves `anon`/`authenticated`, que quedan públicas
+en el navegador. Si algún día se usa Supabase Realtime o la API REST, hay que crear políticas.
