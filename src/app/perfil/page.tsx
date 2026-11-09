@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 import { SignInRequired } from "@/components/features/auth/sign-in-required";
+import { PhotoUpload } from "@/components/features/player/photo-upload";
+import { PlayerCommunity } from "@/components/features/player/player-community";
 import { ProfileForm } from "@/components/features/player/profile-form";
 import { ProfileView } from "@/components/features/player/profile-view";
 import { Container } from "@/components/layout/container";
@@ -11,7 +13,8 @@ import { Button } from "@/components/ui/button";
 import { safeCallbackUrl } from "@/lib/auth";
 import { formatMatchDate } from "@/lib/format";
 import { signOutAction } from "@/server/actions/auth";
-import { getPublicProfile, listPlayerUpcoming } from "@/server/queries/players";
+import { getPlayerCommunity, getPublicProfile, listPlayerUpcoming } from "@/server/queries/players";
+import { finalizeDueResults } from "@/server/services/finalize-results";
 import { getActiveComuna, listSectors } from "@/server/queries/zones";
 import { getCurrentUser } from "@/server/session";
 
@@ -59,15 +62,23 @@ async function ProfileGate({ searchParams }: { searchParams: PageProps<"/perfil"
     );
   }
 
-  const [profile, upcoming] = await Promise.all([
+  await finalizeDueResults();
+  const [profile, upcoming, community] = await Promise.all([
     getPublicProfile(user.profile.username),
     listPlayerUpcoming(user.id),
+    getPlayerCommunity(user.id),
   ]);
   if (!profile) return null;
 
   return (
     <div className="space-y-8">
       <ProfileView profile={profile} />
+      <section aria-labelledby="foto" className="space-y-3 rounded-xl border bg-card p-5">
+        <h2 id="foto" className="text-lg font-bold">
+          Foto de perfil
+        </h2>
+        <PhotoUpload name={profile.displayName} photoUrl={profile.photoUrl} />
+      </section>
       <section aria-labelledby="proximos" className="space-y-3">
         <h2 id="proximos" className="text-lg font-bold">
           Mis próximos partidos
@@ -105,6 +116,11 @@ async function ProfileGate({ searchParams }: { searchParams: PageProps<"/perfil"
           </ul>
         )}
       </section>
+      <PlayerCommunity
+        profile={profile}
+        community={community}
+        viewer={{ userId: user.id, hasProfile: true, isAdmin: user.role === "ADMIN" }}
+      />
       <div className="flex flex-wrap gap-3 border-t pt-6">
         <Button asChild variant="outline">
           <Link href={`/jugador/${profile.username}`}>Ver mi perfil público</Link>
