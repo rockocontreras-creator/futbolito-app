@@ -102,6 +102,11 @@ Aunque partimos solo en San Clemente, el modelo debe permitir crecer a otras com
 - **Fair play / reputación**: asistencia vs. inscripciones (no-shows bajan la reputación),
   valoraciones de compañeros tras el partido (1–5, anónimas).
 - Historial de partidos y equipos.
+- **Foto de perfil** en Supabase Storage (bucket público `avatars`); el navegador la recorta a 512 px.
+- **Comentarios en el perfil** (máx. 280 caracteres). Los borra su autor, el dueño del perfil o un admin.
+- **Apodos de la cancha** automáticos (ej. "La Abeja", "El Alérgico al Gol"): reglas puras en
+  `src/lib/nicknames.ts` a partir de estadísticas, etiquetas de las valoraciones y palabras de los comentarios.
+  No se guardan; se recalculan.
 - URL pública: `/jugador/[username]`.
 
 ### 5.2 Equipos
@@ -123,6 +128,8 @@ Aunque partimos solo en San Clemente, el modelo debe permitir crecer a otras com
   equipos por rating (algoritmo tipo _snake draft_, repartiendo arqueros primero). El organizador
   puede ajustar manualmente.
 - Botón **"Compartir por WhatsApp"** con texto prearmado y link (clave en Chile).
+- El organizador gestiona el plantel: expulsar (`KICKED`, no puede volver a inscribirse), mover entre equipo
+  A/B/sin equipo, subir o bajar de la lista de espera. La nivelación compara **promedios** de rango por lado.
 
 **b) Desafío / amistoso entre equipos (`CHALLENGE`)**
 
@@ -145,7 +152,10 @@ Aunque partimos solo en San Clemente, el modelo debe permitir crecer a otras com
 - Si no coinciden → `DISPUTED` → lo resuelve el organizador (liga) o un admin.
 - Si un lado no reporta en 48 h, se confirma automáticamente lo reportado por el otro.
 - En revoltijos: reporta el organizador y se confirma si la mayoría de los participantes no lo
-  objeta en 24 h.
+  objeta en 24 h. Sin cron: el cierre es "perezoso" (`finalizeDueResults`) al abrir el partido, un perfil o la
+  clasificación. Hay que tener los equipos armados (lado A/B) para reportar.
+- Después del partido, quienes jugaron se valoran entre sí (1–5 estrellas + hasta 3 etiquetas `PlayerTag`)
+  durante 7 días. Es anónimo para el valorado.
 
 ### 5.5 Ligas
 
@@ -156,9 +166,22 @@ Aunque partimos solo en San Clemente, el modelo debe permitir crecer a otras com
 
 ### 5.6 Canchas
 
+- Mapa con Leaflet + OpenStreetMap (`/canchas`) y botón "Cómo llegar" que abre Google Maps. Al proponer
+  una cancha se marca en el mapa (o con la ubicación del teléfono).
 - Listado de canchas de la zona: nombre, dirección, ubicación en mapa, tipo de superficie
   (pasto sintético, natural, tierra), techada sí/no, iluminación, contacto, precio referencial.
 - Las propone cualquier usuario; las aprueba un admin.
+
+### 5.6b Se busca jugadores
+
+- `/se-busca`: un jugador publica "faltan N" (opcionalmente posiciones y rango) para una fecha/cancha.
+- Otros se ofrecen; el autor acepta o rechaza. Al aceptar, cada uno ve el WhatsApp del otro (si lo tiene en el
+  perfil). Al completar los cupos se cierra sola. Máximo 5 búsquedas abiertas por persona.
+
+### 5.6c Clasificación y torneos
+
+- `/ranking`: jugadores (filtro por posición) y equipos, ordenados por rating.
+- `/torneos`: "Próximamente".
 
 ### 5.7 Búsqueda (pantalla principal)
 
@@ -214,7 +237,8 @@ Basado en **Elo**, simple de explicar y robusto.
 `User` · `PlayerProfile` · `Region` · `Comuna` · `Sector` · `Venue` (cancha) · `Team` ·
 `TeamMember` · `TeamInvitation` · `Match` · `MatchParticipant` (jugador, lado A/B, estado
 inscrito/espera/asistió/no-show) · `Challenge` (propuestas entre equipos) · `ResultReport` ·
-`Goal` · `PeerReview` (valoración entre pares; antes "PlayerRating") · `RatingHistory` · `League` · `Season` ·
+`Goal` · `PeerReview` (valoración entre pares con etiquetas; antes "PlayerRating") · `RatingHistory` ·
+`ResultObjection` · `ProfileComment` · `PlayerRequest` · `PlayerRequestResponse` · `League` · `Season` ·
 `SeasonTeam` · `Notification` · `Report` (moderación).
 
 Reglas: IDs `cuid()`, `createdAt`/`updatedAt` en todas las tablas, soft-delete (`deletedAt`)

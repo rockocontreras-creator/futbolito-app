@@ -3,6 +3,28 @@
 Cada decisión técnica o de producto que se aparte de CLAUDE.md, o que agregue una librería, se anota aquí
 (la más reciente arriba).
 
+## 2026-11-09 · Comunidad, gestión de partidos, ranking, mapa y "se busca"
+
+**Mapa con Leaflet + OpenStreetMap, no Google Maps.** Google Maps embebido exige una clave con tarjeta de
+crédito. OSM es gratis y sin clave; para llegar, el botón "Cómo llegar" abre Google Maps con la ruta. Si algún
+día crece el tráfico, cambiar el proveedor de mosaicos (la política de uso de OSM pide no abusar).
+
+**Apodos por reglas, sin IA externa.** Gratis, inmediatos y predecibles. Si más adelante se quiere IA, se puede
+agregar encima usando los mismos datos (etiquetas + comentarios).
+
+**Reporte de resultados incluido.** Sin resultados no hay Elo, ranking ni apodos por estadísticas. El cierre es
+"perezoso" (sin cron): se ejecuta al abrir el partido, un perfil o la clasificación.
+
+**Nivelación por promedio.** El ajuste fino del armado de equipos ahora iguala promedios (antes sumas). Con
+cantidad impar (5 vs 4) igualar sumas dejaba al lado chico mucho más fuerte.
+
+**Expulsados.** Nuevo estado `KICKED` en `ParticipantStatus`: el jugador no puede volver a inscribirse.
+
+**Fotos en Supabase Storage** con la `SUPABASE_SERVICE_ROLE_KEY` (solo servidor). El bucket `avatars` se crea
+solo la primera vez. Se valida el tipo real por los primeros bytes; límite de Server Actions subido a 3 MB.
+
+**Pendiente:** panel admin para resolver resultados en disputa y aprobar canchas; notificaciones.
+
 ## 2026-11-09 · Login con correo/usuario y contraseña
 
 **Entrar con contraseña, siempre disponible.** Proveedor `Credentials` de Auth.js (id `password`). Se entra
