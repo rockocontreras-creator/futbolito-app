@@ -12,6 +12,10 @@ import { SURFACE_LABEL } from "@/lib/labels";
 import { cn } from "@/lib/utils";
 import { createPickupSchema, NEW_VENUE } from "@/lib/validations/match";
 import { createPickup } from "@/server/actions/match";
+import { LocationPicker } from "@/components/features/venue/location-picker";
+import type { LatLng } from "@/components/features/venue/map-types";
+import { VenueMap } from "@/components/features/venue/venue-map";
+import { Map as MapIcon } from "lucide-react";
 
 type FormIn = z.input<typeof createPickupSchema>;
 type FormOut = z.output<typeof createPickupSchema>;
@@ -21,10 +25,14 @@ const FORMATS = [5, 6, 7, 8, 9] as const;
 export function PublishPickupForm({
   venues,
   defaultStart,
+  center,
 }: {
-  venues: { id: string; name: string; status: string }[];
+  venues: { id: string; name: string; status: string; latitude: number | null; longitude: number | null }[];
   defaultStart: string;
+  center?: LatLng;
 }) {
+  const [showMap, setShowMap] = useState(false);
+  const mappable = venues.filter((v) => v.latitude != null && v.longitude != null);
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [serverError, setServerError] = useState<string | null>(null);
@@ -48,6 +56,8 @@ export function PublishPickupForm({
   const { register, formState, setValue, setError } = form;
   const errors = formState.errors;
   const venueId = useWatch({ control: form.control, name: "venueId" });
+  const [newLat, newLng] = useWatch({ control: form.control, name: ["newVenueLat", "newVenueLng"] });
+  const newPoint = newLat != null && newLng != null ? { lat: Number(newLat), lng: Number(newLng) } : null;
   const playersPerSide = Number(useWatch({ control: form.control, name: "playersPerSide" }));
 
   const onSubmit = form.handleSubmit(() => {
@@ -87,6 +97,33 @@ export function PublishPickupForm({
             <option value={NEW_VENUE}>Otra cancha (agregarla)</option>
           </NativeSelect>
         </Field>
+        {mappable.length > 0 && venueId !== NEW_VENUE && (
+          <div className="space-y-2">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowMap((v) => !v)}
+              aria-expanded={showMap}
+            >
+              <MapIcon aria-hidden /> {showMap ? "Ocultar mapa" : "Elegir en el mapa"}
+            </Button>
+            {showMap && (
+              <VenueMap
+                center={center}
+                venues={mappable.map((v) => ({
+                  id: v.id,
+                  name: v.name,
+                  lat: v.latitude!,
+                  lng: v.longitude!,
+                  pending: v.status === "PENDING",
+                }))}
+                selectedId={venueId}
+                onSelect={(id) => setValue("venueId", id, { shouldValidate: true })}
+              />
+            )}
+          </div>
+        )}
         {venueId === NEW_VENUE && (
           <div className="grid gap-4 rounded-xl bg-secondary/60 p-4 sm:grid-cols-[1.4fr_1fr]">
             <Field
@@ -111,6 +148,20 @@ export function PublishPickupForm({
                 ))}
               </NativeSelect>
             </Field>
+            <div className="space-y-1.5 sm:col-span-2">
+              <span className="text-sm font-semibold">
+                Ubicación{" "}
+                <span className="font-normal text-muted-foreground">(opcional, ayuda a llegar)</span>
+              </span>
+              <LocationPicker
+                value={newPoint}
+                center={center}
+                onChange={(p) => {
+                  setValue("newVenueLat", p.lat);
+                  setValue("newVenueLng", p.lng);
+                }}
+              />
+            </div>
           </div>
         )}
         <div className="grid gap-4 sm:grid-cols-[1.4fr_1fr]">

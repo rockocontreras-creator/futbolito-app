@@ -87,8 +87,11 @@ export function getMatchDetail(id: string) {
       organizer: {
         select: { id: true, name: true, profile: { select: { displayName: true, username: true } } },
       },
+      goals: { select: { scorerId: true, count: true } },
+      resultReports: { orderBy: { createdAt: "desc" }, take: 1, select: { mvpId: true } },
+      objections: { select: { userId: true } },
       participants: {
-        where: { status: { in: ["REGISTERED", "WAITLIST", "ATTENDED"] } },
+        where: { status: { in: ["REGISTERED", "WAITLIST", "ATTENDED", "NO_SHOW"] } },
         orderBy: { joinedAt: "asc" },
         include: {
           user: {
@@ -115,3 +118,11 @@ export function getMatchDetail(id: string) {
 }
 
 export type MatchDetail = NonNullable<Awaited<ReturnType<typeof getMatchDetail>>>;
+
+/** Valoraciones que el usuario ya dio en un partido (para mostrar qué le falta valorar). */
+export function listMyReviews(matchId: string, authorId: string) {
+  return db.peerReview.findMany({
+    where: { matchId, authorId },
+    select: { targetId: true, score: true, tags: true },
+  });
+}

@@ -51,17 +51,25 @@ export function balanceTeams(players: readonly DraftPlayer[]): DraftResult {
 }
 
 function improveBySwaps(sideA: DraftPlayer[], sideB: DraftPlayer[], locked: readonly DraftPlayer[]) {
+  // Se compara el PROMEDIO de cada lado (no la suma): con cantidad impar (5 vs 4) igualar sumas
+  // deja al lado chico con promedio mucho más alto.
   const total = (side: DraftPlayer[]) => side.reduce((s, p) => s + p.rating, 0);
+  const nA = sideA.length;
+  const nB = sideB.length;
+  if (nA === 0 || nB === 0) return;
   // Tope de iteraciones por seguridad; en la práctica converge en pocas pasadas.
   for (let iter = 0; iter < 50; iter++) {
-    const gap = total(sideA) - total(sideB);
+    const sumA = total(sideA);
+    const sumB = total(sideB);
+    const gap = Math.abs(sumA / nA - sumB / nB);
     let best: { i: number; j: number; newGap: number } | null = null;
-    for (let i = 0; i < sideA.length; i++) {
+    for (let i = 0; i < nA; i++) {
       if (locked.includes(sideA[i]!)) continue;
-      for (let j = 0; j < sideB.length; j++) {
+      for (let j = 0; j < nB; j++) {
         if (locked.includes(sideB[j]!)) continue;
-        const newGap = gap - 2 * (sideA[i]!.rating - sideB[j]!.rating);
-        if (Math.abs(newGap) < Math.abs(best?.newGap ?? gap)) best = { i, j, newGap };
+        const d = sideA[i]!.rating - sideB[j]!.rating;
+        const newGap = Math.abs((sumA - d) / nA - (sumB + d) / nB);
+        if (newGap < (best?.newGap ?? gap) - 1e-9) best = { i, j, newGap };
       }
     }
     if (!best) return;

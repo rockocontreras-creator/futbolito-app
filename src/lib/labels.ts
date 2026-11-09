@@ -22,3 +22,33 @@ export const SURFACE_LABEL = {
   NATURAL: "Pasto natural",
   DIRT: "Tierra",
 } as const;
+
+export const PLAYER_TAG_LABEL = {
+  GOLEADOR: "Goleador",
+  MURALLA: "Muralla",
+  PASADOR: "Buen pase",
+  HABILIDOSO: "Habilidoso",
+  INCANSABLE: "Incansable",
+  ATAJADOR: "Atajador",
+  LIDER: "Líder",
+  FAIR_PLAY: "Buena onda",
+  CHUPON: "Chupón",
+  MOCHILA: "Mochila",
+  RECLAMON: "Reclamón",
+  PIERNA_FUERTE: "Pierna fuerte",
+} as const;
+
+export type PlayerTagId = keyof typeof PLAYER_TAG_LABEL;
+
+/** Etiquetas que se ofrecen al valorar, separadas en buenas y "de talla". */
+export const POSITIVE_TAGS: PlayerTagId[] = [
+  "GOLEADOR",
+  "MURALLA",
+  "PASADOR",
+  "HABILIDOSO",
+  "INCANSABLE",
+  "ATAJADOR",
+  "LIDER",
+  "FAIR_PLAY",
+];
+export const BANTER_TAGS: PlayerTagId[] = ["CHUPON", "MOCHILA", "RECLAMON", "PIERNA_FUERTE"];
