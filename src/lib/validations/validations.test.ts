@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { toLocalDateTimeValue } from "@/lib/dates";
 import { normalizeChileanPhone } from "./common";
-import { createPickupSchema } from "./match";
+import { createPickupSchema, NEW_VENUE } from "./match";
+import { playerProfileSchema } from "./player";
 
 describe("normalizeChileanPhone", () => {
   it.each([
@@ -18,24 +20,56 @@ describe("normalizeChileanPhone", () => {
 });
 
 describe("createPickupSchema", () => {
+  const tomorrow = toLocalDateTimeValue(new Date(Date.now() + 86_400_000));
   const base = {
-    comunaId: "cjld2cjxh0000qzrmn831i7rn",
-    startsAt: new Date(Date.now() + 86_400_000),
-    playersPerSide: 7,
-    maxPlayers: 14,
+    venueId: "cjld2cjxh0000qzrmn831i7rn",
+    startsAtLocal: tomorrow,
+    durationMinutes: "60",
+    playersPerSide: "7",
+    maxPlayers: "14",
+    minRating: "",
+    pricePerPerson: "",
   };
 
-  it("acepta un 7v7 con 14 cupos", () => {
-    expect(createPickupSchema.safeParse(base).success).toBe(true);
+  it("acepta un 7v7 con 14 cupos y campos opcionales vacíos", () => {
+    const r = createPickupSchema.safeParse(base);
+    expect(r.success).toBe(true);
+    if (r.success) {
+      expect(r.data.minRating).toBeUndefined();
+      expect(r.data.startsAtLocal).toBeInstanceOf(Date);
+    }
   });
 
   it("rechaza cupos que no alcanzan para dos equipos", () => {
-    const r = createPickupSchema.safeParse({ ...base, maxPlayers: 12 });
-    expect(r.success).toBe(false);
+    expect(createPickupSchema.safeParse({ ...base, maxPlayers: "12" }).success).toBe(false);
   });
 
   it("rechaza fechas pasadas", () => {
-    const r = createPickupSchema.safeParse({ ...base, startsAt: new Date(Date.now() - 1000) });
+    expect(createPickupSchema.safeParse({ ...base, startsAtLocal: "2020-01-01T20:00" }).success).toBe(false);
+  });
+
+  it("pide nombre si la cancha es nueva", () => {
+    const r = createPickupSchema.safeParse({ ...base, venueId: NEW_VENUE, newVenueName: "" });
     expect(r.success).toBe(false);
+  });
+});
+
+describe("playerProfileSchema", () => {
+  const base = {
+    username: "Rocko_9",
+    displayName: "Rocko Contreras",
+    primaryPosition: "FORWARD",
+    foot: "RIGHT",
+    skillLevel: "INTERMEDIATE",
+    phone: "",
+    secondaryPosition: "",
+  };
+  it("normaliza el usuario a minúsculas y acepta opcionales vacíos", () => {
+    const r = playerProfileSchema.safeParse(base);
+    expect(r.success).toBe(true);
+    if (r.success) expect(r.data.username).toBe("rocko_9");
+  });
+  it("rechaza posición secundaria igual a la principal", () => {
+    expect(playerProfileSchema.safeParse({ ...base, secondaryPosition: "FORWARD" }).success).toBe(false);
   });
 });

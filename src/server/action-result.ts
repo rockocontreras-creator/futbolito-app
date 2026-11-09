@@ -19,15 +19,20 @@ export async function runAction<S extends z.ZodType, T>(
   if (!parsed.success) {
     return {
       ok: false,
-      error: "Revisa los datos del formulario.",
+      error: "Revisa los campos marcados.",
       fieldErrors: z.flattenError(parsed.error).fieldErrors as Record<string, string[]>,
     };
   }
   try {
     return { ok: true, data: await fn(parsed.data) };
   } catch (e) {
-    if (e instanceof AuthError) return { ok: false, error: e.message };
+    if (e instanceof AuthError) {
+      const field = (e as AuthError & { field?: string }).field;
+      return field
+        ? { ok: false, error: e.message, fieldErrors: { [field]: [e.message] } }
+        : { ok: false, error: e.message };
+    }
     console.error(e);
-    return { ok: false, error: "Algo salió mal. Inténtalo de nuevo." };
+    return { ok: false, error: "No pudimos guardar los cambios. Inténtalo de nuevo en un momento." };
   }
 }

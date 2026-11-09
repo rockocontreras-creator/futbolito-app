@@ -1,16 +1,25 @@
-import { Shield } from "lucide-react";
 import { divisionFor, type DivisionId } from "@/lib/rating/divisions";
 import { cn } from "@/lib/utils";
 
-const styles: Record<DivisionId, string> = {
-  BRONZE: "bg-division-bronze/15 text-division-bronze border-division-bronze/40",
-  SILVER: "bg-division-silver/20 text-foreground border-division-silver/50",
-  GOLD: "bg-division-gold/20 text-foreground border-division-gold/60",
-  PLATINUM: "bg-division-platinum/20 text-foreground border-division-platinum/60",
-  DIAMOND: "bg-division-diamond/15 text-division-diamond border-division-diamond/50",
+const tone: Record<DivisionId, string> = {
+  BRONZE: "text-division-bronze",
+  SILVER: "text-division-silver",
+  GOLD: "text-division-gold",
+  PLATINUM: "text-division-platinum",
+  DIAMOND: "text-division-diamond",
 };
 
-/** Insignia de división, consistente en todo el sitio (CLAUDE.md §9). */
+/** Escudo de división. Mismo dibujo en todo el sitio; el color dice la división. */
+export function DivisionShield({ rating, className }: { rating: number; className?: string }) {
+  const d = divisionFor(rating);
+  return (
+    <svg viewBox="0 0 24 28" className={cn("size-5", tone[d.id], className)} aria-hidden>
+      <path d="M12 1 2 5v8c0 6.4 4.3 11.7 10 14 5.7-2.3 10-7.6 10-14V5L12 1Z" fill="currentColor" />
+      <path d="M12 6.5 6 9v4.2c0 3.6 2.4 6.6 6 8 3.6-1.4 6-4.4 6-8V9l-6-2.5Z" fill="#fff" fillOpacity=".28" />
+    </svg>
+  );
+}
+
 export function DivisionBadge({
   rating,
   showRating = false,
@@ -20,18 +29,12 @@ export function DivisionBadge({
   showRating?: boolean;
   className?: string;
 }) {
-  const division = divisionFor(rating);
+  const d = divisionFor(rating);
   return (
-    <span
-      className={cn(
-        "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs font-semibold",
-        styles[division.id],
-        className,
-      )}
-    >
-      <Shield className="size-3" aria-hidden />
-      {division.label}
-      {showRating && <span className="font-normal opacity-80">· {rating}</span>}
+    <span className={cn("inline-flex items-center gap-1.5 text-[13px] font-semibold", className)}>
+      <DivisionShield rating={rating} className="size-4" />
+      {d.label}
+      {showRating && <span className="font-score font-semibold text-muted-foreground">{rating}</span>}
     </span>
   );
 }
