@@ -10,7 +10,8 @@ Fases cortas, cada una deployable. Marcar con [x] al terminar.
 - [x] Lógica de rango (Elo, divisiones) y "Armar equipos" con tests
 - [x] Auth.js (Google + enlace mágico) cableado
 - [x] Lint, Prettier, Husky, Vitest, Playwright, CI en GitHub Actions
-- [ ] Crear proyecto en Supabase, correr la migración inicial, conectar Vercel
+- [x] Crear proyecto en Supabase y migración inicial
+- [ ] Conectar Vercel
 
 ## Fase 1 · MVP revoltijos (lo mínimo para jugar)
 
