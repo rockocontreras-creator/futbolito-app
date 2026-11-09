@@ -109,6 +109,7 @@ enum ParticipantStatus {
   ATTENDED
   NO_SHOW
   WITHDRAWN
+  KICKED // expulsado por el organizador: no puede volver a inscribirse
 }
 
 enum ChallengeStatus {
@@ -156,6 +157,35 @@ enum NotificationType {
   SYSTEM
 }
 
+// Etiquetas que los compañeros dan al valorar a un jugador. Alimentan los apodos automáticos.
+enum PlayerTag {
+  GOLEADOR // la mete
+  MURALLA // no pasa nadie
+  PASADOR // reparte el juego
+  HABILIDOSO // gambeta
+  INCANSABLE // corre toda la cancha
+  ATAJADOR // arquero que salva
+  LIDER // ordena al equipo
+  FAIR_PLAY // buena onda
+  CHUPON // no la suelta
+  MOCHILA // hay que cargarlo
+  RECLAMON // reclama todo
+  PIERNA_FUERTE // pega
+}
+
+enum PlayerRequestStatus {
+  OPEN
+  FILLED
+  CANCELLED
+}
+
+enum RequestResponseStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  WITHDRAWN
+}
+
 enum ReportTarget {
   USER
   TEAM
@@ -192,21 +222,26 @@ model User {
   profile  PlayerProfile?
 
   teamMemberships     TeamMember[]
-  invitationsSent     TeamInvitation[]    @relation("InvitationSender")
-  invitationsReceived TeamInvitation[]    @relation("InvitationTarget")
-  matchesOrganized    Match[]             @relation("MatchOrganizer")
+  invitationsSent     TeamInvitation[]        @relation("InvitationSender")
+  invitationsReceived TeamInvitation[]        @relation("InvitationTarget")
+  matchesOrganized    Match[]                 @relation("MatchOrganizer")
   participations      MatchParticipant[]
   resultReports       ResultReport[]
   goals               Goal[]
-  mvpReports          ResultReport[]      @relation("ResultMvp")
-  peerReviewsGiven    PeerReview[]        @relation("ReviewAuthor")
-  peerReviewsReceived PeerReview[]        @relation("ReviewTarget")
+  mvpReports          ResultReport[]          @relation("ResultMvp")
+  peerReviewsGiven    PeerReview[]            @relation("ReviewAuthor")
+  peerReviewsReceived PeerReview[]            @relation("ReviewTarget")
   leaguesOrganized    League[]
   venuesProposed      Venue[]
   notifications       Notification[]
-  reportsFiled        Report[]            @relation("ReportAuthor")
-  reportsAgainst      Report[]            @relation("ReportTargetUser")
+  reportsFiled        Report[]                @relation("ReportAuthor")
+  reportsAgainst      Report[]                @relation("ReportTargetUser")
   challengeProposals  ChallengeProposal[]
+  commentsReceived    ProfileComment[]        @relation("CommentTarget")
+  commentsWritten     ProfileComment[]        @relation("CommentAuthor")
+  resultObjections    ResultObjection[]
+  playerRequests      PlayerRequest[]
+  requestResponses    PlayerRequestResponse[]
 }
 
 model Account {
@@ -278,13 +313,14 @@ model Comuna {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  region  Region          @relation(fields: [regionId], references: [id])
-  sectors Sector[]
-  players PlayerProfile[]
-  venues  Venue[]
-  teams   Team[]
-  matches Match[]
-  leagues League[]
+  region   Region          @relation(fields: [regionId], references: [id])
+  sectors  Sector[]
+  players  PlayerProfile[]
+  venues   Venue[]
+  teams    Team[]
+  matches  Match[]
+  leagues  League[]
+  requests PlayerRequest[]
 
   @@unique([regionId, name])
   @@index([isActive])
@@ -484,6 +520,7 @@ model Venue {
   matches    Match[]
   challenges Challenge[]
   proposals  ChallengeProposal[]
+  requests   PlayerRequest[]
 
   @@index([comunaId, status])
 }
@@ -518,6 +555,7 @@ model Match {
   scoreA            Int?
   scoreB            Int?
   resultConfirmedAt DateTime?
+  resultDueAt       DateTime? // revoltijo: el resultado reportado se confirma solo en esta fecha si no hay objeciones
   teamsDrawnAt      DateTime? // revoltijo: cuándo se armaron los equipos
 
   createdAt DateTime  @default(now())
@@ -537,6 +575,7 @@ model Match {
   ratingHistory RatingHistory[]
   challenge     Challenge?
   reports       Report[]
+  objections    ResultObjection[]
 
   @@index([comunaId, status, startsAt])
   @@index([type, status])
@@ -652,13 +691,14 @@ model Goal {
 // Valoración entre compañeros tras el partido (1–5, anónima para el valorado).
 // En CLAUDE.md figura como "PlayerRating"; se renombró para no confundir con el rango Elo.
 model PeerReview {
-  id        String   @id @default(cuid())
+  id        String      @id @default(cuid())
   matchId   String
   authorId  String
   targetId  String
   score     Int // 1–5 (validado con Zod)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  tags      PlayerTag[] @default([])
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
 
   match  Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
   author User  @relation("ReviewAuthor", fields: [authorId], references: [id])
@@ -784,4 +824,78 @@ model Report {
   targetMatch Match? @relation(fields: [targetMatchId], references: [id])
 
   @@index([status])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Comunidad
+// ─────────────────────────────────────────────────────────────
+
+// Comentario en el perfil de un jugador. Lo puede borrar quien lo escribió, el dueño del perfil o un admin.
+model ProfileComment {
+  id           String    @id @default(cuid())
+  targetUserId String
+  authorId     String
+  body         String
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  deletedAt    DateTime?
+
+  target User @relation("CommentTarget", fields: [targetUserId], references: [id], onDelete: Cascade)
+  author User @relation("CommentAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([targetUserId, createdAt])
+}
+
+// Objeción de un participante al resultado reportado de un revoltijo (CLAUDE.md §5.4).
+model ResultObjection {
+  id        String   @id @default(cuid())
+  matchId   String
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  match Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([matchId, userId])
+}
+
+// "Se busca": faltan jugadores para un partido (ej. "falta 1 arquero a las 20:00").
+model PlayerRequest {
+  id            String              @id @default(cuid())
+  authorId      String
+  comunaId      String
+  venueId       String?
+  startsAt      DateTime
+  playersNeeded Int
+  positions     Position[]          @default([]) // vacío = cualquier posición
+  minRating     Int?
+  maxRating     Int?
+  notes         String?
+  status        PlayerRequestStatus @default(OPEN)
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  author    User                    @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  comuna    Comuna                  @relation(fields: [comunaId], references: [id])
+  venue     Venue?                  @relation(fields: [venueId], references: [id])
+  responses PlayerRequestResponse[]
+
+  @@index([comunaId, status, startsAt])
+}
+
+model PlayerRequestResponse {
+  id        String                @id @default(cuid())
+  requestId String
+  userId    String
+  message   String?
+  status    RequestResponseStatus @default(PENDING)
+  createdAt DateTime              @default(now())
+  updatedAt DateTime              @updatedAt
+
+  request PlayerRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  user    User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([requestId, userId])
+  @@index([userId])
 }
