@@ -12,7 +12,9 @@ Fases cortas, cada una deployable. Marcar con [x] al terminar.
 - [x] Lint, Prettier, Husky, Vitest, Playwright, CI en GitHub Actions
 - [x] Crear proyecto en Supabase y migración inicial
 - [x] Conectar Vercel
-- [ ] Activar el login: claves de Google OAuth y/o Resend en Vercel
+- [x] Login con correo o usuario y contraseña
+- [ ] Activar Google: claves de Google OAuth en Vercel
+- [ ] Recuperar contraseña y verificar correo (Resend)
 
 ## Fase 1 · MVP revoltijos (lo mínimo para jugar)
 

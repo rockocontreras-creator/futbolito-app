@@ -3,6 +3,27 @@
 Cada decisión técnica o de producto que se aparte de CLAUDE.md, o que agregue una librería, se anota aquí
 (la más reciente arriba).
 
+## 2026-11-09 · Login con correo/usuario y contraseña
+
+**Entrar con contraseña, siempre disponible.** Proveedor `Credentials` de Auth.js (id `password`). Se entra
+con el correo o con el nombre de usuario del perfil (con o sin "@"). Crear cuenta en `/registro` pide nombre,
+correo y contraseña (mínimo 8), y lleva directo a crear el perfil de jugador. Google y el enlace por correo
+siguen apareciendo solo si sus claves están configuradas.
+
+**Contraseñas con `scrypt` de Node** (`src/lib/password.ts`), sin librerías nuevas. Se guarda
+`scrypt$N$r$p$sal$hash` en `User.passwordHash`, con sal aleatoria y comparación en tiempo constante. Si el
+usuario no existe igual se compara contra un hash de relleno, para no revelar qué correos están registrados.
+
+**Sesiones JWT en vez de sesiones en base de datos.** Auth.js exige JWT para el login con contraseña. El
+adaptador de Prisma sigue guardando usuarios y cuentas de Google. Duración: 30 días.
+
+**Sin vínculo automático Google ↔ contraseña.** Si un correo ya tiene contraseña y alguien entra con Google con
+ese correo, Auth.js lo rechaza (`OAuthAccountNotLinked`) y la app explica que entre con su contraseña. Vincular
+automáticamente permitiría que quien registró un correo ajeno se quede con la cuenta.
+
+**Pendiente:** verificar el correo de las cuentas con contraseña, "olvidé mi contraseña" (necesita Resend) y
+limitar intentos de login por IP.
+
 ## 2026-11-09 · Rediseño y primeras funciones
 
 **Identidad "cancha de noche".** Verde pasto profundo (`--cancha`), verde vivo para acciones (`--pasto`),
