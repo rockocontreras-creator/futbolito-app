@@ -3,6 +3,29 @@
 Cada decisión técnica o de producto que se aparte de CLAUDE.md, o que agregue una librería, se anota aquí
 (la más reciente arriba).
 
+## 2026-11-09 · Rediseño y primeras funciones
+
+**Identidad "cancha de noche".** Verde pasto profundo (`--cancha`), verde vivo para acciones (`--pasto`),
+blanco cal de fondo (`--cal`), amarillo foco para destacar (`--foco`) y rojo tarjeta para errores. Las
+superficies verdes llevan las líneas de cal dibujadas en CSS (`chalk-pitch`). Los cupos se muestran como una
+barra de casillas que se llenan.
+
+**Tipografía Archivo (variable, con eje de ancho)** vía `@fontsource-variable/archivo`, en lugar de Geist.
+Una sola familia: condensada y gruesa para títulos (aire de marcador), normal para el texto. Se sirve desde el
+propio sitio, sin depender de Google Fonts en el build.
+
+**Login solo con proveedores configurados.** Google y Resend se activan únicamente si sus claves existen;
+así la app no muestra "Server error / Configuration" mientras falten. Sin claves, /ingresar lo explica.
+
+**Canchas nuevas desde el formulario de publicar.** Si la cancha no está en la lista, se propone ahí mismo:
+queda `PENDING` para el admin, pero quien la propuso puede usarla de inmediato.
+
+**Equipos sin imagen de escudo por ahora.** El escudo se dibuja con los dos colores y las iniciales del equipo.
+Unirse es por solicitud que acepta un capitán; el último capitán no puede salir dejando jugadores sin capitán.
+
+**Datos de prueba** en `prisma/seed-demo.ts` (`pnpm db:seed:demo`), solo para bases locales: se niega a
+correr contra Supabase/Neon salvo que se fuerce con `ALLOW_DEMO_ON_REMOTE=1`.
+
 ## 2026-11-08 · Base del repositorio
 
 **Versiones instaladas** (últimas estables a la fecha): Next.js 16.4, React 19.3, TypeScript 5.9, Tailwind 4.3,
