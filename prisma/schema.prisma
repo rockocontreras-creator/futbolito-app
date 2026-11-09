@@ -1,0 +1,785 @@
+// Modelo de datos de Futbolito App.
+// Convenciones (ver CLAUDE.md §7): IDs cuid(), createdAt/updatedAt en todas las tablas,
+// soft-delete (deletedAt) en User, Team y Match, índices en zona / fecha / estado.
+// Nombres en inglés; la UI traduce los enums al español.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─────────────────────────────────────────────────────────────
+// Enums
+// ─────────────────────────────────────────────────────────────
+
+enum UserRole {
+  PLAYER
+  ORGANIZER // aprobado por un admin para crear ligas
+  ADMIN
+}
+
+enum Position {
+  GOALKEEPER // ARQUERO
+  DEFENDER // DEFENSA
+  MIDFIELDER // MEDIO
+  FORWARD // DELANTERO
+}
+
+enum Foot {
+  RIGHT
+  LEFT
+  BOTH
+}
+
+enum SkillLevel {
+  BEGINNER // 900
+  INTERMEDIATE // 1000
+  ADVANCED // 1100
+}
+
+enum Weekday {
+  MON
+  TUE
+  WED
+  THU
+  FRI
+  SAT
+  SUN
+}
+
+enum TeamRole {
+  CAPTAIN
+  PLAYER
+}
+
+enum InvitationKind {
+  INVITE // el equipo invita a un jugador
+  REQUEST // el jugador pide unirse
+  LINK // link compartible (sin jugador destino)
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  EXPIRED
+  REVOKED
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum Surface {
+  SYNTHETIC
+  NATURAL
+  DIRT
+}
+
+enum MatchType {
+  PICKUP // revoltijo
+  CHALLENGE // desafío / amistoso entre equipos
+  LEAGUE
+}
+
+enum MatchStatus {
+  OPEN
+  FULL
+  CONFIRMED
+  PLAYED
+  RESULT_CONFIRMED
+  DISPUTED
+  CANCELLED
+}
+
+enum Side {
+  A
+  B
+}
+
+enum ParticipantStatus {
+  REGISTERED
+  WAITLIST
+  ATTENDED
+  NO_SHOW
+  WITHDRAWN
+}
+
+enum ChallengeStatus {
+  OPEN // publicado, buscando rival
+  PROPOSED // hay una propuesta/contrapropuesta pendiente
+  ACCEPTED // ambos de acuerdo → se crea el Match
+  CANCELLED
+  EXPIRED
+}
+
+enum ProposalStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  SUPERSEDED // reemplazada por una contrapropuesta
+}
+
+enum RatingSubject {
+  PLAYER
+  TEAM
+}
+
+enum FixtureMode {
+  SINGLE_ROUND // solo ida
+  DOUBLE_ROUND // ida y vuelta
+}
+
+enum SeasonStatus {
+  DRAFT
+  REGISTRATION
+  IN_PROGRESS
+  FINISHED
+}
+
+enum NotificationType {
+  TEAM_INVITATION
+  PICKUP_JOINED
+  PICKUP_FULL
+  CHALLENGE_PROPOSAL
+  CHALLENGE_ACCEPTED
+  MATCH_REMINDER
+  REPORT_RESULT
+  RESULT_DISPUTED
+  RATING_CHANGED
+  SYSTEM
+}
+
+enum ReportTarget {
+  USER
+  TEAM
+  MATCH
+}
+
+enum ReportStatus {
+  OPEN
+  REVIEWING
+  RESOLVED
+  DISMISSED
+}
+
+// ─────────────────────────────────────────────────────────────
+// Auth.js (adaptador de Prisma) + usuario
+// ─────────────────────────────────────────────────────────────
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime?
+  image         String?
+  role          UserRole  @default(PLAYER)
+  suspendedAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  deletedAt     DateTime?
+
+  accounts Account[]
+  sessions Session[]
+  profile  PlayerProfile?
+
+  teamMemberships     TeamMember[]
+  invitationsSent     TeamInvitation[]    @relation("InvitationSender")
+  invitationsReceived TeamInvitation[]    @relation("InvitationTarget")
+  matchesOrganized    Match[]             @relation("MatchOrganizer")
+  participations      MatchParticipant[]
+  resultReports       ResultReport[]
+  goals               Goal[]
+  mvpReports          ResultReport[]      @relation("ResultMvp")
+  peerReviewsGiven    PeerReview[]        @relation("ReviewAuthor")
+  peerReviewsReceived PeerReview[]        @relation("ReviewTarget")
+  leaguesOrganized    League[]
+  venuesProposed      Venue[]
+  notifications       Notification[]
+  reportsFiled        Report[]            @relation("ReportAuthor")
+  reportsAgainst      Report[]            @relation("ReportTargetUser")
+  challengeProposals  ChallengeProposal[]
+}
+
+model Account {
+  id                String   @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?  @db.Text
+  access_token      String?  @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?  @db.Text
+  session_state     String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Zonas: Region → Comuna → Sector
+// ─────────────────────────────────────────────────────────────
+
+model Region {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  code      String   @unique // ej. "VII" o "MAULE"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  comunas Comuna[]
+}
+
+model Comuna {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  regionId  String
+  isActive  Boolean  @default(false)
+  // Centro aproximado para el mapa
+  latitude  Float?
+  longitude Float?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  region  Region          @relation(fields: [regionId], references: [id])
+  sectors Sector[]
+  players PlayerProfile[]
+  venues  Venue[]
+  teams   Team[]
+  matches Match[]
+  leagues League[]
+
+  @@unique([regionId, name])
+  @@index([isActive])
+}
+
+model Sector {
+  id        String   @id @default(cuid())
+  name      String
+  comunaId  String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  comuna  Comuna          @relation(fields: [comunaId], references: [id])
+  players PlayerProfile[]
+  teams   Team[]
+  venues  Venue[]
+
+  @@unique([comunaId, name])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Jugador
+// ─────────────────────────────────────────────────────────────
+
+model PlayerProfile {
+  id                String     @id @default(cuid())
+  userId            String     @unique
+  username          String     @unique // /jugador/[username]
+  displayName       String
+  nickname          String?
+  photoUrl          String?
+  birthDate         DateTime?  @db.Date
+  phone             String? // privado: solo compañeros de partido confirmados
+  comunaId          String
+  sectorId          String?
+  primaryPosition   Position
+  secondaryPosition Position?
+  foot              Foot       @default(RIGHT)
+  skillLevel        SkillLevel @default(INTERMEDIATE)
+  bio               String?
+
+  // Rango (Elo). Se actualiza solo con partidos RESULT_CONFIRMED.
+  rating       Int @default(1000)
+  ratedMatches Int @default(0) // define K (40 los primeros 10, luego 20)
+
+  // Estadísticas denormalizadas (se recalculan al confirmar resultados)
+  matchesPlayed Int @default(0)
+  wins          Int @default(0)
+  draws         Int @default(0)
+  losses        Int @default(0)
+  goals         Int @default(0)
+  mvps          Int @default(0)
+  registrations Int @default(0) // inscripciones a partidos ya jugados
+  attendances   Int @default(0) // asistencias confirmadas
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user         User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  comuna       Comuna         @relation(fields: [comunaId], references: [id])
+  sector       Sector?        @relation(fields: [sectorId], references: [id])
+  availability Availability[]
+
+  @@index([comunaId])
+  @@index([sectorId])
+  @@index([rating])
+}
+
+// Disponibilidad semanal: una fila por franja.
+model Availability {
+  id          String   @id @default(cuid())
+  profileId   String
+  weekday     Weekday
+  startMinute Int // minutos desde 00:00 (ej. 19:30 → 1170)
+  endMinute   Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  profile PlayerProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+
+  @@index([profileId])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Equipos
+// ─────────────────────────────────────────────────────────────
+
+model Team {
+  id             String    @id @default(cuid())
+  name           String
+  slug           String    @unique // /equipo/[slug]
+  crestUrl       String?
+  primaryColor   String? // hex
+  secondaryColor String?
+  description    String?
+  foundedAt      DateTime? @db.Date
+  comunaId       String
+  sectorId       String?
+
+  rating        Int     @default(1000)
+  ratedMatches  Int     @default(0)
+  matchesPlayed Int     @default(0)
+  wins          Int     @default(0)
+  draws         Int     @default(0)
+  losses        Int     @default(0)
+  goalsFor      Int     @default(0)
+  goalsAgainst  Int     @default(0)
+  streak        String? // ej. "GGEPG" (últimos 5, más reciente a la derecha)
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  comuna             Comuna              @relation(fields: [comunaId], references: [id])
+  sector             Sector?             @relation(fields: [sectorId], references: [id])
+  members            TeamMember[]
+  invitations        TeamInvitation[]
+  homeMatches        Match[]             @relation("HomeTeam")
+  awayMatches        Match[]             @relation("AwayTeam")
+  challengesCreated  Challenge[]         @relation("ChallengeCreator")
+  challengesReceived Challenge[]         @relation("ChallengeTarget")
+  proposals          ChallengeProposal[]
+  seasons            SeasonTeam[]
+  reportsAgainst     Report[]
+
+  @@index([comunaId])
+  @@index([rating])
+}
+
+model TeamMember {
+  id        String    @id @default(cuid())
+  teamId    String
+  userId    String
+  role      TeamRole  @default(PLAYER)
+  number    Int? // número de camiseta
+  joinedAt  DateTime  @default(now())
+  leftAt    DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  team Team @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([teamId, userId])
+  @@index([userId])
+}
+
+model TeamInvitation {
+  id          String           @id @default(cuid())
+  teamId      String
+  kind        InvitationKind
+  status      InvitationStatus @default(PENDING)
+  senderId    String
+  targetId    String? // null cuando es un link compartible
+  token       String?          @unique // para links compartibles
+  message     String?
+  expiresAt   DateTime?
+  respondedAt DateTime?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  team   Team  @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  sender User  @relation("InvitationSender", fields: [senderId], references: [id])
+  target User? @relation("InvitationTarget", fields: [targetId], references: [id])
+
+  @@index([teamId, status])
+  @@index([targetId, status])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Canchas
+// ─────────────────────────────────────────────────────────────
+
+model Venue {
+  id             String         @id @default(cuid())
+  name           String
+  address        String?
+  latitude       Float?
+  longitude      Float?
+  surface        Surface
+  isCovered      Boolean        @default(false)
+  hasLighting    Boolean        @default(false)
+  contact        String?
+  referencePrice Int? // CLP por hora (referencial)
+  notes          String?
+  status         ApprovalStatus @default(PENDING)
+  comunaId       String
+  sectorId       String?
+  proposedById   String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  comuna     Comuna              @relation(fields: [comunaId], references: [id])
+  sector     Sector?             @relation(fields: [sectorId], references: [id])
+  proposedBy User?               @relation(fields: [proposedById], references: [id])
+  matches    Match[]
+  challenges Challenge[]
+  proposals  ChallengeProposal[]
+
+  @@index([comunaId, status])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Partidos
+// ─────────────────────────────────────────────────────────────
+
+model Match {
+  id              String      @id @default(cuid())
+  type            MatchType
+  status          MatchStatus @default(OPEN)
+  comunaId        String
+  venueId         String?
+  organizerId     String
+  startsAt        DateTime
+  durationMinutes Int         @default(60)
+  playersPerSide  Int // 5 → 5v5, 7 → 7v7…
+  maxPlayers      Int? // revoltijo: cupos totales
+  minRating       Int?
+  maxRating       Int?
+  pricePerPerson  Int? // CLP
+  notes           String?
+
+  // Desafío / liga
+  homeTeamId String?
+  awayTeamId String?
+  seasonId   String?
+  round      Int? // fecha del fixture
+
+  // Resultado final (lo que queda tras confirmar o resolver disputa)
+  scoreA            Int?
+  scoreB            Int?
+  resultConfirmedAt DateTime?
+  teamsDrawnAt      DateTime? // revoltijo: cuándo se armaron los equipos
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  comuna        Comuna             @relation(fields: [comunaId], references: [id])
+  venue         Venue?             @relation(fields: [venueId], references: [id])
+  organizer     User               @relation("MatchOrganizer", fields: [organizerId], references: [id])
+  homeTeam      Team?              @relation("HomeTeam", fields: [homeTeamId], references: [id])
+  awayTeam      Team?              @relation("AwayTeam", fields: [awayTeamId], references: [id])
+  season        Season?            @relation(fields: [seasonId], references: [id])
+  participants  MatchParticipant[]
+  resultReports ResultReport[]
+  goals         Goal[]
+  peerReviews   PeerReview[]
+  ratingHistory RatingHistory[]
+  challenge     Challenge?
+  reports       Report[]
+
+  @@index([comunaId, status, startsAt])
+  @@index([type, status])
+  @@index([startsAt])
+  @@index([seasonId])
+}
+
+model MatchParticipant {
+  id        String            @id @default(cuid())
+  matchId   String
+  userId    String
+  side      Side? // se asigna al armar equipos (revoltijo) o según equipo
+  status    ParticipantStatus @default(REGISTERED)
+  // Orden de inscripción: define quién sube desde la lista de espera
+  joinedAt  DateTime          @default(now())
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  match Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id])
+
+  @@unique([matchId, userId])
+  @@index([userId, status])
+  @@index([matchId, status])
+}
+
+// "Buscamos rival": publicación de un equipo, con propuestas y contrapropuestas.
+model Challenge {
+  id             String          @id @default(cuid())
+  creatorTeamId  String
+  targetTeamId   String? // desafío directo desde el perfil de un equipo
+  status         ChallengeStatus @default(OPEN)
+  windowStart    DateTime // fecha/hora o inicio del rango
+  windowEnd      DateTime? // fin del rango (null = fecha fija)
+  venueId        String? // null = "a coordinar"
+  playersPerSide Int
+  minRating      Int?
+  maxRating      Int?
+  notes          String?
+  matchId        String?         @unique // se crea al aceptar
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  creatorTeam Team                @relation("ChallengeCreator", fields: [creatorTeamId], references: [id])
+  targetTeam  Team?               @relation("ChallengeTarget", fields: [targetTeamId], references: [id])
+  venue       Venue?              @relation(fields: [venueId], references: [id])
+  match       Match?              @relation(fields: [matchId], references: [id])
+  proposals   ChallengeProposal[]
+
+  @@index([status, windowStart])
+}
+
+model ChallengeProposal {
+  id           String         @id @default(cuid())
+  challengeId  String
+  teamId       String // equipo que propone
+  proposedById String // capitán que propone
+  startsAt     DateTime
+  venueId      String?
+  message      String?
+  status       ProposalStatus @default(PENDING)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  challenge  Challenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+  team       Team      @relation(fields: [teamId], references: [id])
+  proposedBy User      @relation(fields: [proposedById], references: [id])
+  venue      Venue?    @relation(fields: [venueId], references: [id])
+
+  @@index([challengeId, status])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Resultados
+// ─────────────────────────────────────────────────────────────
+
+model ResultReport {
+  id         String   @id @default(cuid())
+  matchId    String
+  reporterId String
+  side       Side? // lado que reporta (null en revoltijo: reporta el organizador)
+  scoreA     Int
+  scoreB     Int
+  mvpId      String?
+  comment    String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  match    Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  reporter User  @relation(fields: [reporterId], references: [id])
+  mvp      User? @relation("ResultMvp", fields: [mvpId], references: [id])
+
+  @@unique([matchId, side])
+  @@index([matchId])
+}
+
+model Goal {
+  id        String   @id @default(cuid())
+  matchId   String
+  scorerId  String
+  side      Side
+  count     Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  match  Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  scorer User  @relation(fields: [scorerId], references: [id])
+
+  @@unique([matchId, scorerId])
+  @@index([scorerId])
+}
+
+// Valoración entre compañeros tras el partido (1–5, anónima para el valorado).
+// En CLAUDE.md figura como "PlayerRating"; se renombró para no confundir con el rango Elo.
+model PeerReview {
+  id        String   @id @default(cuid())
+  matchId   String
+  authorId  String
+  targetId  String
+  score     Int // 1–5 (validado con Zod)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  match  Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  author User  @relation("ReviewAuthor", fields: [authorId], references: [id])
+  target User  @relation("ReviewTarget", fields: [targetId], references: [id])
+
+  @@unique([matchId, authorId, targetId])
+  @@index([targetId])
+}
+
+// Cada cambio de rango (jugador o equipo), para graficar la evolución.
+model RatingHistory {
+  id        String        @id @default(cuid())
+  subject   RatingSubject
+  userId    String? // si subject = PLAYER
+  teamId    String? // si subject = TEAM
+  matchId   String
+  before    Int
+  after     Int
+  delta     Int
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  match Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([teamId, createdAt])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Ligas
+// ─────────────────────────────────────────────────────────────
+
+model League {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  rules       String? // reglamento en texto libre
+  comunaId    String
+  organizerId String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  comuna    Comuna   @relation(fields: [comunaId], references: [id])
+  organizer User     @relation(fields: [organizerId], references: [id])
+  seasons   Season[]
+
+  @@index([comunaId])
+}
+
+model Season {
+  id             String       @id @default(cuid())
+  leagueId       String
+  name           String // ej. "Apertura 2027"
+  status         SeasonStatus @default(DRAFT)
+  fixtureMode    FixtureMode  @default(SINGLE_ROUND)
+  playersPerSide Int          @default(7)
+  pointsWin      Int          @default(3)
+  pointsDraw     Int          @default(1)
+  startsOn       DateTime?    @db.Date
+  endsOn         DateTime?    @db.Date
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  league  League       @relation(fields: [leagueId], references: [id], onDelete: Cascade)
+  teams   SeasonTeam[]
+  matches Match[]
+
+  @@index([leagueId, status])
+}
+
+model SeasonTeam {
+  id        String   @id @default(cuid())
+  seasonId  String
+  teamId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  season Season @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  team   Team   @relation(fields: [teamId], references: [id])
+
+  @@unique([seasonId, teamId])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Notificaciones y moderación
+// ─────────────────────────────────────────────────────────────
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  type      NotificationType
+  title     String
+  body      String?
+  href      String? // a dónde lleva al tocarla
+  readAt    DateTime?
+  emailedAt DateTime?
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt])
+}
+
+model Report {
+  id            String       @id @default(cuid())
+  authorId      String
+  targetType    ReportTarget
+  targetUserId  String?
+  targetTeamId  String?
+  targetMatchId String?
+  reason        String
+  status        ReportStatus @default(OPEN)
+  resolution    String?
+  resolvedAt    DateTime?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  author      User   @relation("ReportAuthor", fields: [authorId], references: [id])
+  targetUser  User?  @relation("ReportTargetUser", fields: [targetUserId], references: [id])
+  targetTeam  Team?  @relation(fields: [targetTeamId], references: [id])
+  targetMatch Match? @relation(fields: [targetMatchId], references: [id])
+
+  @@index([status])
+}
