@@ -31,6 +31,8 @@ export async function createPickup(input: unknown) {
         data: {
           name: data.newVenueName!,
           surface: data.newVenueSurface ?? "SYNTHETIC",
+          latitude: data.newVenueLat ?? null,
+          longitude: data.newVenueLng ?? null,
           comunaId: profile.comunaId,
           proposedById: user.id,
         },
@@ -93,6 +95,7 @@ export async function joinMatch(input: unknown) {
       const existing = await tx.matchParticipant.findUnique({
         where: { matchId_userId: { matchId, userId: user.id } },
       });
+      if (existing?.status === "KICKED") throw new AuthError("El organizador te sacó de este partido.");
       if (existing && existing.status !== "WITHDRAWN") throw new AuthError("Ya estás en este partido.");
 
       const capacity = match.maxPlayers ?? match.playersPerSide * 2;

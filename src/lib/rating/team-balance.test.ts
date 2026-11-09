@@ -34,4 +34,12 @@ describe("balanceTeams", () => {
     const players = [p("a", 1000), p("b", 1000), p("c", 1000, true), p("d", 900)];
     expect(balanceTeams(players)).toEqual(balanceTeams([...players].reverse()));
   });
+
+  it("con cantidad impar empareja promedios, no sumas", () => {
+    // 9 jugadores (como un revoltijo real con uno de más): 5 contra 4
+    const ratings = [1530, 1320, 1180, 1105, 1060, 1015, 990, 905, 870];
+    const res = balanceTeams(ratings.map((r, i) => p(`p${i}`, r, i === 5 || i === 7)));
+    expect(Math.abs(res.sideA.length - res.sideB.length)).toBe(1);
+    expect(Math.abs(res.avgA - res.avgB)).toBeLessThanOrEqual(40);
+  });
 });

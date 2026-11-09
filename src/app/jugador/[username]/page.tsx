@@ -1,9 +1,12 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { PlayerCommunity } from "@/components/features/player/player-community";
 import { ProfileView } from "@/components/features/player/profile-view";
 import { Container } from "@/components/layout/container";
-import { getPublicProfile } from "@/server/queries/players";
+import { getPlayerCommunity, getPublicProfile } from "@/server/queries/players";
+import { finalizeDueResults } from "@/server/services/finalize-results";
+import { getCurrentUser } from "@/server/session";
 
 export const metadata: Metadata = { title: "Jugador" };
 
@@ -19,7 +22,23 @@ export default function PlayerPage({ params }: PageProps<"/jugador/[username]">)
 
 async function PublicProfile({ params }: { params: PageProps<"/jugador/[username]">["params"] }) {
   const { username } = await params;
+  const viewer = await getCurrentUser();
+  await finalizeDueResults();
   const profile = await getPublicProfile(decodeURIComponent(username));
   if (!profile) notFound();
-  return <ProfileView profile={profile} />;
+  const community = await getPlayerCommunity(profile.userId);
+  return (
+    <div className="space-y-8">
+      <ProfileView profile={profile} />
+      <PlayerCommunity
+        profile={profile}
+        community={community}
+        viewer={{
+          userId: viewer?.id ?? null,
+          hasProfile: Boolean(viewer?.profile),
+          isAdmin: viewer?.role === "ADMIN",
+        }}
+      />
+    </div>
+  );
 }

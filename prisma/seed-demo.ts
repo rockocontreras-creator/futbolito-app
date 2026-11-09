@@ -42,6 +42,9 @@ async function main() {
       surface: "SYNTHETIC" as const,
       hasLighting: true,
       referencePrice: 30000,
+      // Coordenadas inventadas cerca del centro de San Clemente: solo para probar el mapa en local.
+      latitude: -35.5368,
+      longitude: -71.4889,
     },
     {
       name: "Complejo Los Aromos",
@@ -49,6 +52,8 @@ async function main() {
       hasLighting: true,
       isCovered: true,
       referencePrice: 36000,
+      latitude: -35.5412,
+      longitude: -71.4821,
     },
     { name: "Cancha de la Villa Esperanza", surface: "DIRT" as const, hasLighting: false },
   ];

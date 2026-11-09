@@ -5,6 +5,7 @@ import { PublishPickupForm } from "@/components/features/match/publish-pickup-fo
 import { Container } from "@/components/layout/container";
 import { PageHeader } from "@/components/layout/page-header";
 import { suggestedPickupStart } from "@/lib/dates";
+import { db } from "@/lib/db";
 import { listSelectableVenues } from "@/server/queries/venues";
 import { getCurrentUser } from "@/server/session";
 
@@ -37,6 +38,17 @@ async function PublishGate() {
   }
   if (!user.profile) return <ProfileRequired next="/publicar" />;
 
-  const venues = await listSelectableVenues(user.profile.comunaId, user.id);
-  return <PublishPickupForm venues={venues} defaultStart={suggestedPickupStart()} />;
+  const [venues, comuna] = await Promise.all([
+    listSelectableVenues(user.profile.comunaId, user.id),
+    db.comuna.findUnique({ where: { id: user.profile.comunaId } }),
+  ]);
+  return (
+    <PublishPickupForm
+      venues={venues}
+      defaultStart={suggestedPickupStart()}
+      center={
+        comuna?.latitude && comuna.longitude ? { lat: comuna.latitude, lng: comuna.longitude } : undefined
+      }
+    />
+  );
 }

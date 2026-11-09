@@ -1,4 +1,4 @@
-import { CalendarPlus, Search, Shuffle, UserPlus } from "lucide-react";
+import { CalendarPlus, MapPin, Medal, Search, Shuffle, UserPlus, UserSearch } from "lucide-react";
 import Link from "next/link";
 import { connection } from "next/server";
 import { Suspense } from "react";
@@ -87,6 +87,30 @@ export default function HomePage() {
           </Suspense>
         </section>
 
+        <section aria-labelledby="atajos" className="space-y-4">
+          <h2 id="atajos" className="sr-only">
+            Atajos
+          </h2>
+          <ul className="grid gap-3 sm:grid-cols-3">
+            {shortcuts.map(({ href, icon: Icon, title, text }) => (
+              <li key={href}>
+                <Link
+                  href={href}
+                  className="flex h-full items-center gap-4 rounded-xl border bg-card p-5 transition-colors hover:border-primary/40 focus-visible:ring-4 focus-visible:ring-ring/30 focus-visible:outline-none"
+                >
+                  <span className="grid size-12 shrink-0 place-items-center rounded-full bg-cancha text-foco">
+                    <Icon className="size-6" aria-hidden />
+                  </span>
+                  <span>
+                    <span className="block text-lg font-bold">{title}</span>
+                    <span className="text-sm text-muted-foreground">{text}</span>
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+
         <section aria-labelledby="como" className="grid gap-10 lg:grid-cols-[1fr_1.2fr]">
           <div className="space-y-3">
             <h2 id="como" className="text-4xl font-display text-cancha dark:text-white">
@@ -145,6 +169,17 @@ export default function HomePage() {
     </>
   );
 }
+
+const shortcuts = [
+  {
+    href: "/se-busca",
+    icon: UserSearch,
+    title: "¿Te falta uno?",
+    text: "Publica cuántos faltan y la gente se ofrece",
+  },
+  { href: "/canchas", icon: MapPin, title: "Canchas", text: "Mapa de dónde se juega y cómo llegar" },
+  { href: "/ranking", icon: Medal, title: "Clasificación", text: "Los de mejor rango de la comuna" },
+] as const;
 
 const sizes = ["size-8", "size-9", "size-10", "size-11", "size-12"];
 

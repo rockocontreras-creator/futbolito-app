@@ -1,26 +1,28 @@
 "use client";
 
-import { Home, PlusCircle, Search, Trophy, User } from "lucide-react";
+import { LayoutGrid, Medal, PlusCircle, Search, UserSearch } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Suspense } from "react";
 import { cn } from "@/lib/utils";
 
+// Móvil: lo más usado abajo; el resto (canchas, equipos, ligas, torneos, perfil) vive en "Más".
 const items = [
-  { href: "/", label: "Inicio", icon: Home },
   { href: "/partidos", label: "Partidos", icon: Search },
+  { href: "/se-busca", label: "Se busca", icon: UserSearch },
   { href: "/publicar", label: "Publicar", icon: PlusCircle },
-  { href: "/ligas", label: "Ligas", icon: Trophy },
-  { href: "/perfil", label: "Perfil", icon: User },
+  { href: "/ranking", label: "Ranking", icon: Medal },
+  { href: "/mas", label: "Más", icon: LayoutGrid },
 ] as const;
 
-// En escritorio hay espacio para todo; en móvil "Equipos" se alcanza desde Ligas, la portada y el pie.
 const topItems = [
   { href: "/partidos", label: "Partidos" },
+  { href: "/se-busca", label: "Se busca" },
+  { href: "/canchas", label: "Canchas" },
+  { href: "/ranking", label: "Ranking" },
   { href: "/equipos", label: "Equipos" },
   { href: "/ligas", label: "Ligas" },
-  { href: "/publicar", label: "Publicar" },
-  { href: "/perfil", label: "Perfil" },
+  { href: "/torneos", label: "Torneos" },
 ] as const;
 
 function useIsActive() {
@@ -59,7 +61,7 @@ function BottomNavLive() {
 /** Navegación de escritorio, en el header. */
 function TopNavView({ isActive }: { isActive: IsActive }) {
   return (
-    <nav aria-label="Principal" className="hidden md:block">
+    <nav aria-label="Principal" className="hidden lg:block">
       <ul className="flex items-center gap-1">
         {topItems.map(({ href, label }) => (
           <li key={href}>
@@ -67,7 +69,7 @@ function TopNavView({ isActive }: { isActive: IsActive }) {
               href={href}
               aria-current={isActive(href) ? "page" : undefined}
               className={cn(
-                "rounded-full px-3.5 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground",
+                "rounded-full px-3 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground",
                 isActive(href) && "bg-secondary text-foreground",
               )}
             >
@@ -85,7 +87,7 @@ function BottomNavView({ isActive }: { isActive: IsActive }) {
   return (
     <nav
       aria-label="Principal"
-      className="fixed inset-x-0 bottom-0 z-40 border-t bg-card/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md md:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 border-t bg-card/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md lg:hidden"
     >
       <ul className="mx-auto grid max-w-md grid-cols-5 items-end">
         {items.map(({ href, label, icon: Icon }) => {

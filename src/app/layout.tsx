@@ -31,7 +31,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
             Saltar al contenido
           </a>
           <SiteHeader />
-          <main id="contenido" className="flex-1 pb-28 md:pb-16">
+          <main id="contenido" className="flex-1 pb-28 lg:pb-16">
             {children}
           </main>
           <SiteFooter />

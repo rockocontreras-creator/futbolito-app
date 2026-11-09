@@ -24,9 +24,15 @@ Fases cortas, cada una deployable. Marcar con [x] al terminar.
 - [x] Proponer cancha (desde el formulario de publicar; queda pendiente de aprobación)
 - [x] Publicar revoltijo, inscribirse, lista de espera, salirse
 - [x] Feed "Partidos cerca de ti" (lista) con filtros básicos
-- [ ] Armar equipos (balance automático + ajuste manual)
+- [x] Armar equipos (balance automático + ajuste manual), expulsar y mover jugadores
 - [x] Compartir por WhatsApp
-- [ ] Reportar resultado (organizador) + objeción en 24 h → actualizar rango
+- [x] Reportar resultado (organizador) + objeción en 24 h → actualizar rango
+- [x] Valoraciones entre jugadores con etiquetas, comentarios en perfiles y apodos automáticos
+- [x] Foto de perfil (Supabase Storage)
+- [x] Clasificación de jugadores y equipos
+- [x] Mapa de canchas y proponer cancha con ubicación
+- [x] Se busca jugadores
+- [x] Torneos: página "Próximamente"
 - [x] Perfil público `/jugador/[username]` con división y estadísticas
 
 ## Fase 2 · Equipos y desafíos
@@ -47,7 +53,7 @@ Fases cortas, cada una deployable. Marcar con [x] al terminar.
 
 ## Fase 4 · Pulido y comunidad
 
-- [ ] Vista mapa (Leaflet)
+- [x] Vista mapa (Leaflet)
 - [ ] Fair play: asistencia/no-shows y valoraciones entre pares
 - [ ] Moderación: reportes, suspensiones
 - [ ] PWA con push, íconos, modo offline básico

@@ -16,6 +16,9 @@ export const createPickupSchema = z
     venueId: z.string().min(1, "Elige una cancha"),
     newVenueName: z.string().trim().max(80).optional(),
     newVenueSurface: z.enum(["SYNTHETIC", "NATURAL", "DIRT"]).optional(),
+    // Ubicación marcada en el mapa (opcional). Rango amplio de Chile continental.
+    newVenueLat: z.coerce.number().min(-56).max(-17).optional(),
+    newVenueLng: z.coerce.number().min(-76).max(-66).optional(),
     startsAtLocal: z
       .string()
       .transform((v, ctx) => {
@@ -56,15 +59,45 @@ export type CreatePickupInput = z.input<typeof createPickupSchema>;
 
 export const matchIdSchema = z.object({ matchId: idSchema });
 
+const playerTag = z.enum([
+  "GOLEADOR",
+  "MURALLA",
+  "PASADOR",
+  "HABILIDOSO",
+  "INCANSABLE",
+  "ATAJADOR",
+  "LIDER",
+  "FAIR_PLAY",
+  "CHUPON",
+  "MOCHILA",
+  "RECLAMON",
+  "PIERNA_FUERTE",
+]);
+
+// Gestión del partido por el organizador
+export const participantActionSchema = z.object({ matchId: idSchema, userId: idSchema });
+export const setSideSchema = participantActionSchema.extend({ side: z.enum(["A", "B"]).nullable() });
+export const moveListSchema = participantActionSchema.extend({ list: z.enum(["REGISTERED", "WAITLIST"]) });
+
+// Resultado (revoltijo: lo reporta el organizador)
 export const reportResultSchema = z.object({
   matchId: idSchema,
-  scoreA: z.coerce.number().int().min(0).max(99),
-  scoreB: z.coerce.number().int().min(0).max(99),
-  mvpId: idSchema.optional(),
+  scoreA: z.coerce.number().int().min(0, "No puede ser negativo").max(99),
+  scoreB: z.coerce.number().int().min(0, "No puede ser negativo").max(99),
+  goals: z
+    .array(z.object({ userId: idSchema, count: z.coerce.number().int().min(1).max(30) }))
+    .max(40)
+    .default([]),
+  mvpId: idSchema.optional().nullable(),
+  noShowIds: z.array(idSchema).max(40).default([]),
 });
+export type ReportResultInput = z.input<typeof reportResultSchema>;
 
+// Valoración entre jugadores del mismo partido
 export const peerReviewSchema = z.object({
   matchId: idSchema,
   targetId: idSchema,
-  score: z.coerce.number().int().min(1).max(5),
+  score: z.coerce.number().int().min(1, "Elige de 1 a 5 estrellas").max(5),
+  tags: z.array(playerTag).max(3, "Máximo 3 etiquetas").default([]),
 });
+export type PeerReviewInput = z.input<typeof peerReviewSchema>;
