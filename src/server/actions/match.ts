@@ -64,6 +64,8 @@ export async function createPickup(input: unknown) {
         maxRating: data.maxRating,
         pricePerPerson: data.pricePerPerson,
         notes: data.notes || null,
+        colorA: data.colorA,
+        colorB: data.colorB,
         participants: { create: { userId: user.id, status: "REGISTERED" } },
       },
     });

@@ -41,10 +41,22 @@ export const createPickupSchema = z
     maxRating: optionalInt(0, 3000),
     pricePerPerson: optionalInt(0, 100_000),
     notes: z.string().trim().max(500, "Máximo 500 caracteres").optional(),
+    colorA: z
+      .string()
+      .regex(/^#[0-9a-fA-F]{6}$/, "Elige un color")
+      .default("#0e5a36"),
+    colorB: z
+      .string()
+      .regex(/^#[0-9a-fA-F]{6}$/, "Elige un color")
+      .default("#ffd23f"),
   })
   .refine((d) => d.maxPlayers >= d.playersPerSide * 2, {
     message: "Los cupos no alcanzan para dos equipos completos",
     path: ["maxPlayers"],
+  })
+  .refine((d) => d.colorA.toLowerCase() !== d.colorB.toLowerCase(), {
+    message: "Los equipos necesitan colores distintos",
+    path: ["colorB"],
   })
   .refine((d) => d.minRating === undefined || d.maxRating === undefined || d.minRating <= d.maxRating, {
     message: "El mínimo no puede ser mayor que el máximo",

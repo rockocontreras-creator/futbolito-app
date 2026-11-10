@@ -2,14 +2,35 @@ import Link from "next/link";
 import { DivisionBadge } from "@/components/features/player/division-badge";
 import { PlayerAvatar } from "@/components/features/player/player-avatar";
 import { POSITION_LABEL } from "@/lib/labels";
+import { colorName, readableTextOn } from "@/lib/colors";
 import { cn } from "@/lib/utils";
 import { balanceLabel } from "@/server/services/match-result";
 import { averageRating, type RosterPlayer } from "./roster-types";
 
 export const SIDE_NAME = { A: "Equipo A", B: "Equipo B" } as const;
 
+export type TeamColors = { A: string; B: string };
+export const DEFAULT_COLORS: TeamColors = { A: "#0e5a36", B: "#ffd23f" };
+
+/** Estilo de la cabecera de un equipo con su color de camiseta. */
+export function sideStyle(colors: TeamColors, side: "A" | "B"): React.CSSProperties {
+  return { backgroundColor: colors[side], color: readableTextOn(colors[side]) };
+}
+
+export function sideTitle(colors: TeamColors, side: "A" | "B", count?: number) {
+  return `${SIDE_NAME[side]} · ${colorName(colors[side])}${count != null ? ` (${count})` : ""}`;
+}
+
 /** Indicador de nivelación: promedios de cada lado y qué tan parejo quedó. */
-export function BalanceMeter({ a, b }: { a: readonly RosterPlayer[]; b: readonly RosterPlayer[] }) {
+export function BalanceMeter({
+  a,
+  b,
+  colors = DEFAULT_COLORS,
+}: {
+  a: readonly RosterPlayer[];
+  b: readonly RosterPlayer[];
+  colors?: TeamColors;
+}) {
   const avgA = averageRating(a);
   const avgB = averageRating(b);
   if (avgA == null || avgB == null) return null;
@@ -38,9 +59,9 @@ export function BalanceMeter({ a, b }: { a: readonly RosterPlayer[]; b: readonly
         </span>
       </div>
       <div className="flex h-2.5 overflow-hidden rounded-full bg-secondary" aria-hidden>
-        <span className="bg-cancha" style={{ width: `${share}%` }} />
+        <span style={{ width: `${share}%`, backgroundColor: colors.A }} />
         <span className="w-0.5 bg-card" />
-        <span className="flex-1 bg-foco" />
+        <span className="flex-1" style={{ backgroundColor: colors.B }} />
       </div>
     </div>
   );
@@ -100,26 +121,23 @@ export function TeamsView({
   players,
   goalsOf,
   mvpId,
+  colors = DEFAULT_COLORS,
 }: {
   players: readonly RosterPlayer[];
   goalsOf?: ReadonlyMap<string, number>;
   mvpId?: string | null;
+  colors?: TeamColors;
 }) {
   const a = players.filter((p) => p.side === "A");
   const b = players.filter((p) => p.side === "B");
   return (
     <div className="space-y-4">
-      <BalanceMeter a={a} b={b} />
+      <BalanceMeter a={a} b={b} colors={colors} />
       <div className="grid gap-3 sm:grid-cols-2">
         {(["A", "B"] as const).map((side) => (
           <div key={side} className="overflow-hidden rounded-lg border">
-            <h3
-              className={cn(
-                "px-4 py-2 text-sm font-bold",
-                side === "A" ? "bg-cancha text-white" : "bg-foco text-[#2a2205]",
-              )}
-            >
-              {SIDE_NAME[side]} ({side === "A" ? a.length : b.length})
+            <h3 className="px-4 py-2 text-sm font-bold" style={sideStyle(colors, side)}>
+              {sideTitle(colors, side, side === "A" ? a.length : b.length)}
             </h3>
             <ul className="divide-y">
               {(side === "A" ? a : b).map((p) => (
