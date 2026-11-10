@@ -91,9 +91,14 @@ Aunque partimos solo en San Clemente, el modelo debe permitir crecer a otras com
 
 ### 5.1 Perfil de jugador
 
-- Nombre, apodo, foto, fecha de nacimiento (solo se muestra la edad), sector, teléfono (privado;
-  visible solo para compañeros de partido confirmados).
-- Posición preferida: `ARQUERO`, `DEFENSA`, `MEDIO`, `DELANTERO` (+ secundaria opcional).
+- Nombre, apodo, foto, fecha de nacimiento (**obligatoria; edad mínima 14 años**; solo se muestra la edad),
+  género opcional, sector, teléfono (privado; visible solo para compañeros de partido confirmados).
+- **Menores de 18**: no se muestra su edad exacta ni su teléfono/WhatsApp a nadie (tampoco en "Se busca").
+- Posición preferida: `ARQUERO`, `DEFENSA`, `MEDIO`, `DELANTERO` o `COMODÍN` (`FLEX`, cualquier posición)
+  (+ secundaria opcional).
+- **Etiquetas del perfil** (`src/lib/profile-badges.ts`, se calculan, no se guardan): "Jugadora" (género
+  femenino), "Viejo crack" (mayor de 35), "Joven promesa" (menor de 18), "Comodín".
+- Se puede editar el perfil en `/perfil/editar` (el rango no se toca ahí).
 - Pie hábil, nivel autodeclarado inicial (Principiante / Intermedio / Avanzado) que define el
   rating inicial.
 - Disponibilidad semanal (días y franjas horarias).
@@ -127,6 +132,13 @@ Aunque partimos solo en San Clemente, el modelo debe permitir crecer a otras com
 - Al cerrar inscripciones, el organizador pulsa **"Armar equipos"**: el sistema balancea los
   equipos por rating (algoritmo tipo _snake draft_, repartiendo arqueros primero). El organizador
   puede ajustar manualmente.
+- El organizador elige el **color de cada equipo** (2 colores distintos de una paleta fija,
+  `src/lib/colors.ts`); se usan en el armado, el marcador y el reporte.
+- **Sala del partido**: chat para inscritos y organizador (no expulsados ni retirados). Se actualiza cada 4 s
+  mientras la pestaña está visible. Cada mensaje lo borra su autor, el organizador o un admin.
+- **Clima**: pronóstico de Open-Meteo para la hora y ubicación de la cancha (hasta 15 días antes). Si hay
+  mal clima se muestra un aviso en el partido, un ícono en la tarjeta y una notificación en la campana a los
+  inscritos (48 h antes, una vez por tipo de alerta).
 - Botón **"Compartir por WhatsApp"** con texto prearmado y link (clave en Chile).
 - El organizador gestiona el plantel: expulsar (`KICKED`, no puede volver a inscribirse), mover entre equipo
   A/B/sin equipo, subir o bajar de la lista de espera. La nivelación compara **promedios** de rango por lado.
@@ -151,9 +163,11 @@ Aunque partimos solo en San Clemente, el modelo debe permitir crecer a otras com
 - Si ambos coinciden → `RESULT_CONFIRMED` y se actualiza el rango.
 - Si no coinciden → `DISPUTED` → lo resuelve el organizador (liga) o un admin.
 - Si un lado no reporta en 48 h, se confirma automáticamente lo reportado por el otro.
-- En revoltijos: reporta el organizador y se confirma si la mayoría de los participantes no lo
-  objeta en 24 h. Sin cron: el cierre es "perezoso" (`finalizeDueResults`) al abrir el partido, un perfil o la
-  clasificación. Hay que tener los equipos armados (lado A/B) para reportar.
+- En revoltijos: reporta el organizador (su reporte cuenta como 1 confirmación) y a los que jugaron les llega
+  un aviso para **confirmar o rechazar**. Se confirma cuando lo aprueba la **mayoría absoluta** de los que
+  jugaron (`floor(n/2)+1`). Si la mitad o más lo rechaza → `DISPUTED` (lo resuelve un admin o el organizador
+  corrige el reporte, que reinicia la votación). Si no se llega a mayoría, **queda pendiente** (sin plazo).
+  Hay que tener los equipos armados (lado A/B) para reportar.
 - Después del partido, quienes jugaron se valoran entre sí (1–5 estrellas + hasta 3 etiquetas `PlayerTag`)
   durante 7 días. Es anónimo para el valorado.
 
@@ -185,6 +199,9 @@ Aunque partimos solo en San Clemente, el modelo debe permitir crecer a otras com
 
 ### 5.7 Búsqueda (pantalla principal)
 
+- **Carrusel de noticias** de la comuna bajo la portada (`src/server/queries/news.ts`): próximo
+  enfrentamiento, próximo revoltijo, máximo goleador, N°1 del ranking, último resultado, búsquedas abiertas,
+  equipo nuevo. Solo aparecen las que tienen datos.
 - Feed "Partidos cerca de ti" con filtros: tipo, fecha, sector, formato, cupos disponibles, rango.
 - Vista lista y vista mapa.
 - Buscador de jugadores y equipos (para invitar o desafiar).
@@ -194,6 +211,8 @@ Aunque partimos solo en San Clemente, el modelo debe permitir crecer a otras com
 - En la app (campana) y por email. Push web (PWA) en una fase posterior.
 - Eventos: invitación a equipo, alguien se sumó a tu revoltijo, revoltijo lleno, desafío
   aceptado, recordatorio 2 h antes, reportar resultado, cambio de rango.
+- Hechas: confirmar resultado (`CONFIRM_RESULT`) y alerta de clima (`WEATHER_ALERT`). `Notification.key`
+  evita duplicados. La página es `/notificaciones`.
 
 ### 5.9 Moderación
 
@@ -238,7 +257,7 @@ Basado en **Elo**, simple de explicar y robusto.
 `TeamMember` · `TeamInvitation` · `Match` · `MatchParticipant` (jugador, lado A/B, estado
 inscrito/espera/asistió/no-show) · `Challenge` (propuestas entre equipos) · `ResultReport` ·
 `Goal` · `PeerReview` (valoración entre pares con etiquetas; antes "PlayerRating") · `RatingHistory` ·
-`ResultObjection` · `ProfileComment` · `PlayerRequest` · `PlayerRequestResponse` · `League` · `Season` ·
+`ResultObjection` · `ResultConfirmation` · `MatchMessage` (chat) · `ProfileComment` · `PlayerRequest` · `PlayerRequestResponse` · `League` · `Season` ·
 `SeasonTeam` · `Notification` · `Report` (moderación).
 
 Reglas: IDs `cuid()`, `createdAt`/`updatedAt` en todas las tablas, soft-delete (`deletedAt`)

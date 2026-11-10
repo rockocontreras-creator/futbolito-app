@@ -118,3 +118,23 @@ como aplicada.
 entra con Prisma como el rol `postgres` (dueño de las tablas, que no queda sujeto a RLS). Activar RLS
 sin políticas bloquea el acceso a las tablas con las llaves `anon`/`authenticated`, que quedan públicas
 en el navegador. Si algún día se usa Supabase Realtime o la API REST, hay que crear políticas.
+
+## 2026-11-10 · Sala, colores, clima, mayoría y etiquetas
+
+**Resultado por mayoría.** Reemplaza "se confirma si nadie objeta en 24 h". Ahora cuenta cuando confirma la
+mayoría absoluta de los que jugaron (el organizador cuenta). Sin mayoría queda pendiente: preferimos un
+resultado sin confirmar a uno que nadie aprobó. Si la mitad o más lo rechaza, pasa a disputa.
+
+**Clima con Open-Meteo.** Gratis, sin API key ni registro. Uso no comercial gratis; si la app empieza a
+cobrar hay que pasar a su plan pagado o cambiar de proveedor. El pronóstico se guarda en caché una hora
+(`"use cache"`), así que no se llama por cada visita. Si falla, simplemente no se muestra.
+
+**Chat con sondeo (polling) cada 4 s** en vez de websockets o Supabase Realtime: funciona en Vercel sin
+servicios extra ni políticas RLS nuevas. Si crece el uso, migrar a Supabase Realtime.
+
+**Edad mínima 14 años y cuidado con menores.** La fecha de nacimiento pasa a ser obligatoria al crear o
+editar el perfil. A menores de 18 no se les muestra la edad exacta ni el teléfono/WhatsApp. "Joven promesa"
+es para menores de 18 (no 15, para que coincida con esa regla).
+
+**Etiquetas y colores sin tabla nueva.** Las etiquetas del perfil se calculan (como los apodos). Los colores
+del revoltijo son dos columnas en `Match` con valores de una paleta fija validada con Zod.
