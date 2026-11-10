@@ -30,6 +30,7 @@ export async function createProfile(input: unknown) {
         displayName: data.displayName,
         nickname: data.nickname,
         birthDate: data.birthDate,
+        gender: data.gender ?? null,
         phone: data.phone,
         comunaId: comuna.id,
         sectorId: sector?.id,
@@ -41,6 +42,40 @@ export async function createProfile(input: unknown) {
       },
     });
     return { username: profile.username };
+  });
+}
+
+/** Edita el perfil. El nivel y el rango no cambian: el rango se mueve jugando. */
+export async function updateProfile(input: unknown) {
+  return runAction(playerProfileSchema, input, async (data) => {
+    const user = await requireUser();
+    const profile = await db.playerProfile.findUnique({ where: { userId: user.id } });
+    if (!profile) throw new AuthError("Primero crea tu perfil.");
+    if (
+      data.username !== profile.username &&
+      (await db.playerProfile.findUnique({ where: { username: data.username } }))
+    ) {
+      throw new FieldError("username", "Ese usuario ya está tomado. Prueba con otro.");
+    }
+    const sector = data.sectorId
+      ? await db.sector.findFirst({ where: { id: data.sectorId, comunaId: profile.comunaId } })
+      : null;
+    const updated = await db.playerProfile.update({
+      where: { id: profile.id },
+      data: {
+        username: data.username,
+        displayName: data.displayName,
+        nickname: data.nickname ?? null,
+        birthDate: data.birthDate,
+        gender: data.gender ?? null,
+        phone: data.phone ?? null,
+        sectorId: sector?.id ?? null,
+        primaryPosition: data.primaryPosition,
+        secondaryPosition: data.secondaryPosition ?? null,
+        foot: data.foot,
+      },
+    });
+    return { username: updated.username };
   });
 }
 

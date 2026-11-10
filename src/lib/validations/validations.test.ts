@@ -63,11 +63,19 @@ describe("playerProfileSchema", () => {
     skillLevel: "INTERMEDIATE",
     phone: "",
     secondaryPosition: "",
+    birthDate: "1995-03-10",
   };
   it("normaliza el usuario a minúsculas y acepta opcionales vacíos", () => {
     const r = playerProfileSchema.safeParse(base);
     expect(r.success).toBe(true);
     if (r.success) expect(r.data.username).toBe("rocko_9");
+  });
+  it("exige fecha de nacimiento y edad mínima de 14 años", () => {
+    expect(playerProfileSchema.safeParse({ ...base, birthDate: "" }).success).toBe(false);
+    expect(playerProfileSchema.safeParse({ ...base, birthDate: "2020-01-01" }).success).toBe(false);
+  });
+  it("acepta el comodín como posición", () => {
+    expect(playerProfileSchema.safeParse({ ...base, primaryPosition: "FLEX" }).success).toBe(true);
   });
   it("rechaza posición secundaria igual a la principal", () => {
     expect(playerProfileSchema.safeParse({ ...base, secondaryPosition: "FORWARD" }).success).toBe(false);

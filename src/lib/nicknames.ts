@@ -5,7 +5,7 @@
 import type { PlayerTagId } from "./labels";
 
 export interface NicknameInput {
-  position: "GOALKEEPER" | "DEFENDER" | "MIDFIELDER" | "FORWARD";
+  position: "GOALKEEPER" | "DEFENDER" | "MIDFIELDER" | "FORWARD" | "FLEX";
   matchesPlayed: number;
   wins: number;
   goals: number;

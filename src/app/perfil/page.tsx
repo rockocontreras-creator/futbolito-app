@@ -1,4 +1,4 @@
-import { CalendarDays, LogOut } from "lucide-react";
+import { CalendarDays, LogOut, Pencil } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -72,6 +72,14 @@ async function ProfileGate({ searchParams }: { searchParams: PageProps<"/perfil"
 
   return (
     <div className="space-y-8">
+      {!profile.birthDate && (
+        <p className="rounded-xl border border-foco/60 bg-foco/15 px-4 py-3 text-sm">
+          Completa tu fecha de nacimiento para ganar tus etiquetas.{" "}
+          <Link href="/perfil/editar" className="font-bold text-primary underline-offset-4 hover:underline">
+            Editar perfil
+          </Link>
+        </p>
+      )}
       <ProfileView profile={profile} />
       <section aria-labelledby="foto" className="space-y-3 rounded-xl border bg-card p-5">
         <h2 id="foto" className="text-lg font-bold">
@@ -122,6 +130,11 @@ async function ProfileGate({ searchParams }: { searchParams: PageProps<"/perfil"
         viewer={{ userId: user.id, hasProfile: true, isAdmin: user.role === "ADMIN" }}
       />
       <div className="flex flex-wrap gap-3 border-t pt-6">
+        <Button asChild>
+          <Link href="/perfil/editar">
+            <Pencil aria-hidden /> Editar perfil
+          </Link>
+        </Button>
         <Button asChild variant="outline">
           <Link href={`/jugador/${profile.username}`}>Ver mi perfil público</Link>
         </Button>

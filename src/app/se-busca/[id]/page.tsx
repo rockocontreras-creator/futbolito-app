@@ -17,6 +17,7 @@ import {
 import { Container } from "@/components/layout/container";
 import { Button } from "@/components/ui/button";
 import { formatMatchDate } from "@/lib/format";
+import { isMinor } from "@/lib/profile-badges";
 import { POSITION_LABEL } from "@/lib/labels";
 import { requestShareText, whatsappTo, whatsappUrl } from "@/lib/share";
 import { getRequest } from "@/server/queries/requests";
@@ -56,7 +57,7 @@ async function RequestView({ params }: { params: PageProps<"/se-busca/[id]">["pa
     url: `${origin}/se-busca/${req.id}`,
   });
   const authorWa =
-    mine?.status === "ACCEPTED" && req.author.profile?.phone
+    mine?.status === "ACCEPTED" && req.author.profile?.phone && !isMinor(req.author.profile.birthDate)
       ? whatsappTo(req.author.profile.phone, `Hola, voy al partido del ${formatMatchDate(req.startsAt)}.`)
       : null;
 
@@ -128,7 +129,7 @@ async function RequestView({ params }: { params: PageProps<"/se-busca/[id]">["pa
               <ul className="divide-y">
                 {accepted.map((r) => {
                   const wa =
-                    isAuthor && r.user.profile?.phone
+                    isAuthor && r.user.profile?.phone && !isMinor(r.user.profile.birthDate)
                       ? whatsappTo(
                           r.user.profile.phone,
                           `Hola! Te confirmo para el partido del ${formatMatchDate(req.startsAt)}.`,

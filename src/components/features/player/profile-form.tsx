@@ -12,7 +12,7 @@ import { FOOT_LABEL, POSITION_LABEL, SKILL_LABEL } from "@/lib/labels";
 import { INITIAL_PLAYER_RATING } from "@/lib/rating/elo";
 import { cn } from "@/lib/utils";
 import { playerProfileSchema } from "@/lib/validations/player";
-import { createProfile } from "@/server/actions/profile";
+import { createProfile, updateProfile } from "@/server/actions/profile";
 import { DivisionBadge } from "./division-badge";
 
 type FormIn = z.input<typeof playerProfileSchema>;
@@ -28,11 +28,15 @@ export function ProfileForm({
   defaultName,
   sectors,
   returnTo,
+  initial,
 }: {
   defaultName: string;
   sectors: { id: string; name: string }[];
   returnTo: string | null;
+  /** Si viene, el formulario edita un perfil existente. */
+  initial?: Partial<Record<keyof FormIn, string>>;
 }) {
+  const editing = Boolean(initial);
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [serverError, setServerError] = useState<string | null>(null);
@@ -43,13 +47,15 @@ export function ProfileForm({
       username: "",
       nickname: "",
       birthDate: "",
+      gender: "",
       phone: "",
       sectorId: "",
       primaryPosition: "MIDFIELDER",
       secondaryPosition: "",
       foot: "RIGHT",
       skillLevel: "INTERMEDIATE",
-    },
+      ...initial,
+    } as FormIn,
   });
   const { register, formState, setValue, setError } = form;
   const errors = formState.errors;
@@ -59,7 +65,7 @@ export function ProfileForm({
   const onSubmit = form.handleSubmit(() => {
     setServerError(null);
     startTransition(async () => {
-      const res = await createProfile(form.getValues());
+      const res = await (editing ? updateProfile : createProfile)(form.getValues());
       if (res.ok) {
         router.push(returnTo ?? `/jugador/${res.data.username}`);
         router.refresh();
@@ -113,11 +119,18 @@ export function ProfileForm({
           <Field
             id="birthDate"
             label="Fecha de nacimiento"
-            optional
-            hint="Solo se muestra tu edad."
+            hint="Desde 14 años. Solo se muestra tu edad (a menores de 18, ni eso)."
             error={err("birthDate")}
           >
             <Input id="birthDate" type="date" {...register("birthDate")} {...aria("birthDate")} />
+          </Field>
+          <Field id="gender" label="Género" optional hint="Solo se usa para la etiqueta “Jugadora”.">
+            <NativeSelect id="gender" {...register("gender")}>
+              <option value="">Prefiero no decir</option>
+              <option value="FEMALE">Mujer</option>
+              <option value="MALE">Hombre</option>
+              <option value="OTHER">Otro</option>
+            </NativeSelect>
           </Field>
           <Field
             id="phone"
@@ -191,7 +204,7 @@ export function ProfileForm({
           </Field>
         </div>
 
-        <div className="space-y-2">
+        <div className={cn("space-y-2", editing && "hidden")}>
           <p className="text-sm font-semibold" id="nivel-label">
             ¿Qué tan bueno eres?
           </p>
@@ -240,7 +253,13 @@ export function ProfileForm({
         </p>
       )}
       <Button type="submit" size="lg" variant="foco" className="w-full md:w-auto" disabled={pending}>
-        {pending ? "Creando perfil…" : "Crear mi perfil"}
+        {pending
+          ? editing
+            ? "Guardando…"
+            : "Creando perfil…"
+          : editing
+            ? "Guardar cambios"
+            : "Crear mi perfil"}
       </Button>
     </form>
   );

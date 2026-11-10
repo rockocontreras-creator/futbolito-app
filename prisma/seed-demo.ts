@@ -21,10 +21,23 @@ const PLAYERS: [string, string, Position, SkillLevel, number][] = [
   ["Felipe Contreras", "pipe", "FORWARD", "ADVANCED", 1320],
   ["Joaquín Vergara", "joaco", "MIDFIELDER", "BEGINNER", 870],
   ["Tomás Fuentes", "tomi", "DEFENDER", "INTERMEDIATE", 1060],
-  ["Ignacio Pérez", "nacho", "FORWARD", "INTERMEDIATE", 1105],
+  ["Ignacia Pérez", "nacho", "FORWARD", "INTERMEDIATE", 1105],
   ["Cristóbal Lagos", "cristo", "GOALKEEPER", "BEGINNER", 905],
   ["Vicente Araya", "vicho", "MIDFIELDER", "ADVANCED", 1530],
 ];
+
+// Datos extra para ver las etiquetas del perfil (Jugadora, Viejo crack, Joven promesa, Comodín).
+const EXTRA: Record<string, { birthDate: Date; gender?: "FEMALE" | "MALE"; position?: Position }> = {
+  mati: { birthDate: new Date("1996-04-12"), gender: "MALE" },
+  benja: { birthDate: new Date("1984-09-03"), gender: "MALE" },
+  dieguito: { birthDate: new Date("1999-01-20"), gender: "MALE", position: "FLEX" },
+  pipe: { birthDate: new Date("1993-06-30"), gender: "MALE" },
+  joaco: { birthDate: new Date("2010-02-14"), gender: "MALE" },
+  tomi: { birthDate: new Date("2001-11-08") },
+  nacho: { birthDate: new Date("1997-07-22"), gender: "FEMALE" },
+  cristo: { birthDate: new Date("1988-05-01") },
+  vicho: { birthDate: new Date("1989-12-15"), gender: "MALE" },
+};
 
 function at(daysFromNow: number, hour: number) {
   const d = new Date();
@@ -80,7 +93,9 @@ async function main() {
         username,
         displayName: name,
         comunaId: comuna.id,
-        primaryPosition: position,
+        primaryPosition: EXTRA[username]?.position ?? position,
+        birthDate: EXTRA[username]?.birthDate,
+        gender: EXTRA[username]?.gender,
         skillLevel: skill,
         rating,
         matchesPlayed: Math.round(rating / 90),

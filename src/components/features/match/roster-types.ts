@@ -4,7 +4,7 @@ export interface RosterPlayer {
   username: string | null;
   photo: string | null;
   rating: number | null;
-  position: "GOALKEEPER" | "DEFENDER" | "MIDFIELDER" | "FORWARD" | null;
+  position: "GOALKEEPER" | "DEFENDER" | "MIDFIELDER" | "FORWARD" | "FLEX" | null;
   side: "A" | "B" | null;
   status: "REGISTERED" | "WAITLIST" | "ATTENDED" | "NO_SHOW";
   isOrganizer: boolean;

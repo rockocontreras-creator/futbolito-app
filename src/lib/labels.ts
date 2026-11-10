@@ -7,6 +7,7 @@ export const POSITION_LABEL = {
   DEFENDER: "Defensa",
   MIDFIELDER: "Medio",
   FORWARD: "Delantero",
+  FLEX: "Comodín",
 } as const;
 
 export const FOOT_LABEL = { RIGHT: "Derecho", LEFT: "Izquierdo", BOTH: "Ambos" } as const;
