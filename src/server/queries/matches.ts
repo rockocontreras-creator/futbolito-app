@@ -2,6 +2,7 @@ import "server-only";
 import type { MatchType, Prisma } from "@/generated/prisma/client";
 import { dateRangeFor, type WhenFilter } from "@/lib/dates";
 import { db } from "@/lib/db";
+import { getMatchWeather } from "@/server/weather";
 
 const cardSelect = {
   id: true,
@@ -13,7 +14,7 @@ const cardSelect = {
   pricePerPerson: true,
   minRating: true,
   maxRating: true,
-  venue: { select: { name: true } },
+  venue: { select: { name: true, latitude: true, longitude: true } },
   homeTeam: { select: { name: true } },
   awayTeam: { select: { name: true } },
   participants: {
@@ -35,6 +36,10 @@ export interface MatchCardData {
   total: number;
   pricePerPerson: number | null;
   avgRating: number | null;
+  latitude: number | null;
+  longitude: number | null;
+  /** Se completa aparte (withWeather) solo cuando hay alerta. */
+  weather?: { level: "watch" | "bad"; title: string } | null;
 }
 
 function toCard(m: RawCard): MatchCardData {
@@ -54,7 +59,19 @@ function toCard(m: RawCard): MatchCardData {
     total,
     pricePerPerson: m.pricePerPerson,
     avgRating: ratings.length ? Math.round(ratings.reduce((a, b) => a + b, 0) / ratings.length) : null,
+    latitude: m.venue?.latitude ?? null,
+    longitude: m.venue?.longitude ?? null,
   };
+}
+
+/** Agrega la alerta de clima a cada tarjeta (pronóstico cacheado por ubicación). */
+export async function withWeather(cards: MatchCardData[]): Promise<MatchCardData[]> {
+  return Promise.all(
+    cards.map(async (c) => {
+      const w = await getMatchWeather(c).catch(() => null);
+      return { ...c, weather: w && w.level !== "ok" ? { level: w.level, title: w.title } : null };
+    }),
+  );
 }
 
 export async function listUpcomingMatches(params: {
@@ -90,6 +107,7 @@ export function getMatchDetail(id: string) {
       goals: { select: { scorerId: true, count: true } },
       resultReports: { orderBy: { createdAt: "desc" }, take: 1, select: { mvpId: true } },
       objections: { select: { userId: true } },
+      confirmations: { select: { userId: true } },
       participants: {
         where: { status: { in: ["REGISTERED", "WAITLIST", "ATTENDED", "NO_SHOW"] } },
         orderBy: { joinedAt: "asc" },

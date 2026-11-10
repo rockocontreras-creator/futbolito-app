@@ -4,19 +4,15 @@ import { applyPickupResult, outcomeFromScore } from "@/lib/rating/elo";
 import { resultDecision } from "./match-result";
 
 /**
- * Cierra los revoltijos cuyo plazo de objeción ya pasó: aplica Elo, estadísticas y RatingHistory.
- * Se llama "en perezoso" al abrir el partido, la clasificación o un perfil, así no hace falta un cron.
- * Es idempotente: bloquea la fila y solo actúa si el partido sigue en PLAYED.
+ * Cierra los revoltijos cuyo resultado ya confirmó la mayoría: aplica Elo, estadísticas y RatingHistory.
+ * Se llama al confirmar/rechazar y, por si acaso, al abrir el partido. Es idempotente: bloquea la fila y solo
+ * actúa si el partido sigue en PLAYED.
  */
 export async function finalizeDueResults(matchId?: string) {
   const due = await db.match.findMany({
-    where: {
-      status: "PLAYED",
-      type: "PICKUP",
-      deletedAt: null,
-      ...(matchId ? { id: matchId } : { resultDueAt: { lte: new Date() } }),
-    },
+    where: { status: "PLAYED", type: "PICKUP", deletedAt: null, ...(matchId ? { id: matchId } : {}) },
     select: { id: true },
+    orderBy: { updatedAt: "asc" },
     take: 20,
   });
   for (const m of due) await finalizeOne(m.id);
@@ -34,18 +30,17 @@ async function finalizeOne(matchId: string) {
         },
         goals: true,
         resultReports: { orderBy: { createdAt: "desc" }, take: 1 },
-        _count: { select: { objections: true } },
+        _count: { select: { objections: true, confirmations: true } },
       },
     });
-    if (!match || match.status !== "PLAYED" || !match.resultDueAt) return;
+    if (!match || match.status !== "PLAYED") return;
     if (match.scoreA == null || match.scoreB == null) return;
 
     const attended = match.participants.filter((p) => p.status === "ATTENDED" && p.user.profile);
     const decision = resultDecision({
-      now: new Date(),
-      dueAt: match.resultDueAt,
+      confirmations: match._count.confirmations,
       objections: match._count.objections,
-      attended: attended.length,
+      attended: match.participants.filter((p) => p.status === "ATTENDED").length,
     });
     if (decision === "WAIT") return;
     if (decision === "DISPUTE") {
