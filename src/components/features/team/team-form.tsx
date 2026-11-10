@@ -8,6 +8,7 @@ import type { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { Field } from "@/components/ui/field";
 import { Input, Textarea } from "@/components/ui/input";
+import { SHIRT_COLORS } from "@/lib/colors";
 import { cn } from "@/lib/utils";
 import { createTeamSchema } from "@/lib/validations/team";
 import { createTeam } from "@/server/actions/team";
@@ -16,19 +17,7 @@ import { TeamCrest } from "./team-crest";
 type FormIn = z.input<typeof createTeamSchema>;
 type FormOut = z.output<typeof createTeamSchema>;
 
-// Colores típicos de camisetas de barrio.
-const COLORS = [
-  { hex: "#0e5a36", name: "Verde" },
-  { hex: "#c8102e", name: "Rojo" },
-  { hex: "#1d4ed8", name: "Azul" },
-  { hex: "#0b1f4b", name: "Azul marino" },
-  { hex: "#ffd23f", name: "Amarillo" },
-  { hex: "#ea580c", name: "Naranjo" },
-  { hex: "#6d28d9", name: "Morado" },
-  { hex: "#111827", name: "Negro" },
-  { hex: "#ffffff", name: "Blanco" },
-  { hex: "#7dd3fc", name: "Celeste" },
-];
+const COLORS = SHIRT_COLORS;
 
 export function TeamForm() {
   const router = useRouter();

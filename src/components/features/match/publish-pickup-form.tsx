@@ -12,6 +12,7 @@ import { SURFACE_LABEL } from "@/lib/labels";
 import { cn } from "@/lib/utils";
 import { createPickupSchema, NEW_VENUE } from "@/lib/validations/match";
 import { createPickup } from "@/server/actions/match";
+import { ShirtColorPicker } from "./shirt-color-picker";
 import { LocationPicker } from "@/components/features/venue/location-picker";
 import type { LatLng } from "@/components/features/venue/map-types";
 import { VenueMap } from "@/components/features/venue/venue-map";
@@ -51,11 +52,14 @@ export function PublishPickupForm({
       maxRating: "",
       pricePerPerson: "",
       notes: "",
+      colorA: "#0e5a36",
+      colorB: "#ffd23f",
     },
   });
   const { register, formState, setValue, setError } = form;
   const errors = formState.errors;
   const venueId = useWatch({ control: form.control, name: "venueId" });
+  const [colorA, colorB] = useWatch({ control: form.control, name: ["colorA", "colorB"] });
   const [newLat, newLng] = useWatch({ control: form.control, name: ["newVenueLat", "newVenueLng"] });
   const newPoint = newLat != null && newLng != null ? { lat: Number(newLat), lng: Number(newLng) } : null;
   const playersPerSide = Number(useWatch({ control: form.control, name: "playersPerSide" }));
@@ -285,6 +289,20 @@ export function PublishPickupForm({
               {...aria("maxRating")}
             />
           </Field>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <ShirtColorPicker
+            label="Color del equipo A"
+            value={colorA ?? "#0e5a36"}
+            onChange={(hex) => setValue("colorA", hex, { shouldValidate: true })}
+            error={err("colorA")}
+          />
+          <ShirtColorPicker
+            label="Color del equipo B"
+            value={colorB ?? "#ffd23f"}
+            onChange={(hex) => setValue("colorB", hex, { shouldValidate: true })}
+            error={err("colorB")}
+          />
         </div>
         <Field
           id="notes"

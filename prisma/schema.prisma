@@ -27,6 +27,13 @@ enum Position {
   DEFENDER // DEFENSA
   MIDFIELDER // MEDIO
   FORWARD // DELANTERO
+  FLEX // COMODÍN: juega donde haga falta
+}
+
+enum Gender {
+  FEMALE
+  MALE
+  OTHER
 }
 
 enum Foot {
@@ -154,6 +161,8 @@ enum NotificationType {
   REPORT_RESULT
   RESULT_DISPUTED
   RATING_CHANGED
+  WEATHER_ALERT
+  CONFIRM_RESULT
   SYSTEM
 }
 
@@ -240,6 +249,8 @@ model User {
   commentsReceived    ProfileComment[]        @relation("CommentTarget")
   commentsWritten     ProfileComment[]        @relation("CommentAuthor")
   resultObjections    ResultObjection[]
+  resultConfirmations ResultConfirmation[]
+  matchMessages       MatchMessage[]
   playerRequests      PlayerRequest[]
   requestResponses    PlayerRequestResponse[]
 }
@@ -353,7 +364,8 @@ model PlayerProfile {
   displayName       String
   nickname          String?
   photoUrl          String?
-  birthDate         DateTime?  @db.Date
+  birthDate         DateTime?  @db.Date // desde 14 años (se valida con Zod)
+  gender            Gender? // opcional; solo se usa para la etiqueta "Jugadora"
   phone             String? // privado: solo compañeros de partido confirmados
   comunaId          String
   sectorId          String?
@@ -544,6 +556,8 @@ model Match {
   maxRating       Int?
   pricePerPerson  Int? // CLP
   notes           String?
+  colorA          String      @default("#0e5a36") // camiseta/pechera del equipo A (hex)
+  colorB          String      @default("#ffd23f")
 
   // Desafío / liga
   homeTeamId String?
@@ -562,12 +576,12 @@ model Match {
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  comuna        Comuna             @relation(fields: [comunaId], references: [id])
-  venue         Venue?             @relation(fields: [venueId], references: [id])
-  organizer     User               @relation("MatchOrganizer", fields: [organizerId], references: [id])
-  homeTeam      Team?              @relation("HomeTeam", fields: [homeTeamId], references: [id])
-  awayTeam      Team?              @relation("AwayTeam", fields: [awayTeamId], references: [id])
-  season        Season?            @relation(fields: [seasonId], references: [id])
+  comuna        Comuna               @relation(fields: [comunaId], references: [id])
+  venue         Venue?               @relation(fields: [venueId], references: [id])
+  organizer     User                 @relation("MatchOrganizer", fields: [organizerId], references: [id])
+  homeTeam      Team?                @relation("HomeTeam", fields: [homeTeamId], references: [id])
+  awayTeam      Team?                @relation("AwayTeam", fields: [awayTeamId], references: [id])
+  season        Season?              @relation(fields: [seasonId], references: [id])
   participants  MatchParticipant[]
   resultReports ResultReport[]
   goals         Goal[]
@@ -576,6 +590,8 @@ model Match {
   challenge     Challenge?
   reports       Report[]
   objections    ResultObjection[]
+  confirmations ResultConfirmation[]
+  messages      MatchMessage[]
 
   @@index([comunaId, status, startsAt])
   @@index([type, status])
@@ -794,6 +810,7 @@ model Notification {
   title     String
   body      String?
   href      String? // a dónde lleva al tocarla
+  key       String? // evita duplicados (ej. "weather:<matchId>")
   readAt    DateTime?
   emailedAt DateTime?
   createdAt DateTime         @default(now())
@@ -801,6 +818,7 @@ model Notification {
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
+  @@unique([userId, key])
   @@index([userId, readAt])
 }
 
@@ -898,4 +916,34 @@ model PlayerRequestResponse {
 
   @@unique([requestId, userId])
   @@index([userId])
+}
+
+// Confirmación de un jugador al resultado reportado. El resultado cuenta cuando confirma la mayoría.
+model ResultConfirmation {
+  id        String   @id @default(cuid())
+  matchId   String
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  match Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([matchId, userId])
+}
+
+// Chat de la sala del partido (inscritos, lista de espera y organizador).
+model MatchMessage {
+  id        String    @id @default(cuid())
+  matchId   String
+  userId    String
+  body      String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  match Match @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([matchId, createdAt])
 }

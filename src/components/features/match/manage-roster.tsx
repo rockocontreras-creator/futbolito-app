@@ -13,10 +13,25 @@ import {
   setParticipantSide,
 } from "@/server/actions/match-admin";
 import type { RosterPlayer } from "./roster-types";
-import { BalanceMeter, PlayerLine, SIDE_NAME } from "./teams-view";
+import {
+  BalanceMeter,
+  DEFAULT_COLORS,
+  PlayerLine,
+  sideStyle,
+  sideTitle,
+  type TeamColors,
+} from "./teams-view";
 
 /** Panel del organizador: armar equipos parejos, mover, subir/bajar de la espera y expulsar. */
-export function ManageRoster({ matchId, players }: { matchId: string; players: RosterPlayer[] }) {
+export function ManageRoster({
+  matchId,
+  players,
+  colors = DEFAULT_COLORS,
+}: {
+  matchId: string;
+  players: RosterPlayer[];
+  colors?: TeamColors;
+}) {
   const { pending, error, run } = useServerAction();
   const registered = players.filter((p) => p.status === "REGISTERED");
   const waitlist = players.filter((p) => p.status === "WAITLIST");
@@ -69,7 +84,7 @@ export function ManageRoster({ matchId, players }: { matchId: string; players: R
         </p>
       )}
 
-      {hasTeams && <BalanceMeter a={a} b={b} />}
+      {hasTeams && <BalanceMeter a={a} b={b} colors={colors} />}
 
       <div className={cn("grid gap-3", hasTeams && "sm:grid-cols-2")}>
         {hasTeams &&
@@ -78,8 +93,9 @@ export function ManageRoster({ matchId, players }: { matchId: string; players: R
             return (
               <Group
                 key={side}
-                title={`${SIDE_NAME[side]} (${list.length})`}
+                title={sideTitle(colors, side, list.length)}
                 tone={side}
+                colors={colors}
                 players={list}
                 matchId={matchId}
                 run={run}
@@ -115,6 +131,7 @@ type Run = ReturnType<typeof useServerAction>["run"];
 function Group({
   title,
   tone,
+  colors = DEFAULT_COLORS,
   players,
   matchId,
   run,
@@ -122,6 +139,7 @@ function Group({
 }: {
   title: string;
   tone?: "A" | "B";
+  colors?: TeamColors;
   players: RosterPlayer[];
   matchId: string;
   run: Run;
@@ -130,12 +148,8 @@ function Group({
   return (
     <div className="overflow-hidden rounded-lg border">
       <h3
-        className={cn(
-          "px-4 py-2 text-sm font-bold",
-          tone === "A" && "bg-cancha text-white",
-          tone === "B" && "bg-foco text-[#2a2205]",
-          !tone && "bg-secondary",
-        )}
+        className={cn("px-4 py-2 text-sm font-bold", !tone && "bg-secondary")}
+        style={tone ? sideStyle(colors, tone) : undefined}
       >
         {title}
       </h3>

@@ -28,7 +28,7 @@ export const usernameSchema = z
   .max(24, "Máximo 24 caracteres")
   .regex(/^[a-z0-9_.]+$/, "Solo letras, números, punto y guion bajo");
 
-export const positionSchema = z.enum(["GOALKEEPER", "DEFENDER", "MIDFIELDER", "FORWARD"]);
+export const positionSchema = z.enum(["GOALKEEPER", "DEFENDER", "MIDFIELDER", "FORWARD", "FLEX"]);
 export const skillLevelSchema = z.enum(["BEGINNER", "INTERMEDIATE", "ADVANCED"]);
 export const footSchema = z.enum(["RIGHT", "LEFT", "BOTH"]);
 export const idSchema = z.cuid();

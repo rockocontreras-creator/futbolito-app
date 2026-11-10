@@ -1,31 +1,29 @@
 import { describe, expect, it } from "vitest";
 import {
   balanceLabel,
+  confirmationsNeeded,
   goalsProblem,
   isDisputed,
   resultDecision,
-  resultDueAt,
   sidesProblem,
 } from "./match-result";
 
 describe("resultado del revoltijo", () => {
-  const reported = new Date("2026-11-10T23:00:00Z");
-  const due = resultDueAt(reported);
-
-  it("se confirma solo 24 h después", () => {
-    expect(due.toISOString()).toBe("2026-11-11T23:00:00.000Z");
-    expect(
-      resultDecision({ now: new Date("2026-11-11T22:59:00Z"), dueAt: due, objections: 0, attended: 10 }),
-    ).toBe("WAIT");
-    expect(
-      resultDecision({ now: new Date("2026-11-11T23:00:00Z"), dueAt: due, objections: 0, attended: 10 }),
-    ).toBe("CONFIRM");
+  it("necesita más de la mitad", () => {
+    expect(confirmationsNeeded(10)).toBe(6);
+    expect(confirmationsNeeded(9)).toBe(5);
+    expect(confirmationsNeeded(1)).toBe(1);
   });
 
-  it("si objeta más de la mitad queda en disputa", () => {
-    expect(isDisputed(5, 10)).toBe(false);
-    expect(isDisputed(6, 10)).toBe(true);
-    expect(resultDecision({ now: reported, dueAt: due, objections: 6, attended: 10 })).toBe("DISPUTE");
+  it("se confirma al llegar a la mayoría y antes queda pendiente", () => {
+    expect(resultDecision({ confirmations: 5, objections: 0, attended: 10 })).toBe("WAIT");
+    expect(resultDecision({ confirmations: 6, objections: 0, attended: 10 })).toBe("CONFIRM");
+  });
+
+  it("queda en disputa cuando ya no se puede llegar a la mayoría", () => {
+    expect(isDisputed(4, 10)).toBe(false);
+    expect(isDisputed(5, 10)).toBe(true);
+    expect(resultDecision({ confirmations: 3, objections: 5, attended: 10 })).toBe("DISPUTE");
   });
 
   it("valida goleadores contra el marcador", () => {

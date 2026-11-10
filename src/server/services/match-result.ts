@@ -1,27 +1,26 @@
-// Reglas puras del resultado de un revoltijo (CLAUDE.md §5.4): reporta el organizador y se confirma si la
-// mayoría de los participantes no lo objeta en 24 h.
-
-export const OBJECTION_WINDOW_HOURS = 24;
+// Reglas puras del resultado de un revoltijo. El organizador reporta y el resultado cuenta solo cuando lo
+// confirma la mayoría de quienes jugaron (pedido del equipo 2026-11-09). Si no se llega, queda pendiente.
 
 export type ResultDecision = "WAIT" | "CONFIRM" | "DISPUTE";
 
-/** Hay disputa cuando objeta más de la mitad de quienes jugaron. */
+/** Confirmaciones necesarias: más de la mitad de quienes jugaron. */
+export function confirmationsNeeded(attended: number): number {
+  return Math.floor(attended / 2) + 1;
+}
+
+/** Ya no se puede llegar a la mayoría: rechaza la mitad o más. */
 export function isDisputed(objections: number, attended: number): boolean {
-  return attended > 0 && objections * 2 > attended;
+  return attended > 0 && objections * 2 >= attended;
 }
 
 export function resultDecision(p: {
-  now: Date;
-  dueAt: Date;
+  confirmations: number;
   objections: number;
   attended: number;
 }): ResultDecision {
+  if (p.attended > 0 && p.confirmations >= confirmationsNeeded(p.attended)) return "CONFIRM";
   if (isDisputed(p.objections, p.attended)) return "DISPUTE";
-  return p.now.getTime() >= p.dueAt.getTime() ? "CONFIRM" : "WAIT";
-}
-
-export function resultDueAt(reportedAt: Date): Date {
-  return new Date(reportedAt.getTime() + OBJECTION_WINDOW_HOURS * 3600_000);
+  return "WAIT";
 }
 
 /** Valida que la suma de goles por lado no supere el marcador. Devuelve un mensaje o null. */

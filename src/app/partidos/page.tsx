@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import type { MatchType } from "@/generated/prisma/client";
 import type { WhenFilter } from "@/lib/dates";
 import { cn } from "@/lib/utils";
-import { listUpcomingMatches } from "@/server/queries/matches";
+import { listUpcomingMatches, withWeather } from "@/server/queries/matches";
 import { getActiveComuna } from "@/server/queries/zones";
 
 export const metadata: Metadata = { title: "Partidos" };
@@ -95,7 +95,7 @@ async function FilteredList({ searchParams }: { searchParams: PageProps<"/partid
   const comuna = await getActiveComuna();
   const type = TYPE_FILTER[filters.tipo];
   const matches = comuna
-    ? await listUpcomingMatches({ comunaId: comuna.id, type, when: filters.cuando })
+    ? await withWeather(await listUpcomingMatches({ comunaId: comuna.id, type, when: filters.cuando }))
     : [];
 
   return (

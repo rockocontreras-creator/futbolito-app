@@ -34,6 +34,10 @@ Fases cortas, cada una deployable. Marcar con [x] al terminar.
 - [x] Se busca jugadores
 - [x] Torneos: página "Próximamente"
 - [x] Perfil público `/jugador/[username]` con división y estadísticas
+- [x] Sala (chat) del partido, colores de cada equipo, alerta de clima
+- [x] Confirmación del resultado por mayoría
+- [x] Etiquetas de perfil, posición comodín, edición de perfil, edad mínima 14
+- [x] Carrusel de noticias en la portada
 
 ## Fase 2 · Equipos y desafíos
 
@@ -42,7 +46,7 @@ Fases cortas, cada una deployable. Marcar con [x] al terminar.
 - [ ] "Buscamos rival": publicar, aceptar, contrapropuesta, desafío directo
 - [ ] Reporte de resultado por ambos lados, disputas, autoconfirmación a las 48 h
 - [ ] Rango de equipo + gráfico de evolución
-- [ ] Notificaciones en la app (campana) y por email
+- [~] Notificaciones en la app (campana) y por email — campana lista (confirmar resultado, clima); falta email
 
 ## Fase 3 · Ligas
 

@@ -8,13 +8,16 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { ManageRoster } from "@/components/features/match/manage-roster";
+import { MatchChat } from "@/components/features/match/match-chat";
 import { ReportResultForm } from "@/components/features/match/report-result-form";
-import { ObjectionButton } from "@/components/features/match/result-panel";
+import { ResultVote } from "@/components/features/match/result-panel";
 import { ReviewPlayers } from "@/components/features/match/review-players";
 import type { RosterPlayer } from "@/components/features/match/roster-types";
 import { SlotBar } from "@/components/features/match/slot-bar";
 import { TeamsView } from "@/components/features/match/teams-view";
+import { WeatherBanner } from "@/components/features/match/weather-banner";
 import { VenueMap } from "@/components/features/venue/venue-map";
+import { colorName } from "@/lib/colors";
 import { directionsUrl } from "@/lib/maps";
 import { RosterActions, type ViewerState } from "@/components/features/match/roster-actions";
 import { DivisionBadge } from "@/components/features/player/division-badge";
@@ -22,11 +25,13 @@ import { PlayerAvatar } from "@/components/features/player/player-avatar";
 import { Container } from "@/components/layout/container";
 import { Button } from "@/components/ui/button";
 import { TIMEZONE } from "@/config/site";
-import { formatCLP, formatMatchDate } from "@/lib/format";
+import { formatCLP } from "@/lib/format";
 import { MATCH_TYPE_LABEL, POSITION_LABEL, SURFACE_LABEL } from "@/lib/labels";
 import { pickupShareText, whatsappUrl } from "@/lib/share";
 import { getMatchDetail, listMyReviews, type MatchDetail } from "@/server/queries/matches";
 import { finalizeDueResults } from "@/server/services/finalize-results";
+import { getMatchWeather } from "@/server/weather";
+import { confirmationsNeeded } from "@/server/services/match-result";
 import { getCurrentUser, type CurrentUser } from "@/server/session";
 
 export const metadata: Metadata = { title: "Partido" };
@@ -77,6 +82,15 @@ async function MatchDetailView({ params }: { params: PageProps<"/partidos/[id]">
   const mvpId = match.resultReports[0]?.mvpId ?? null;
   const hasSides = players.some((p) => p.side != null);
   const lineup = players.filter((p) => p.status !== "WAITLIST");
+  const colors = { A: match.colorA, B: match.colorB };
+  const weather =
+    reported || match.status === "CANCELLED"
+      ? null
+      : await getMatchWeather({
+          startsAt: match.startsAt,
+          latitude: match.venue?.latitude,
+          longitude: match.venue?.longitude,
+        }).catch(() => null);
   const local = new TZDate(match.startsAt, TIMEZONE);
   const registered = match.participants.filter((p) => p.status === "REGISTERED" || p.status === "ATTENDED");
   const waitlist = match.participants.filter((p) => p.status === "WAITLIST");
@@ -122,12 +136,31 @@ async function MatchDetailView({ params }: { params: PageProps<"/partidos/[id]">
                 <MapPin className="size-4" aria-hidden /> {match.venue?.name ?? "Cancha a coordinar"}
               </span>
             </p>
+            <p
+              className="flex flex-wrap items-center gap-2 text-sm font-semibold"
+              aria-label="Colores de los equipos"
+            >
+              {(["A", "B"] as const).map((side) => (
+                <span
+                  key={side}
+                  className="inline-flex items-center gap-2 rounded-full bg-white/10 py-1 pr-3 pl-1"
+                >
+                  <span
+                    className="size-5 rounded-full border border-white/40"
+                    style={{ backgroundColor: colors[side] }}
+                    aria-hidden
+                  />
+                  Equipo {side}: {colorName(colors[side])}
+                </span>
+              ))}
+            </p>
           </div>
         </Container>
       </section>
 
       <Container className="grid gap-6 pt-6 lg:grid-cols-[1fr_360px] lg:items-start">
         <div className="space-y-6 lg:order-1">
+          {weather && <WeatherBanner weather={weather} />}
           <section className="space-y-4 rounded-xl border bg-card p-5" aria-labelledby="cupos">
             <div className="flex items-center justify-between">
               <h2 id="cupos" className="text-lg font-bold">
@@ -143,14 +176,16 @@ async function MatchDetailView({ params }: { params: PageProps<"/partidos/[id]">
               scoreA={match.scoreA}
               scoreB={match.scoreB}
               status={match.status}
-              dueAt={match.resultDueAt}
+              confirmations={match.confirmations.length}
               objections={match.objections.length}
+              attended={players.filter((p) => p.status === "ATTENDED").length}
             />
           )}
 
           {isOrganizer && started && (manageable || match.status === "PLAYED") && (
             <ReportResultForm
               matchId={match.id}
+              colors={colors}
               players={lineup}
               initial={
                 match.status === "PLAYED" && match.scoreA != null && match.scoreB != null
@@ -175,13 +210,13 @@ async function MatchDetailView({ params }: { params: PageProps<"/partidos/[id]">
           )}
 
           {isOrganizer && manageable ? (
-            <ManageRoster matchId={match.id} players={players} />
+            <ManageRoster matchId={match.id} players={players} colors={colors} />
           ) : hasSides ? (
             <section className="space-y-3 rounded-xl border bg-card p-5" aria-labelledby="equipos">
               <h2 id="equipos" className="flex items-center gap-2 text-lg font-bold">
                 <Users className="size-5 text-primary" aria-hidden /> Equipos
               </h2>
-              <TeamsView players={lineup} goalsOf={goalsOf} mvpId={mvpId} />
+              <TeamsView players={lineup} goalsOf={goalsOf} mvpId={mvpId} colors={colors} />
             </section>
           ) : (
             <section className="rounded-xl border bg-card" aria-labelledby="jugadores">
@@ -209,6 +244,15 @@ async function MatchDetailView({ params }: { params: PageProps<"/partidos/[id]">
             </section>
           )}
 
+          {user &&
+          (isOrganizer || (me && ["REGISTERED", "WAITLIST", "ATTENDED", "NO_SHOW"].includes(me.status))) ? (
+            <MatchChat matchId={match.id} meId={user.id} canModerate={isOrganizer || user.role === "ADMIN"} />
+          ) : (
+            <p className="rounded-xl border border-dashed bg-card/60 px-5 py-4 text-sm text-muted-foreground">
+              La sala del partido tiene chat. Súmate para hablar con los demás.
+            </p>
+          )}
+
           {match.notes && (
             <section className="rounded-xl border bg-card p-5" aria-labelledby="notas">
               <h2 id="notas" className="mb-2 text-lg font-bold">
@@ -231,9 +275,15 @@ async function MatchDetailView({ params }: { params: PageProps<"/partidos/[id]">
               <RosterActions matchId={match.id} viewer={viewerStateFor(match, user, now)} />
             )}
             {match.status === "PLAYED" && iPlayed && !isOrganizer && user && (
-              <ObjectionButton
+              <ResultVote
                 matchId={match.id}
-                objected={match.objections.some((o) => o.userId === user.id)}
+                vote={
+                  match.confirmations.some((c) => c.userId === user.id)
+                    ? "yes"
+                    : match.objections.some((o) => o.userId === user.id)
+                      ? "no"
+                      : null
+                }
               />
             )}
             <Button
@@ -312,23 +362,26 @@ function ResultBoard({
   scoreA,
   scoreB,
   status,
-  dueAt,
+  confirmations,
   objections,
+  attended,
 }: {
   scoreA: number;
   scoreB: number;
   status: string;
-  dueAt: Date | null;
+  confirmations: number;
   objections: number;
+  attended: number;
 }) {
+  const needed = confirmationsNeeded(attended);
   const note =
     status === "RESULT_CONFIRMED"
       ? "Resultado confirmado. Rangos y estadísticas actualizados."
       : status === "DISPUTED"
         ? "Resultado en disputa: lo revisa un administrador."
-        : `Se confirma solo el ${dueAt ? formatMatchDate(dueAt) : "pronto"} si la mayoría no lo objeta.${
-            objections ? ` Objeciones: ${objections}.` : ""
-          }`;
+        : `Confirmaron ${confirmations} de ${attended}. Cuenta cuando confirmen ${needed}${
+            confirmations < needed ? ` (faltan ${needed - confirmations})` : ""
+          }.${objections ? ` Dicen que está mal: ${objections}.` : ""}`;
   return (
     <section className="overflow-hidden rounded-xl border bg-card" aria-labelledby="resultado">
       <h2 id="resultado" className="sr-only">

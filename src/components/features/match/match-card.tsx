@@ -1,7 +1,7 @@
 import { TZDate } from "@date-fns/tz";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { MapPin } from "lucide-react";
+import { CloudRain, MapPin } from "lucide-react";
 import Link from "next/link";
 import { DivisionBadge } from "@/components/features/player/division-badge";
 import { TIMEZONE } from "@/config/site";
@@ -52,6 +52,17 @@ export function MatchCard({ match }: { match: MatchCardData }) {
             </span>
           ) : null}
         </div>
+        {match.weather && (
+          <p
+            className={
+              match.weather.level === "bad"
+                ? "flex items-center gap-1.5 rounded-md bg-[#dbeafe] px-2 py-1 text-[13px] font-bold text-[#1e3a8a]"
+                : "flex items-center gap-1.5 rounded-md bg-foco/25 px-2 py-1 text-[13px] font-bold text-[#5a4500] dark:text-foco"
+            }
+          >
+            <CloudRain className="size-4 shrink-0" aria-hidden /> {match.weather.title}
+          </p>
+        )}
         <SlotBar taken={match.taken} total={match.total} />
         <div className="flex items-center justify-between">
           {match.avgRating ? <DivisionBadge rating={match.avgRating} showRating /> : <span />}

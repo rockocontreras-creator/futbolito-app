@@ -34,7 +34,14 @@ export function getRequest(id: string) {
           id: true,
           name: true,
           profile: {
-            select: { displayName: true, username: true, photoUrl: true, phone: true, rating: true },
+            select: {
+              displayName: true,
+              username: true,
+              photoUrl: true,
+              phone: true,
+              birthDate: true,
+              rating: true,
+            },
           },
         },
       },
@@ -53,6 +60,7 @@ export function getRequest(id: string) {
                   username: true,
                   photoUrl: true,
                   phone: true,
+                  birthDate: true,
                   rating: true,
                   primaryPosition: true,
                 },

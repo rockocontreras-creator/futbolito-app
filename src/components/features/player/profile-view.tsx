@@ -1,3 +1,5 @@
+import { isMinor, profileBadges, type ProfileBadge } from "@/lib/profile-badges";
+import { cn } from "@/lib/utils";
 import { MapPin } from "lucide-react";
 import type { PlayerProfile } from "@/generated/prisma/client";
 import { ageFrom } from "@/lib/format";
@@ -28,6 +30,7 @@ export function ProfileView({ profile }: { profile: Profile }) {
     { label: "MVP", value: profile.mvps },
   ];
 
+  const badges = profileBadges(profile);
   return (
     <div className="space-y-6">
       <section className="overflow-hidden rounded-2xl border bg-card">
@@ -45,13 +48,25 @@ export function ProfileView({ profile }: { profile: Profile }) {
                 {profile.nickname ? `“${profile.nickname}” · ` : ""}@{profile.username}
               </p>
             </div>
+            {badges.length > 0 && (
+              <ul className="flex flex-wrap gap-1.5" aria-label="Etiquetas">
+                {badges.map((b) => (
+                  <li
+                    key={b.id}
+                    className={cn("rounded-full px-3 py-1 text-[13px] font-bold", BADGE_STYLE[b.id])}
+                  >
+                    {b.label}
+                  </li>
+                ))}
+              </ul>
+            )}
             <p className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
               <span className="font-semibold">
                 {POSITION_LABEL[profile.primaryPosition]}
                 {profile.secondaryPosition ? ` / ${POSITION_LABEL[profile.secondaryPosition]}` : ""}
               </span>
               <span className="text-muted-foreground">Pie {FOOT_LABEL[profile.foot].toLowerCase()}</span>
-              {profile.birthDate && (
+              {profile.birthDate && !isMinor(profile.birthDate) && (
                 <span className="text-muted-foreground">{ageFrom(profile.birthDate)} años</span>
               )}
               <span className="inline-flex items-center gap-1 text-muted-foreground">
@@ -101,3 +116,10 @@ export function ProfileView({ profile }: { profile: Profile }) {
     </div>
   );
 }
+
+const BADGE_STYLE: Record<ProfileBadge["id"], string> = {
+  jugadora: "bg-[#fce7f3] text-[#9d174d] dark:bg-[#9d174d]/30 dark:text-[#fbcfe8]",
+  "viejo-crack": "bg-foco/30 text-[#4a3c00] dark:text-foco",
+  "joven-promesa": "bg-[#dbeafe] text-[#1e3a8a] dark:bg-[#1e3a8a]/40 dark:text-[#dbeafe]",
+  comodin: "bg-primary/12 text-primary",
+};

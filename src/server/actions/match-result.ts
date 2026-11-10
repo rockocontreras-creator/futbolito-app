@@ -5,18 +5,21 @@ import { db } from "@/lib/db";
 import { matchIdSchema, peerReviewSchema, reportResultSchema } from "@/lib/validations/match";
 import { runAction } from "@/server/action-result";
 import { AuthError, requireUser } from "@/server/permissions";
-import { goalsProblem, isDisputed, resultDueAt, sidesProblem } from "@/server/services/match-result";
+import { finalizeDueResults } from "@/server/services/finalize-results";
+import { goalsProblem, isDisputed, sidesProblem } from "@/server/services/match-result";
+import { notifyUsers } from "@/server/services/notify";
 
 const REVIEW_WINDOW_DAYS = 7;
 
 /**
  * El organizador reporta el resultado del revoltijo: marcador, goleadores, MVP y quién no llegó.
- * Queda en PLAYED y se confirma solo en 24 h si la mayoría no lo objeta. Se puede corregir mientras tanto.
+ * Queda en PLAYED hasta que lo confirme la mayoría de quienes jugaron (el organizador ya cuenta como uno).
+ * Se puede corregir mientras tanto; al corregir se reinician las confirmaciones.
  */
 export async function reportResult(input: unknown) {
   return runAction(reportResultSchema, input, async (data) => {
     const user = await requireUser();
-    await db.$transaction(async (tx) => {
+    const toNotify = await db.$transaction(async (tx) => {
       await tx.$queryRaw`SELECT id FROM "Match" WHERE id = ${data.matchId} FOR UPDATE`;
       const match = await tx.match.findFirst({
         where: { id: data.matchId, deletedAt: null, type: "PICKUP" },
@@ -57,6 +60,8 @@ export async function reportResult(input: unknown) {
       await tx.goal.deleteMany({ where: { matchId: match.id } });
       await tx.resultReport.deleteMany({ where: { matchId: match.id } });
       await tx.resultObjection.deleteMany({ where: { matchId: match.id } });
+      await tx.resultConfirmation.deleteMany({ where: { matchId: match.id } });
+      await tx.resultConfirmation.create({ data: { matchId: match.id, userId: user.id } });
 
       for (const p of roster) {
         await tx.matchParticipant.update({
@@ -83,33 +88,45 @@ export async function reportResult(input: unknown) {
           mvpId: data.mvpId ?? null,
         },
       });
-      const now = new Date();
       await tx.match.update({
         where: { id: match.id },
-        data: { status: "PLAYED", scoreA: data.scoreA, scoreB: data.scoreB, resultDueAt: resultDueAt(now) },
+        data: { status: "PLAYED", scoreA: data.scoreA, scoreB: data.scoreB, resultDueAt: null },
       });
+      return played.filter((p) => p.userId !== user.id).map((p) => p.userId);
     });
+    await notifyUsers(toNotify, {
+      type: "CONFIRM_RESULT",
+      title: `¿Salió ${data.scoreA}–${data.scoreB}? Confirma el resultado`,
+      body: "El rango y los goles se cuentan cuando confirma la mayoría.",
+      href: `/partidos/${data.matchId}`,
+      key: `confirm:${data.matchId}`,
+    });
+    await finalizeDueResults(data.matchId);
     refresh();
     return { reported: true };
   });
 }
 
-/** Un jugador que estuvo en el partido objeta el resultado. Si objeta más de la mitad, queda en disputa. */
-export async function objectResult(input: unknown) {
-  return runAction(matchIdSchema, input, async ({ matchId }) => {
-    const user = await requireUser();
-    const disputed = await db.$transaction(async (tx) => {
-      await tx.$queryRaw`SELECT id FROM "Match" WHERE id = ${matchId} FOR UPDATE`;
-      const match = await tx.match.findFirst({ where: { id: matchId, deletedAt: null } });
-      if (!match || match.status !== "PLAYED") throw new AuthError("Ya no se puede objetar este resultado.");
-      const me = await tx.matchParticipant.findUnique({
-        where: { matchId_userId: { matchId, userId: user.id } },
+async function vote(matchId: string, userId: string, agrees: boolean) {
+  await db.$transaction(async (tx) => {
+    await tx.$queryRaw`SELECT id FROM "Match" WHERE id = ${matchId} FOR UPDATE`;
+    const match = await tx.match.findFirst({ where: { id: matchId, deletedAt: null } });
+    if (!match || match.status !== "PLAYED") throw new AuthError("Este resultado ya no se puede votar.");
+    const me = await tx.matchParticipant.findUnique({ where: { matchId_userId: { matchId, userId } } });
+    if (me?.status !== "ATTENDED") throw new AuthError("Solo quienes jugaron pueden confirmar o rechazar.");
+    if (agrees) {
+      await tx.resultObjection.deleteMany({ where: { matchId, userId } });
+      await tx.resultConfirmation.upsert({
+        where: { matchId_userId: { matchId, userId } },
+        create: { matchId, userId },
+        update: {},
       });
-      if (me?.status !== "ATTENDED") throw new AuthError("Solo quienes jugaron pueden objetar.");
-      if (match.organizerId === user.id) throw new AuthError("Si te equivocaste, corrige el resultado.");
+    } else {
+      if (match.organizerId === userId) throw new AuthError("Si te equivocaste, corrige el resultado.");
+      await tx.resultConfirmation.deleteMany({ where: { matchId, userId } });
       await tx.resultObjection.upsert({
-        where: { matchId_userId: { matchId, userId: user.id } },
-        create: { matchId, userId: user.id },
+        where: { matchId_userId: { matchId, userId } },
+        create: { matchId, userId },
         update: {},
       });
       const [objections, attended] = await Promise.all([
@@ -118,22 +135,34 @@ export async function objectResult(input: unknown) {
       ]);
       if (isDisputed(objections, attended)) {
         await tx.match.update({ where: { id: matchId }, data: { status: "DISPUTED" } });
-        return true;
       }
-      return false;
-    });
-    refresh();
-    return { disputed };
+    }
+  });
+  // Si con este voto se llegó a la mayoría, se cierra el partido y se aplica el Elo.
+  await finalizeDueResults(matchId);
+  await db.notification.updateMany({
+    where: { userId, key: `confirm:${matchId}`, readAt: null },
+    data: { readAt: new Date() },
   });
 }
 
-/** Retirar mi objeción. */
-export async function withdrawObjection(input: unknown) {
+/** "El resultado está bien". */
+export async function confirmResult(input: unknown) {
   return runAction(matchIdSchema, input, async ({ matchId }) => {
     const user = await requireUser();
-    await db.resultObjection.deleteMany({ where: { matchId, userId: user.id, match: { status: "PLAYED" } } });
+    await vote(matchId, user.id, true);
     refresh();
-    return { withdrawn: true };
+    return { confirmed: true };
+  });
+}
+
+/** "El resultado está mal". Si rechaza la mitad o más, queda en disputa. */
+export async function objectResult(input: unknown) {
+  return runAction(matchIdSchema, input, async ({ matchId }) => {
+    const user = await requireUser();
+    await vote(matchId, user.id, false);
+    refresh();
+    return { objected: true };
   });
 }
 

@@ -8,7 +8,9 @@ import { DivisionShield } from "@/components/features/player/division-badge";
 import { Container } from "@/components/layout/container";
 import { Button } from "@/components/ui/button";
 import { DIVISIONS } from "@/lib/rating/divisions";
-import { listUpcomingMatches } from "@/server/queries/matches";
+import { listUpcomingMatches, withWeather } from "@/server/queries/matches";
+import { getNewsSlides } from "@/server/queries/news";
+import { NewsCarousel } from "@/components/features/news-carousel";
 import { getActiveComuna } from "@/server/queries/zones";
 
 const steps = [
@@ -66,6 +68,10 @@ export default function HomePage() {
       </section>
 
       <Container className="space-y-16 pt-12">
+        <Suspense fallback={<div className="h-56 animate-pulse rounded-2xl bg-secondary" aria-hidden />}>
+          <News />
+        </Suspense>
+
         <section aria-labelledby="semana" className="space-y-5">
           <div className="flex items-end justify-between gap-4">
             <h2 id="semana" className="text-4xl font-display text-cancha dark:text-white">
@@ -186,7 +192,7 @@ const sizes = ["size-8", "size-9", "size-10", "size-11", "size-12"];
 async function NextMatch() {
   await connection();
   const comuna = await getActiveComuna();
-  const [next] = comuna ? await listUpcomingMatches({ comunaId: comuna.id, take: 1 }) : [];
+  const [next] = comuna ? await withWeather(await listUpcomingMatches({ comunaId: comuna.id, take: 1 })) : [];
   if (!next) {
     return (
       <EmptyState
@@ -209,7 +215,9 @@ async function NextMatch() {
 async function WeekMatches() {
   await connection();
   const comuna = await getActiveComuna();
-  const matches = comuna ? await listUpcomingMatches({ comunaId: comuna.id, when: "semana", take: 4 }) : [];
+  const matches = comuna
+    ? await withWeather(await listUpcomingMatches({ comunaId: comuna.id, when: "semana", take: 4 }))
+    : [];
   if (matches.length === 0) {
     return (
       <EmptyState
@@ -232,4 +240,10 @@ async function WeekMatches() {
       ))}
     </div>
   );
+}
+
+async function News() {
+  const comuna = await getActiveComuna();
+  const slides = comuna ? await getNewsSlides(comuna.id) : [];
+  return <NewsCarousel slides={slides} />;
 }
