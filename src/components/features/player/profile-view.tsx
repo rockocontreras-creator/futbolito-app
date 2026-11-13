@@ -6,7 +6,7 @@ import { ageFrom } from "@/lib/format";
 import { FOOT_LABEL, POSITION_LABEL } from "@/lib/labels";
 import { divisionFor, DIVISIONS } from "@/lib/rating/divisions";
 import { DivisionShield } from "./division-badge";
-import { PlayerAvatar } from "./player-avatar";
+import { CardLegend, PlayerCard } from "./player-card";
 
 type Profile = PlayerProfile & { comuna: { name: string }; sector: { name: string } | null };
 
@@ -16,63 +16,64 @@ function nextDivision(rating: number) {
   return higher ? { label: higher.label, missing: higher.min - rating } : null;
 }
 
-export function ProfileView({ profile }: { profile: Profile }) {
+export function ProfileView({
+  profile,
+  reviews,
+}: {
+  profile: Profile;
+  /** Valoraciones de compañeros: alimentan el atributo VAL de la carta. */
+  reviews?: { count: number; average: number | null };
+}) {
   const division = divisionFor(profile.rating);
   const next = nextDivision(profile.rating);
   const attendance =
     profile.registrations > 0 ? Math.round((profile.attendances / profile.registrations) * 100) : null;
   const badges = profileBadges(profile);
+  const card = { ...profile, reviewAverage: reviews?.average ?? null, reviewCount: reviews?.count ?? 0 };
   return (
-    <div className="space-y-6">
-      <section className="overflow-hidden rounded-2xl border bg-card">
-        <div className="h-24 chalk-pitch sm:h-28" aria-hidden />
-        <div className="-mt-12 grid gap-6 px-5 pb-6 sm:-mt-14 sm:grid-cols-[1fr_auto] sm:items-end sm:px-6">
-          <div className="space-y-3">
-            <PlayerAvatar
-              name={profile.displayName}
-              src={profile.photoUrl}
-              className="size-24 border-4 border-card text-3xl sm:size-28"
-            />
-            <div>
-              <h1 className="text-4xl font-display sm:text-5xl">{profile.displayName}</h1>
-              <p className="mt-1 text-[15px] text-muted-foreground">
-                {profile.nickname ? `“${profile.nickname}” · ` : ""}@{profile.username}
-              </p>
-            </div>
-            {badges.length > 0 && (
-              <ul className="flex flex-wrap gap-1.5" aria-label="Etiquetas">
-                {badges.map((b) => (
-                  <li
-                    key={b.id}
-                    className={cn("rounded-full px-3 py-1 text-[13px] font-bold", BADGE_STYLE[b.id])}
-                  >
-                    {b.label}
-                  </li>
-                ))}
-              </ul>
-            )}
-            <p className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
-              <span className="font-semibold">
-                {POSITION_LABEL[profile.primaryPosition]}
-                {profile.secondaryPosition ? ` / ${POSITION_LABEL[profile.secondaryPosition]}` : ""}
-              </span>
-              <span className="text-muted-foreground">Pie {FOOT_LABEL[profile.foot].toLowerCase()}</span>
-              {profile.birthDate && !isMinor(profile.birthDate) && (
-                <span className="text-muted-foreground">{ageFrom(profile.birthDate)} años</span>
-              )}
-              <span className="inline-flex items-center gap-1 text-muted-foreground">
-                <MapPin className="size-3.5" aria-hidden />
-                {profile.sector ? `${profile.sector.name}, ` : ""}
-                {profile.comuna.name}
-              </span>
+    <div className="space-y-8">
+      <section className="grid gap-6 md:grid-cols-[300px_1fr] md:items-center md:gap-10">
+        <PlayerCard player={card} className="mx-auto" />
+        <div className="space-y-4">
+          <div>
+            <h1 className="text-[2rem] font-display sm:text-[2.75rem]">{profile.displayName}</h1>
+            <p className="mt-1 text-[17px] text-muted-foreground">
+              {profile.nickname ? `“${profile.nickname}” · ` : ""}@{profile.username}
             </p>
           </div>
-          <div className="flex items-center gap-4 rounded-xl bg-secondary/70 p-4 sm:min-w-64">
+          {badges.length > 0 && (
+            <ul className="flex flex-wrap gap-2" aria-label="Etiquetas">
+              {badges.map((b) => (
+                <li
+                  key={b.id}
+                  className={cn("rounded-xl px-3 py-1 text-sm font-extrabold", BADGE_STYLE[b.id])}
+                >
+                  {b.label}
+                </li>
+              ))}
+            </ul>
+          )}
+          <p className="flex flex-wrap gap-x-4 gap-y-1 text-[15px]">
+            <span className="font-extrabold">
+              {POSITION_LABEL[profile.primaryPosition]}
+              {profile.secondaryPosition ? ` / ${POSITION_LABEL[profile.secondaryPosition]}` : ""}
+            </span>
+            <span className="text-muted-foreground">Pie {FOOT_LABEL[profile.foot].toLowerCase()}</span>
+            {profile.birthDate && !isMinor(profile.birthDate) && (
+              <span className="text-muted-foreground">{ageFrom(profile.birthDate)} años</span>
+            )}
+            <span className="inline-flex items-center gap-1 text-muted-foreground">
+              <MapPin className="size-4" aria-hidden />
+              {profile.sector ? `${profile.sector.name}, ` : ""}
+              {profile.comuna.name}
+            </span>
+          </p>
+          <div className="flex items-center gap-4 rounded-2xl border-2 bg-card p-4 sm:max-w-sm">
             <DivisionShield rating={profile.rating} className="size-14" />
             <div>
-              <p className="text-sm font-semibold text-muted-foreground">División {division.label}</p>
+              <p className="text-sm font-bold text-muted-foreground">División {division.label}</p>
               <p className="text-4xl leading-none font-score">{profile.rating}</p>
-              <p className="mt-1 text-[13px] text-muted-foreground">
+              <p className="mt-1 text-sm text-muted-foreground">
                 {next ? `${next.missing} para ${next.label}` : "La división más alta"}
               </p>
             </div>
@@ -81,7 +82,7 @@ export function ProfileView({ profile }: { profile: Profile }) {
       </section>
 
       <section aria-labelledby="stats" className="space-y-3">
-        <h2 id="stats" className="text-lg font-bold">
+        <h2 id="stats" className="text-xl font-extrabold">
           Estadísticas
         </h2>
         <div className="grid gap-3 sm:grid-cols-[1.4fr_1fr]">
@@ -91,7 +92,7 @@ export function ProfileView({ profile }: { profile: Profile }) {
             draws={profile.draws}
             losses={profile.losses}
           />
-          <dl className="grid grid-cols-3 divide-x rounded-xl border bg-card">
+          <dl className="grid grid-cols-3 divide-x-2 rounded-2xl border-2 bg-card">
             {[
               { label: "Goles", value: String(profile.goals) },
               { label: "MVP", value: String(profile.mvps) },
@@ -101,12 +102,22 @@ export function ProfileView({ profile }: { profile: Profile }) {
                 key={x.label}
                 className="flex flex-col-reverse items-center justify-center p-4 text-center"
               >
-                <dt className="mt-1 text-[13px] text-muted-foreground">{x.label}</dt>
+                <dt className="mt-1 text-sm text-muted-foreground">{x.label}</dt>
                 <dd className="text-3xl leading-none font-score tabular-nums">{x.value}</dd>
               </div>
             ))}
           </dl>
         </div>
+        <details className="rounded-2xl border-2 bg-card px-4 py-3">
+          <summary className="cursor-pointer font-extrabold">Qué significan los números de la carta</summary>
+          <div className="space-y-3 pt-3">
+            <p className="text-sm text-muted-foreground">
+              El número grande sale del rango. Los otros seis van de 40 a 99 y se mueven con cada partido
+              confirmado.
+            </p>
+            <CardLegend player={card} />
+          </div>
+        </details>
         {profile.matchesPlayed === 0 && (
           <p className="text-sm text-muted-foreground">
             Las estadísticas y el rango se mueven cuando se confirma el resultado de un partido.
@@ -143,15 +154,13 @@ function RecordBar({
     { key: "P", label: "perdidos", n: losses, className: "bg-muted-foreground/40" },
   ];
   return (
-    <div className="space-y-3 rounded-xl border bg-card p-4">
+    <div className="space-y-3 rounded-2xl border-2 bg-card p-4">
       <p className="flex items-baseline justify-between gap-3">
         <span>
           <span className="text-3xl leading-none font-score tabular-nums">{played}</span>{" "}
           <span className="text-muted-foreground">{played === 1 ? "partido" : "partidos"}</span>
         </span>
-        {total > 0 && (
-          <span className="text-sm font-semibold">{Math.round((wins / total) * 100)}% ganados</span>
-        )}
+        {total > 0 && <span className="text-sm font-bold">{Math.round((wins / total) * 100)}% ganados</span>}
       </p>
       <div className="flex h-2.5 gap-0.5 overflow-hidden rounded-full bg-secondary" aria-hidden>
         {total > 0 &&
