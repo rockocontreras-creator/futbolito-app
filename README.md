@@ -1,4 +1,4 @@
-# ⚽ Futbolito App
+# ⚽ Club de la Pichanga
 
 Plataforma web (mobile-first, instalable como PWA) para organizar partidos de futbolito en Chile,
 partiendo por **San Clemente, Región del Maule**: revoltijos, desafíos entre equipos, ligas y un rango tipo Elo

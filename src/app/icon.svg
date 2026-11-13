@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect width="64" height="64" rx="16" fill="#15803c"/>
+  <g transform="translate(8 8)">
+    <defs><clipPath id="c"><circle cx="24" cy="24" r="20.5"/></clipPath></defs>
+    <circle cx="24" cy="24" r="20.5" fill="#fff"/>
+    <g clip-path="url(#c)">
+      <g fill="#263b30">
+        <path d="M24 3.5l6.2 4.5-2.4 7.3h-7.6l-2.4-7.3z"/>
+        <path d="M2 17.5l6.5-.8 3.2 5.8-3.7 6.2-7 .3z"/>
+        <path d="M46 17.5l-6.5-.8-3.2 5.8 3.7 6.2 7 .3z"/>
+        <path d="M14.5 46l1-5 5.7-2 2.8 2.6 2.8-2.6 5.7 2 1 5z"/>
+      </g>
+      <path d="M17.8 8l-7 3.5M30.2 8l7 3.5M20.2 15.3l-8.5 7.2M27.8 15.3l8.5 7.2M8 28.7l6 9.3M40 28.7l-6 9.3" fill="none" stroke="#263b30" stroke-width="1.4" stroke-linecap="round"/>
+    </g>
+    <circle cx="24" cy="24" r="20.5" fill="none" stroke="#263b30" stroke-width="3"/>
+    <ellipse cx="19" cy="24.5" rx="2.5" ry="3.3" fill="#263b30"/><circle cx="19.8" cy="23.3" r=".95" fill="#fff"/>
+    <ellipse cx="29" cy="24.5" rx="2.5" ry="3.3" fill="#263b30"/><circle cx="29.8" cy="23.3" r=".95" fill="#fff"/>
+    <path d="M19.5 30.2q4.5 4.3 9 0" fill="none" stroke="#263b30" stroke-width="2.4" stroke-linecap="round"/>
+  </g>
+</svg>
