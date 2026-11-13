@@ -46,11 +46,11 @@ export function PlayerCommunity({
   return (
     <div className="space-y-6">
       <section aria-labelledby="apodos" className="space-y-3">
-        <h2 id="apodos" className="flex items-center gap-2 text-lg font-bold">
+        <h2 id="apodos" className="flex items-center gap-2 text-lg font-extrabold">
           <Sparkles className="size-5 text-[#b38d00]" aria-hidden /> Apodos de la cancha
         </h2>
         {nicknames.length === 0 && (
-          <p className="rounded-xl border border-dashed bg-card/60 px-4 py-3 text-sm text-muted-foreground">
+          <p className="rounded-2xl border-2 border-dashed bg-secondary/40 px-4 py-3 text-sm text-muted-foreground">
             Todavía sin apodo. Llega solo cuando las valoraciones o los comentarios repiten algo (por ejemplo,
             3 veces &ldquo;incansable&rdquo;) o cuando las estadísticas destacan.
           </p>
@@ -65,18 +65,18 @@ export function PlayerCommunity({
               )}
             >
               <span className="block text-xl font-display leading-tight">{n.title}</span>
-              <span className="text-[13px] text-muted-foreground">{n.reason}</span>
+              <span className="text-sm text-muted-foreground">{n.reason}</span>
             </li>
           ))}
         </ul>
-        <p className="text-[13px] text-muted-foreground">
+        <p className="text-sm text-muted-foreground">
           Se ganan solos: salen de las estadísticas, las valoraciones de quienes juegan con{" "}
           {isOwner ? "contigo" : "él o ella"} y los comentarios.
         </p>
       </section>
 
       <section aria-labelledby="valoraciones" className="space-y-3">
-        <h2 id="valoraciones" className="flex items-center gap-2 text-lg font-bold">
+        <h2 id="valoraciones" className="flex items-center gap-2 text-lg font-extrabold">
           <Star className="size-5 fill-foco text-[#b38d00]" aria-hidden /> Valoraciones
         </h2>
         {community.reviews.count === 0 ? (
@@ -84,7 +84,7 @@ export function PlayerCommunity({
             Todavía sin valoraciones. Después de cada partido, compañeros y rivales pueden valorarlo.
           </p>
         ) : (
-          <div className="flex flex-wrap items-center gap-4 rounded-xl border bg-card p-4">
+          <div className="flex flex-wrap items-center gap-4 rounded-2xl border-2 bg-card p-4">
             <p className="flex items-baseline gap-1.5">
               <span className="text-4xl font-score">{community.reviews.average?.toFixed(1)}</span>
               <span className="text-sm text-muted-foreground">
@@ -95,7 +95,7 @@ export function PlayerCommunity({
             {topTags.length > 0 && (
               <ul className="flex flex-wrap gap-1.5">
                 {topTags.map(([tag, count]) => (
-                  <li key={tag} className="rounded-full bg-secondary px-3 py-1 text-[13px] font-semibold">
+                  <li key={tag} className="rounded-xl bg-secondary px-3 py-1 text-sm font-bold">
                     {PLAYER_TAG_LABEL[tag]} <span className="text-muted-foreground">×{count}</span>
                   </li>
                 ))}
@@ -106,11 +106,11 @@ export function PlayerCommunity({
       </section>
 
       <section aria-labelledby="comentarios" className="space-y-3">
-        <h2 id="comentarios" className="flex items-center gap-2 text-lg font-bold">
+        <h2 id="comentarios" className="flex items-center gap-2 text-lg font-extrabold">
           <MessageSquare className="size-5 text-primary" aria-hidden /> Comentarios
           <span className="text-sm font-normal text-muted-foreground">({community.comments.length})</span>
         </h2>
-        <div className="space-y-4 rounded-xl border bg-card p-4">
+        <div className="space-y-4 rounded-2xl border-2 bg-card p-4">
           {!isOwner &&
             (viewer.userId && viewer.hasProfile ? (
               <CommentForm
@@ -121,7 +121,7 @@ export function PlayerCommunity({
               <p className="text-sm text-muted-foreground">
                 <Link
                   href={viewer.userId ? "/perfil" : `/ingresar?callbackUrl=/jugador/${profile.username}`}
-                  className="font-bold text-primary hover:underline"
+                  className="font-extrabold text-primary hover:underline"
                 >
                   {viewer.userId ? "Crea tu perfil" : "Ingresa"}
                 </Link>{" "}
@@ -131,7 +131,7 @@ export function PlayerCommunity({
           {community.comments.length === 0 ? (
             <p className="text-sm text-muted-foreground">Nadie ha comentado todavía.</p>
           ) : (
-            <ul className="divide-y">
+            <ul className="divide-y-2">
               {community.comments.map((c) => {
                 const name = c.author.profile?.displayName ?? c.author.name ?? "Jugador";
                 const canDelete = viewer.userId === c.authorId || isOwner || viewer.isAdmin;
@@ -147,12 +147,12 @@ export function PlayerCommunity({
                         {c.author.profile ? (
                           <Link
                             href={`/jugador/${c.author.profile.username}`}
-                            className="font-bold hover:underline"
+                            className="font-extrabold hover:underline"
                           >
                             {name}
                           </Link>
                         ) : (
-                          <span className="font-bold">{name}</span>
+                          <span className="font-extrabold">{name}</span>
                         )}{" "}
                         <span className="text-muted-foreground">
                           hace {formatDistanceToNow(c.createdAt, { locale: es })}

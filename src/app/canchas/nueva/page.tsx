@@ -16,7 +16,9 @@ export default function NewVenuePage() {
         title="Proponer cancha"
         description="Márcala en el mapa para que todos sepan cómo llegar."
       />
-      <Suspense fallback={<div className="h-[640px] animate-pulse rounded-2xl border bg-card" aria-hidden />}>
+      <Suspense
+        fallback={<div className="h-[640px] animate-pulse rounded-2xl border-2 bg-card" aria-hidden />}
+      >
         <Gate />
       </Suspense>
     </Container>

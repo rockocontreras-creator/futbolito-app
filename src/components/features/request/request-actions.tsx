@@ -18,7 +18,7 @@ export function OfferButton({ requestId }: { requestId: string }) {
         run(() => offerToPlay({ requestId, message }));
       }}
     >
-      <label htmlFor="offer-msg" className="text-sm font-semibold">
+      <label htmlFor="offer-msg" className="text-sm font-bold">
         Mensaje <span className="font-normal text-muted-foreground">(opcional)</span>
       </label>
       <Input

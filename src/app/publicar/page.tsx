@@ -18,7 +18,9 @@ export default function PublishPage() {
         title="Publicar revoltijo"
         description="Pon cancha, día y cuántos faltan. Después compártelo por WhatsApp y el resto se suma solo."
       />
-      <Suspense fallback={<div className="h-[640px] animate-pulse rounded-2xl border bg-card" aria-hidden />}>
+      <Suspense
+        fallback={<div className="h-[640px] animate-pulse rounded-2xl border-2 bg-card" aria-hidden />}
+      >
         <PublishGate />
       </Suspense>
     </Container>

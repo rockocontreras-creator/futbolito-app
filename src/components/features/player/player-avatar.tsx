@@ -18,7 +18,7 @@ export function PlayerAvatar({
   return (
     <span
       className={cn(
-        "grid size-10 shrink-0 place-items-center overflow-hidden rounded-full bg-cancha font-bold text-white",
+        "grid size-10 shrink-0 place-items-center overflow-hidden rounded-full bg-primary font-extrabold text-primary-foreground",
         className,
       )}
       aria-hidden

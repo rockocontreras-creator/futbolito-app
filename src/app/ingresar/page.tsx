@@ -55,9 +55,9 @@ async function SignInOptions({ searchParams }: { searchParams: PageProps<"/ingre
       <PasswordSignInForm callbackUrl={callbackUrl} />
 
       {authProviders.email && (
-        <form action={signInWithEmail} className="space-y-3 border-t pt-6">
+        <form action={signInWithEmail} className="space-y-3 border-t-2 pt-6">
           <input type="hidden" name="callbackUrl" value={callbackUrl} />
-          <label htmlFor="magic-email" className="text-sm font-semibold">
+          <label htmlFor="magic-email" className="text-sm font-bold">
             ¿Sin contraseña? Te mandamos un enlace para entrar
           </label>
           <Input
@@ -80,7 +80,7 @@ async function SignInOptions({ searchParams }: { searchParams: PageProps<"/ingre
           href={
             callbackUrl === "/" ? "/registro" : `/registro?callbackUrl=${encodeURIComponent(callbackUrl)}`
           }
-          className="font-bold text-primary underline-offset-4 hover:underline"
+          className="font-extrabold text-primary underline-offset-4 hover:underline"
         >
           Crea tu cuenta
         </Link>

@@ -17,7 +17,7 @@ export function ShirtColorPicker({
 }) {
   return (
     <fieldset className="space-y-2">
-      <legend className="text-sm font-semibold">{label}</legend>
+      <legend className="text-sm font-bold">{label}</legend>
       <div className="flex flex-wrap gap-2">
         {SHIRT_COLORS.map((c) => (
           <button
@@ -36,7 +36,7 @@ export function ShirtColorPicker({
         ))}
       </div>
       {error && (
-        <p role="alert" className="text-[13px] font-medium text-destructive">
+        <p role="alert" className="text-sm font-medium text-destructive">
           {error}
         </p>
       )}

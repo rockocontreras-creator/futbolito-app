@@ -17,7 +17,9 @@ export default function NewRequestPage() {
         title="Buscar jugadores"
         description="Di cuántos faltan y para cuándo. Los que se ofrezcan te aparecen para aceptarlos."
       />
-      <Suspense fallback={<div className="h-[560px] animate-pulse rounded-2xl border bg-card" aria-hidden />}>
+      <Suspense
+        fallback={<div className="h-[560px] animate-pulse rounded-2xl border-2 bg-card" aria-hidden />}
+      >
         <Gate />
       </Suspense>
     </Container>

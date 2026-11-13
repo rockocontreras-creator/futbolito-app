@@ -88,8 +88,8 @@ export function MatchChat({
   };
 
   return (
-    <section className="overflow-hidden rounded-xl border bg-card" aria-labelledby="sala">
-      <h2 id="sala" className="flex items-center gap-2 border-b px-5 py-4 text-lg font-bold">
+    <section className="overflow-hidden rounded-2xl border-2 bg-card" aria-labelledby="sala">
+      <h2 id="sala" className="flex items-center gap-2 border-b-2 px-5 py-4 text-lg font-extrabold">
         <MessageCircle className="size-5 text-primary" aria-hidden /> Sala del partido
       </h2>
       <ol
@@ -122,11 +122,11 @@ export function MatchChat({
                   mine ? "rounded-br-sm bg-primary text-primary-foreground" : "rounded-bl-sm bg-secondary",
                 )}
               >
-                {!mine && <p className="text-[12px] font-bold text-primary">{m.name}</p>}
+                {!mine && <p className="text-[13px] font-extrabold text-primary">{m.name}</p>}
                 <p className="text-[15px] break-words whitespace-pre-line">{m.body}</p>
                 <p
                   className={cn(
-                    "text-right text-[11px]",
+                    "text-right text-[12px]",
                     mine ? "text-primary-foreground/70" : "text-muted-foreground",
                   )}
                 >
@@ -153,7 +153,7 @@ export function MatchChat({
         })}
       </ol>
       <form
-        className="flex items-end gap-2 border-t p-3"
+        className="flex items-end gap-2 border-t-2 p-3"
         onSubmit={(e) => {
           e.preventDefault();
           send();

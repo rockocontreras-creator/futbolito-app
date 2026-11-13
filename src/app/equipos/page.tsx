@@ -70,12 +70,12 @@ function TeamRow({ team, position }: { team: TeamListItem; position: number }) {
   return (
     <Link
       href={`/equipo/${team.slug}`}
-      className="flex items-center gap-4 rounded-xl border bg-card p-4 transition-colors hover:border-primary/40 focus-visible:ring-4 focus-visible:ring-ring/30 focus-visible:outline-none"
+      className="flex items-center gap-4 rounded-2xl border-2 bg-card p-4 transition-colors hover:border-primary/40 focus-visible:ring-4 focus-visible:ring-ring/30 focus-visible:outline-none"
     >
       <span className="w-6 text-center text-lg font-score text-muted-foreground">{position}</span>
       <TeamCrest name={team.name} primary={team.primaryColor} secondary={team.secondaryColor} />
       <span className="min-w-0 flex-1 space-y-1">
-        <span className="block truncate text-lg font-bold">{team.name}</span>
+        <span className="block truncate text-lg font-extrabold">{team.name}</span>
         <span className="block text-sm text-muted-foreground">
           {team._count.members} {team._count.members === 1 ? "jugador" : "jugadores"}
           {team.sector ? `, ${team.sector.name}` : ""}
@@ -91,7 +91,7 @@ function TeamsSkeleton() {
   return (
     <div className="grid gap-3 md:grid-cols-2" aria-hidden>
       {[0, 1, 2, 3].map((i) => (
-        <div key={i} className="h-[84px] animate-pulse rounded-xl border bg-card" />
+        <div key={i} className="h-[84px] animate-pulse rounded-2xl border-2 bg-card" />
       ))}
     </div>
   );

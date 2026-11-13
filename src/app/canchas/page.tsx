@@ -30,7 +30,7 @@ export default function VenuesPage() {
           </Button>
         }
       />
-      <Suspense fallback={<div className="h-72 animate-pulse rounded-xl border bg-card" aria-hidden />}>
+      <Suspense fallback={<div className="h-72 animate-pulse rounded-2xl border-2 bg-card" aria-hidden />}>
         <VenuesContent />
       </Suspense>
     </Container>
@@ -89,16 +89,18 @@ async function VenuesContent() {
 function VenueCard({ v }: { v: MapVenueRow }) {
   const upcoming = v._count.matches;
   return (
-    <article className="flex h-full flex-col gap-3 rounded-xl border bg-card p-5">
+    <article className="flex h-full flex-col gap-3 rounded-2xl border-2 bg-card p-5">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h2 className="text-lg font-bold">{v.name}</h2>
+          <h2 className="text-lg font-extrabold">{v.name}</h2>
           <p className="text-sm text-muted-foreground">
             {[v.address, v.sector?.name].filter(Boolean).join(", ") || "Sin dirección"}
           </p>
         </div>
         {v.status === "PENDING" && (
-          <span className="shrink-0 rounded bg-secondary px-2 py-0.5 text-[12px] font-bold">Por aprobar</span>
+          <span className="shrink-0 rounded bg-secondary px-2 py-0.5 text-[13px] font-extrabold">
+            Por aprobar
+          </span>
         )}
       </div>
       <ul className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
@@ -124,7 +126,7 @@ function VenueCard({ v }: { v: MapVenueRow }) {
             </a>
           </Button>
         ) : (
-          <span className="text-[13px] text-muted-foreground">Sin ubicación en el mapa</span>
+          <span className="text-sm text-muted-foreground">Sin ubicación en el mapa</span>
         )}
         <Button asChild size="sm" variant="ghost">
           <Link href="/partidos">

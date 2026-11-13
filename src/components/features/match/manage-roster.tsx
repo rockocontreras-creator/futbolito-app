@@ -40,7 +40,7 @@ export function ManageRoster({
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 id="gestion" className="text-lg font-bold">
+          <h2 id="gestion" className="text-lg font-extrabold">
             Tu partido
           </h2>
           <p className="text-sm text-muted-foreground">
@@ -140,7 +140,7 @@ function Group({
 }) {
   return (
     <div>
-      <h3 className="flex items-center gap-2 border-b pb-2 text-sm font-bold">
+      <h3 className="flex items-center gap-2 border-b-2 pb-2 text-sm font-extrabold">
         {tone && (
           <span
             className="size-3.5 rounded-full ring-1 ring-black/15"
@@ -150,7 +150,7 @@ function Group({
         )}
         {title}
       </h3>
-      <ul className="divide-y">
+      <ul className="divide-y-2">
         {players.map((p) => (
           <PlayerLine
             key={p.userId}

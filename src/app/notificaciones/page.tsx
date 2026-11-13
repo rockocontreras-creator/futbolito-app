@@ -21,7 +21,7 @@ export default function NotificationsPage() {
   return (
     <Container className="max-w-2xl pt-8">
       <PageHeader title="Notificaciones" />
-      <Suspense fallback={<div className="h-64 animate-pulse rounded-xl border bg-card" aria-hidden />}>
+      <Suspense fallback={<div className="h-64 animate-pulse rounded-2xl border-2 bg-card" aria-hidden />}>
         <List />
       </Suspense>
     </Container>
@@ -54,7 +54,7 @@ async function List() {
   return (
     <>
       <MarkAllRead hasUnread={hasUnread} />
-      <ul className="divide-y overflow-hidden rounded-xl border bg-card">
+      <ul className="divide-y-2 overflow-hidden rounded-2xl border-2 bg-card">
         {items.map((n) => {
           const Icon = ICON[n.type as keyof typeof ICON] ?? Megaphone;
           const body = (
@@ -68,9 +68,9 @@ async function List() {
                 <Icon className="size-5" aria-hidden />
               </span>
               <span className="min-w-0 flex-1">
-                <span className={cn("block", !n.readAt && "font-bold")}>{n.title}</span>
+                <span className={cn("block", !n.readAt && "font-extrabold")}>{n.title}</span>
                 {n.body && <span className="block text-sm text-muted-foreground">{n.body}</span>}
-                <span className="text-[12px] text-muted-foreground">
+                <span className="text-[13px] text-muted-foreground">
                   hace {formatDistanceToNow(n.updatedAt, { locale: es })}
                 </span>
               </span>

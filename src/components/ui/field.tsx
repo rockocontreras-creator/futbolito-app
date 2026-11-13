@@ -21,17 +21,17 @@ export function Field({
 }) {
   return (
     <div className={cn("space-y-1.5", className)}>
-      <label htmlFor={id} className="flex items-baseline justify-between text-sm font-semibold">
+      <label htmlFor={id} className="flex items-baseline justify-between text-[15px] font-extrabold">
         {label}
-        {optional && <span className="text-xs font-normal text-muted-foreground">Opcional</span>}
+        {optional && <span className="text-sm font-bold text-muted-foreground">Opcional</span>}
       </label>
       {children}
       {error ? (
-        <p id={`${id}-error`} role="alert" className="text-[13px] font-medium text-destructive">
+        <p id={`${id}-error`} role="alert" className="text-sm font-extrabold text-destructive">
           {error}
         </p>
       ) : hint ? (
-        <p id={`${id}-hint`} className="text-[13px] text-muted-foreground">
+        <p id={`${id}-hint`} className="text-sm text-muted-foreground">
           {hint}
         </p>
       ) : null}

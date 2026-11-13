@@ -87,9 +87,9 @@ export function PublishPickupForm({
 
   return (
     <form onSubmit={onSubmit} noValidate className="space-y-6">
-      <fieldset className="space-y-5 rounded-2xl border bg-card p-5 sm:p-6">
+      <fieldset className="space-y-5 rounded-2xl border-2 bg-card p-5 sm:p-6">
         <legend className="sr-only">Dónde y cuándo</legend>
-        <h2 className="text-lg font-bold">Dónde y cuándo</h2>
+        <h2 className="text-lg font-extrabold">Dónde y cuándo</h2>
         <Field id="venueId" label="Cancha" error={err("venueId")}>
           <NativeSelect id="venueId" {...register("venueId")} {...aria("venueId")}>
             {venues.map((v) => (
@@ -153,7 +153,7 @@ export function PublishPickupForm({
               </NativeSelect>
             </Field>
             <div className="space-y-1.5 sm:col-span-2">
-              <span className="text-sm font-semibold">
+              <span className="text-sm font-bold">
                 Ubicación{" "}
                 <span className="font-normal text-muted-foreground">(opcional, ayuda a llegar)</span>
               </span>
@@ -188,11 +188,11 @@ export function PublishPickupForm({
         </div>
       </fieldset>
 
-      <fieldset className="space-y-5 rounded-2xl border bg-card p-5 sm:p-6">
+      <fieldset className="space-y-5 rounded-2xl border-2 bg-card p-5 sm:p-6">
         <legend className="sr-only">Formato y cupos</legend>
-        <h2 className="text-lg font-bold">Formato y cupos</h2>
+        <h2 className="text-lg font-extrabold">Formato y cupos</h2>
         <div className="space-y-1.5">
-          <p className="text-sm font-semibold" id="formato-label">
+          <p className="text-sm font-bold" id="formato-label">
             Jugadores por lado
           </p>
           <div className="grid grid-cols-5 gap-2" role="radiogroup" aria-labelledby="formato-label">
@@ -259,9 +259,9 @@ export function PublishPickupForm({
         </div>
       </fieldset>
 
-      <fieldset className="space-y-5 rounded-2xl border bg-card p-5 sm:p-6">
+      <fieldset className="space-y-5 rounded-2xl border-2 bg-card p-5 sm:p-6">
         <legend className="sr-only">Detalles</legend>
-        <h2 className="text-lg font-bold">Detalles</h2>
+        <h2 className="text-lg font-extrabold">Detalles</h2>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field
             id="minRating"

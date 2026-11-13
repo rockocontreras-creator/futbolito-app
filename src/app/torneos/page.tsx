@@ -12,11 +12,13 @@ export default function TournamentsPage() {
       <section className="chalk-pitch text-white">
         <Container className="grid min-h-[56vh] place-items-center py-16 text-center">
           <div className="max-w-xl space-y-5">
-            <span className="mx-auto grid size-20 place-items-center rounded-full bg-foco text-[#2a2205] shadow-lg">
+            <span className="mx-auto grid size-20 place-items-center rounded-3xl bg-foco text-accent-foreground">
               <Trophy className="size-10" aria-hidden />
             </span>
-            <p className="text-sm font-bold text-foco">Próximamente</p>
-            <h1 className="text-6xl font-display sm:text-7xl">Torneos</h1>
+            <h1 className="text-5xl font-display sm:text-6xl">Torneos</h1>
+            <p className="mx-auto w-fit rounded-xl bg-foco px-3 py-1 text-sm font-extrabold text-accent-foreground">
+              Próximamente
+            </p>
             <p className="text-lg text-white/85">
               Campeonatos de un fin de semana con grupos, eliminación directa y premio. Estamos armando la
               cancha.

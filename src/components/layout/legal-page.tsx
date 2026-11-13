@@ -26,7 +26,7 @@ export function LegalPage({
 export function LegalSection({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="space-y-3">
-      <h2 className="text-xl font-bold">{title}</h2>
+      <h2 className="text-xl font-extrabold">{title}</h2>
       <div className="space-y-3 text-muted-foreground [&_li]:ml-5 [&_li]:list-disc [&_strong]:text-foreground [&_ul]:space-y-1.5">
         {children}
       </div>
@@ -38,7 +38,7 @@ export function ContactLine() {
   return CONTACT_EMAIL ? (
     <p>
       Escríbenos a{" "}
-      <a href={`mailto:${CONTACT_EMAIL}`} className="font-semibold text-primary underline underline-offset-4">
+      <a href={`mailto:${CONTACT_EMAIL}`} className="font-bold text-primary underline underline-offset-4">
         {CONTACT_EMAIL}
       </a>
       .

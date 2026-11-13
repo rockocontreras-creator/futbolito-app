@@ -8,18 +8,12 @@ export function SlotBar({ taken, total, className }: { taken: number; total: num
   const missing = Math.max(total - taken, 0);
   return (
     <div className={cn("space-y-1.5", className)}>
-      <div className="flex gap-[3px]" role="img" aria-label={`${taken} de ${total} cupos tomados`}>
+      <div className="flex gap-1" role="img" aria-label={`${taken} de ${total} cupos tomados`}>
         {Array.from({ length: total }, (_, i) => (
-          <span
-            key={i}
-            className={cn(
-              "h-2 flex-1 rounded-[2px]",
-              i < taken ? "bg-primary" : "bg-muted ring-1 ring-border ring-inset",
-            )}
-          />
+          <span key={i} className={cn("h-2.5 flex-1 rounded-full", i < taken ? "bg-primary" : "bg-border")} />
         ))}
       </div>
-      <p className="text-[13px] font-semibold">
+      <p className="text-sm font-bold">
         <span className="text-[15px] font-score">
           {taken}/{total}
         </span>{" "}

@@ -56,7 +56,7 @@ async function TeamView({ params }: { params: PageProps<"/equipo/[slug]">["param
         <Container className="space-y-6 py-8 md:py-12">
           <Link
             href="/equipos"
-            className="inline-flex items-center gap-1.5 text-sm font-semibold text-white/80 hover:text-white"
+            className="inline-flex items-center gap-1.5 text-sm font-bold text-white/80 hover:text-white"
           >
             <ArrowLeft className="size-4" aria-hidden /> Equipos
           </Link>
@@ -85,15 +85,15 @@ async function TeamView({ params }: { params: PageProps<"/equipo/[slug]">["param
         <div className="space-y-6">
           {isCaptain && team.invitations.length > 0 && (
             <section className="rounded-xl border-2 border-foco bg-card" aria-labelledby="solicitudes">
-              <h2 id="solicitudes" className="border-b px-5 py-4 text-lg font-bold">
+              <h2 id="solicitudes" className="border-b-2 px-5 py-4 text-lg font-extrabold">
                 Quieren unirse ({team.invitations.length})
               </h2>
-              <ul className="divide-y">
+              <ul className="divide-y-2">
                 {team.invitations.map((r) => (
                   <li key={r.id} className="flex items-center gap-3 px-5 py-3">
                     <PlayerAvatar name={r.sender.profile?.displayName ?? "Jugador"} />
                     <span className="min-w-0 flex-1">
-                      <span className="block truncate font-semibold">
+                      <span className="block truncate font-bold">
                         {r.sender.profile?.displayName ?? "Jugador"}
                       </span>
                       <span className="text-sm text-muted-foreground">
@@ -107,15 +107,15 @@ async function TeamView({ params }: { params: PageProps<"/equipo/[slug]">["param
             </section>
           )}
 
-          <section className="rounded-xl border bg-card" aria-labelledby="plantel">
-            <h2 id="plantel" className="flex items-center gap-2 border-b px-5 py-4 text-lg font-bold">
+          <section className="rounded-2xl border-2 bg-card" aria-labelledby="plantel">
+            <h2 id="plantel" className="flex items-center gap-2 border-b-2 px-5 py-4 text-lg font-extrabold">
               <Users className="size-5 text-primary" aria-hidden /> Plantel
               <span className="text-sm font-normal text-muted-foreground">({team.members.length})</span>
             </h2>
             {team.members.length === 0 ? (
               <p className="px-5 py-6 text-sm text-muted-foreground">Este equipo no tiene jugadores.</p>
             ) : (
-              <ul className="divide-y">
+              <ul className="divide-y-2">
                 {team.members.map((m) => {
                   const p = m.user.profile;
                   const name = p?.displayName ?? m.user.name ?? "Jugador";
@@ -123,7 +123,7 @@ async function TeamView({ params }: { params: PageProps<"/equipo/[slug]">["param
                     <>
                       <PlayerAvatar name={name} src={p?.photoUrl ?? m.user.image} />
                       <span className="min-w-0 flex-1">
-                        <span className="flex items-center gap-1.5 truncate font-semibold">
+                        <span className="flex items-center gap-1.5 truncate font-bold">
                           {name}
                           {m.role === "CAPTAIN" && (
                             <Crown className="size-4 text-division-gold" aria-label="Capitán" />
@@ -160,8 +160,8 @@ async function TeamView({ params }: { params: PageProps<"/equipo/[slug]">["param
           </section>
 
           {team.description && (
-            <section className="rounded-xl border bg-card p-5" aria-labelledby="sobre">
-              <h2 id="sobre" className="mb-2 text-lg font-bold">
+            <section className="rounded-2xl border-2 bg-card p-5" aria-labelledby="sobre">
+              <h2 id="sobre" className="mb-2 text-lg font-extrabold">
                 Sobre el equipo
               </h2>
               <p className="text-[15px] whitespace-pre-line text-muted-foreground">{team.description}</p>
@@ -170,7 +170,7 @@ async function TeamView({ params }: { params: PageProps<"/equipo/[slug]">["param
         </div>
 
         <aside className="space-y-4 lg:sticky lg:top-24">
-          <div className="rounded-xl border bg-card p-5">
+          <div className="rounded-2xl border-2 bg-card p-5">
             <TeamMembership teamId={team.id} slug={team.slug} viewer={viewer} />
           </div>
           <dl className="grid grid-cols-4 gap-px overflow-hidden rounded-xl border bg-border text-center">

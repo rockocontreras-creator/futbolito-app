@@ -67,19 +67,19 @@ async function RequestView({ params }: { params: PageProps<"/se-busca/[id]">["pa
         <Container className="space-y-5 py-8 md:py-12">
           <Link
             href="/se-busca"
-            className="inline-flex items-center gap-1.5 text-sm font-semibold text-white/80 hover:text-white"
+            className="inline-flex items-center gap-1.5 text-sm font-bold text-white/80 hover:text-white"
           >
             <ArrowLeft className="size-4" aria-hidden /> Se busca
           </Link>
           <div className="flex flex-wrap items-end gap-6">
             <p className="leading-none">
               <span className="text-8xl font-score">{missing}</span>
-              <span className="ml-2 text-xl font-semibold text-white/80">
+              <span className="ml-2 text-xl font-bold text-white/80">
                 {missing === 1 ? "falta" : "faltan"}
               </span>
             </p>
             <div className="space-y-1.5 pb-2">
-              <p className="inline-flex rounded-full bg-foco px-3 py-1 text-sm font-bold text-[#2a2205]">
+              <p className="inline-flex rounded-xl bg-foco px-3 py-1 text-sm font-extrabold text-accent-foreground">
                 {STATUS_TEXT[req.status]}
               </p>
               <h1 className="text-3xl font-display sm:text-4xl">
@@ -102,7 +102,7 @@ async function RequestView({ params }: { params: PageProps<"/se-busca/[id]">["pa
         <div className="space-y-6">
           {isAuthor && (
             <section className="rounded-xl border-2 border-foco bg-card" aria-labelledby="ofertas">
-              <h2 id="ofertas" className="border-b px-5 py-4 text-lg font-bold">
+              <h2 id="ofertas" className="border-b-2 px-5 py-4 text-lg font-extrabold">
                 Se ofrecieron ({pendingOffers.length})
               </h2>
               {pendingOffers.length === 0 ? (
@@ -110,7 +110,7 @@ async function RequestView({ params }: { params: PageProps<"/se-busca/[id]">["pa
                   Todavía nadie. Compártelo por WhatsApp para que llegue más rápido.
                 </p>
               ) : (
-                <ul className="divide-y">
+                <ul className="divide-y-2">
                   {pendingOffers.map((r) => (
                     <OfferRow key={r.id} r={r} trailing={<AnswerOffer responseId={r.id} />} />
                   ))}
@@ -119,14 +119,14 @@ async function RequestView({ params }: { params: PageProps<"/se-busca/[id]">["pa
             </section>
           )}
 
-          <section className="rounded-xl border bg-card" aria-labelledby="confirmados">
-            <h2 id="confirmados" className="border-b px-5 py-4 text-lg font-bold">
+          <section className="rounded-2xl border-2 bg-card" aria-labelledby="confirmados">
+            <h2 id="confirmados" className="border-b-2 px-5 py-4 text-lg font-extrabold">
               Confirmados ({accepted.length} de {req.playersNeeded})
             </h2>
             {accepted.length === 0 ? (
               <p className="px-5 py-5 text-sm text-muted-foreground">Aún nadie confirmado.</p>
             ) : (
-              <ul className="divide-y">
+              <ul className="divide-y-2">
                 {accepted.map((r) => {
                   const wa =
                     isAuthor && r.user.profile?.phone && !isMinor(r.user.profile.birthDate)
@@ -148,8 +148,8 @@ async function RequestView({ params }: { params: PageProps<"/se-busca/[id]">["pa
           </section>
 
           {req.notes && (
-            <section className="rounded-xl border bg-card p-5" aria-labelledby="detalles">
-              <h2 id="detalles" className="mb-2 text-lg font-bold">
+            <section className="rounded-2xl border-2 bg-card p-5" aria-labelledby="detalles">
+              <h2 id="detalles" className="mb-2 text-lg font-extrabold">
                 Detalles
               </h2>
               <p className="text-[15px] whitespace-pre-line text-muted-foreground">{req.notes}</p>
@@ -158,20 +158,20 @@ async function RequestView({ params }: { params: PageProps<"/se-busca/[id]">["pa
         </div>
 
         <aside className="space-y-4 lg:sticky lg:top-24">
-          <div className="space-y-4 rounded-xl border bg-card p-5">
+          <div className="space-y-4 rounded-2xl border-2 bg-card p-5">
             <div className="flex items-center gap-3">
               <PlayerAvatar name={authorName} src={req.author.profile?.photoUrl} />
               <div className="min-w-0 flex-1">
-                <p className="text-[13px] text-muted-foreground">Busca</p>
+                <p className="text-sm text-muted-foreground">Busca</p>
                 {req.author.profile ? (
                   <Link
                     href={`/jugador/${req.author.profile.username}`}
-                    className="font-bold hover:underline"
+                    className="font-extrabold hover:underline"
                   >
                     {authorName}
                   </Link>
                 ) : (
-                  <p className="font-bold">{authorName}</p>
+                  <p className="font-extrabold">{authorName}</p>
                 )}
               </div>
             </div>
@@ -196,13 +196,13 @@ async function RequestView({ params }: { params: PageProps<"/se-busca/[id]">["pa
               <ProfileRequired next={`/se-busca/${req.id}`} />
             ) : mine?.status === "ACCEPTED" ? (
               <div className="space-y-2">
-                <p className="rounded-full bg-primary/12 py-3 text-center text-sm font-bold text-primary">
+                <p className="rounded-2xl bg-primary/12 py-3 text-center text-sm font-extrabold text-primary">
                   ¡Te aceptaron! Vas a jugar
                 </p>
                 {authorWa ? (
                   <WhatsAppContact href={authorWa} label={`Escribirle a ${authorName.split(" ")[0]}`} />
                 ) : (
-                  <p className="text-[13px] text-muted-foreground">
+                  <p className="text-sm text-muted-foreground">
                     {authorName} no tiene teléfono en su perfil: coordinen por comentarios en su perfil.
                   </p>
                 )}
@@ -210,19 +210,21 @@ async function RequestView({ params }: { params: PageProps<"/se-busca/[id]">["pa
               </div>
             ) : mine?.status === "PENDING" ? (
               <div className="space-y-2">
-                <p className="rounded-full bg-secondary py-3 text-center text-sm font-bold">
+                <p className="rounded-2xl bg-secondary py-3 text-center text-sm font-extrabold">
                   Te ofreciste. Falta que acepten.
                 </p>
                 <WithdrawOfferButton requestId={req.id} />
               </div>
             ) : mine?.status === "REJECTED" ? (
-              <p className="rounded-full bg-secondary py-3 text-center text-sm font-bold">
+              <p className="rounded-2xl bg-secondary py-3 text-center text-sm font-extrabold">
                 Esta vez no quedaste
               </p>
             ) : open ? (
               <OfferButton requestId={req.id} />
             ) : (
-              <p className="rounded-full bg-secondary py-3 text-center text-sm font-bold">Búsqueda cerrada</p>
+              <p className="rounded-2xl bg-secondary py-3 text-center text-sm font-extrabold">
+                Búsqueda cerrada
+              </p>
             )}
 
             {open && (
@@ -238,7 +240,7 @@ async function RequestView({ params }: { params: PageProps<"/se-busca/[id]">["pa
             )}
           </div>
           {isAuthor && (
-            <p className="px-1 text-[13px] text-muted-foreground">
+            <p className="px-1 text-sm text-muted-foreground">
               Al aceptar a alguien ves su WhatsApp (si lo puso en su perfil) y él ve el tuyo.
             </p>
           )}
@@ -262,13 +264,13 @@ function OfferRow({
       <PlayerAvatar name={name} src={p?.photoUrl ?? r.user.image} />
       <div className="min-w-0 flex-1">
         {p ? (
-          <Link href={`/jugador/${p.username}`} className="font-semibold hover:underline">
+          <Link href={`/jugador/${p.username}`} className="font-bold hover:underline">
             {name}
           </Link>
         ) : (
-          <p className="font-semibold">{name}</p>
+          <p className="font-bold">{name}</p>
         )}
-        <p className="text-[13px] text-muted-foreground">
+        <p className="text-sm text-muted-foreground">
           {p ? POSITION_LABEL[p.primaryPosition] : ""}
           {r.message ? ` · “${r.message}”` : ""}
         </p>

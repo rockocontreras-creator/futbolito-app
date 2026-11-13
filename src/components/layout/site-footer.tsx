@@ -3,7 +3,7 @@ import { BrandMark } from "./brand";
 
 export function SiteFooter() {
   return (
-    <footer className="hidden border-t lg:block">
+    <footer className="hidden border-t-2 lg:block">
       <div className="mx-auto flex max-w-6xl items-center justify-between gap-6 px-4 py-8 text-sm text-muted-foreground">
         <div className="flex items-center gap-2">
           <BrandMark className="size-6" />

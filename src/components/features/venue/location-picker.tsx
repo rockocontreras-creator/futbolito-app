@@ -48,7 +48,7 @@ export function LocationPicker({
       </div>
       <VenueMap venues={[]} center={center} zoom={15} pick={{ value, onChange }} />
       {(error || geoError) && (
-        <p role="alert" className="text-[13px] font-medium text-destructive">
+        <p role="alert" className="text-sm font-medium text-destructive">
           {error ?? geoError}
         </p>
       )}

@@ -26,13 +26,13 @@ export default function MorePage() {
           <li key={href}>
             <Link
               href={href}
-              className="flex items-center gap-4 rounded-xl border bg-card p-4 transition-colors hover:border-primary/40 focus-visible:ring-4 focus-visible:ring-ring/30 focus-visible:outline-none"
+              className="flex items-center gap-4 rounded-2xl border-2 bg-card p-4 transition-colors hover:border-primary/40 focus-visible:ring-4 focus-visible:ring-ring/30 focus-visible:outline-none"
             >
               <span className="grid size-11 shrink-0 place-items-center rounded-full bg-secondary text-primary">
                 <Icon className="size-5" aria-hidden />
               </span>
               <span>
-                <span className="block font-bold">{title}</span>
+                <span className="block font-extrabold">{title}</span>
                 <span className="text-sm text-muted-foreground">{text}</span>
               </span>
             </Link>
