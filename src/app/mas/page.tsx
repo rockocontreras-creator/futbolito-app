@@ -1,8 +1,20 @@
-import { CalendarSearch, MapPin, Medal, Shield, Trophy, User, UserSearch, Users } from "lucide-react";
+import {
+  CalendarSearch,
+  MapPin,
+  Medal,
+  Shield,
+  ShieldCheck,
+  Trophy,
+  User,
+  UserSearch,
+  Users,
+} from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 import { Container } from "@/components/layout/container";
 import { PageHeader } from "@/components/layout/page-header";
+import { getAdmin } from "@/server/queries/admin";
 
 export const metadata: Metadata = { title: "Más" };
 
@@ -21,6 +33,9 @@ export default function MorePage() {
   return (
     <Container className="max-w-2xl pt-8">
       <PageHeader title="Más" />
+      <Suspense fallback={null}>
+        <AdminEntry />
+      </Suspense>
       <ul className="grid gap-3 sm:grid-cols-2">
         {sections.map(({ href, icon: Icon, title, text }) => (
           <li key={href}>
@@ -48,5 +63,24 @@ export default function MorePage() {
         </Link>
       </p>
     </Container>
+  );
+}
+
+/** Entrada al panel, solo para administradores. */
+async function AdminEntry() {
+  if (!(await getAdmin())) return null;
+  return (
+    <Link
+      href="/admin"
+      className="mb-3 flex items-center gap-4 rounded-2xl border-2 border-primary/30 bg-secondary p-4 transition-colors hover:border-primary/60 focus-visible:ring-4 focus-visible:ring-ring/30 focus-visible:outline-none"
+    >
+      <span className="grid size-11 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground">
+        <ShieldCheck className="size-5" aria-hidden />
+      </span>
+      <span>
+        <span className="block font-extrabold">Administración</span>
+        <span className="text-sm text-muted-foreground">Canchas, resultados, cuentas y sectores</span>
+      </span>
+    </Link>
   );
 }
