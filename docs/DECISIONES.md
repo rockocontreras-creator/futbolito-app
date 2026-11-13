@@ -161,3 +161,24 @@ siendo admin al volver a entrar.
 **Diseño:** el carrusel pasa a la portada en lugar de la tarjeta "El próximo partido" (mostraban lo mismo).
 Se quitan las etiquetas chicas sobre los títulos; los títulos del carrusel son frases completas. El
 plantel deja de tener cajas dentro de cajas. El perfil muestra el récord con una barra G/E/P.
+
+## 2026-11-13 · Club de la Pichanga: nombre, rediseño, carta de jugador
+
+**Nombre nuevo: Club de la Pichanga.** Se cambia `APP_NAME`; el repo, el paquete y el proyecto de Vercel siguen
+llamándose `futbolito-app` (renombrarlos cambiaría la dirección de la página y habría que rehacer la
+configuración de Google).
+
+**Rediseño amigable.** El equipo pidió un estilo "parecido a Duolingo". Tomamos la idea (letra redonda, botones
+con relieve, colores vivos, mascota propia) sin copiar su marca. El verde principal es `#15803c` y no uno más
+claro porque el texto blanco encima tiene que cumplir contraste AA (4,5:1).
+
+**Librería nueva: `@fontsource-variable/nunito`** (reemplaza a `@fontsource-variable/archivo`). Nunito es
+redondeada, de uso libre y se sirve desde nuestro propio dominio.
+
+**Carta de jugador calculada, no guardada.** Igual que los apodos y las etiquetas: funciones puras sobre las
+estadísticas que ya existen. Los atributos usan un "valor de partida" que pesa menos mientras más partidos
+tiene el jugador, para que un 1 de 1 no sea un 99. El diseño de la carta es propio (no usa nombres, logos ni
+la silueta de las cartas de videojuegos).
+
+**La foto se elige al crear el perfil** y se sube justo después de crearlo. Si la subida falla, el perfil
+queda creado igual y se avisa.
