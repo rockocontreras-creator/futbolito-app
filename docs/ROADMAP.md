@@ -62,6 +62,6 @@ Fases cortas, cada una deployable. Marcar con [x] al terminar.
 
 - [x] Vista mapa (Leaflet)
 - [ ] Fair play: asistencia/no-shows y valoraciones entre pares
-- [ ] Moderación: reportes, suspensiones
+- [~] Moderación: panel `/admin` listo (canchas, resultados, usuarios, sectores); faltan los reportes
 - [ ] PWA con push, íconos, modo offline básico
 - [ ] Abrir otras comunas

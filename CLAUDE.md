@@ -240,8 +240,18 @@ Aunque partimos solo en San Clemente, el modelo debe permitir crecer a otras com
 
 ### 5.9 Moderación
 
-- Reportar usuario/equipo/partido. Panel admin para revisar reportes, suspender cuentas,
-  aprobar canchas, organizadores y gestionar zonas.
+- **Panel de administración en `/admin`** (solo rol `ADMIN`; cada acción vuelve a revisar el permiso en el
+  servidor). Los admin ven el acceso en el encabezado, en "Más" y en su perfil. Pestañas:
+  - **Resumen**: qué hay por revisar y números del club.
+  - **Canchas**: aprobar o rechazar las propuestas, y quitar una del mapa. Se le avisa a quien la propuso.
+  - **Partidos**: resultados en disputa o esperando mayoría: el admin confirma el marcador (puede
+    corregirlo; si lo cambia se borran los goleadores reportados) o anula el partido. También puede anular
+    partidos por jugar. Un resultado ya confirmado no se anula, porque ya movió los rangos.
+  - **Usuarios**: buscar, suspender/reactivar y cambiar el rol (jugador, organizador, admin). Nadie se
+    cambia a sí mismo; los admin de `ADMIN_EMAILS` no se pueden bajar desde el panel; para suspender a un
+    admin primero se le quita el rol. Reglas en `src/lib/admin.ts`.
+  - **Sectores**: agregar, renombrar y ocultar los sectores de la comuna.
+- Pendiente: reportar usuario/equipo/partido y revisar esos reportes en el panel.
 
 ---
 
