@@ -9,7 +9,7 @@ import { PlayerAvatar } from "./player-avatar";
 const SIZE = 512;
 
 /** Recorta al centro en cuadrado y achica a 512 px WebP (o JPEG si el navegador no sabe WebP). */
-async function prepare(file: File): Promise<Blob> {
+export async function preparePhoto(file: File): Promise<Blob> {
   const bitmap = await createImageBitmap(file);
   const side = Math.min(bitmap.width, bitmap.height);
   const canvas = document.createElement("canvas");
@@ -35,7 +35,7 @@ export function PhotoUpload({ name, photoUrl }: { name: string; photoUrl: string
     setError(null);
     startTransition(async () => {
       try {
-        const blob = await prepare(file);
+        const blob = await preparePhoto(file);
         const fd = new FormData();
         fd.set("photo", blob, "foto");
         const res = await uploadProfilePhoto(fd);
@@ -51,11 +51,22 @@ export function PhotoUpload({ name, photoUrl }: { name: string; photoUrl: string
 
   return (
     <div className="flex items-center gap-4">
-      <PlayerAvatar name={name} src={preview} className="size-20 text-2xl" />
+      <button
+        type="button"
+        onClick={() => input.current?.click()}
+        disabled={pending}
+        aria-label={preview ? "Cambiar foto de perfil" : "Subir foto de perfil"}
+        className="group relative shrink-0 rounded-full focus-visible:ring-4 focus-visible:ring-ring/35 focus-visible:outline-none"
+      >
+        <PlayerAvatar name={name} src={preview} className="size-24 border-4 border-border text-3xl" />
+        <span className="absolute -right-1 -bottom-1 grid size-9 place-items-center rounded-xl border-2 border-card bg-foco text-accent-foreground">
+          <Camera className="size-5" aria-hidden strokeWidth={2.4} />
+        </span>
+      </button>
       <div className="space-y-2">
         <div className="flex flex-wrap gap-2">
           <Button type="button" size="sm" disabled={pending} onClick={() => input.current?.click()}>
-            <Camera aria-hidden /> {pending ? "Subiendo…" : preview ? "Cambiar foto" : "Subir foto"}
+            {pending ? "Subiendo…" : preview ? "Cambiar foto" : "Subir foto"}
           </Button>
           {preview && (
             <Button
@@ -75,9 +86,9 @@ export function PhotoUpload({ name, photoUrl }: { name: string; photoUrl: string
             </Button>
           )}
         </div>
-        <p className="text-[13px] text-muted-foreground">Se recorta en cuadrado. JPG, PNG o WebP.</p>
+        <p className="text-sm text-muted-foreground">Sale en tu carta de jugador. JPG, PNG o WebP.</p>
         {error && (
-          <p role="alert" className="text-sm font-medium text-destructive">
+          <p role="alert" className="text-sm font-bold text-destructive">
             {error}
           </p>
         )}
@@ -90,6 +101,97 @@ export function PhotoUpload({ name, photoUrl }: { name: string; photoUrl: string
         tabIndex={-1}
         aria-hidden
         onChange={(e) => onFile(e.target.files?.[0])}
+      />
+    </div>
+  );
+}
+
+/**
+ * Elegir foto antes de tener perfil (al crearlo): solo la prepara y la muestra;
+ * el formulario la sube después de crear el perfil.
+ */
+export function PhotoPicker({
+  name,
+  fallbackUrl,
+  onPick,
+}: {
+  name: string;
+  /** Foto que ya trae la cuenta (por ejemplo, la de Google). */
+  fallbackUrl?: string | null;
+  onPick: (photo: Blob | null) => void;
+}) {
+  const input = useRef<HTMLInputElement>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  const onFile = async (file: File | undefined) => {
+    if (!file) return;
+    setError(null);
+    try {
+      const blob = await preparePhoto(file);
+      if (preview) URL.revokeObjectURL(preview);
+      setPreview(URL.createObjectURL(blob));
+      onPick(blob);
+    } catch {
+      setError("No pudimos leer esa imagen. Prueba con otra foto.");
+    } finally {
+      if (input.current) input.current.value = "";
+    }
+  };
+
+  return (
+    <div className="flex items-center gap-4">
+      <button
+        type="button"
+        onClick={() => input.current?.click()}
+        aria-label={preview ? "Cambiar foto" : "Elegir foto"}
+        className="relative shrink-0 rounded-full focus-visible:ring-4 focus-visible:ring-ring/35 focus-visible:outline-none"
+      >
+        <PlayerAvatar
+          name={name || "?"}
+          src={preview ?? fallbackUrl}
+          className="size-24 border-4 border-border text-3xl"
+        />
+        <span className="absolute -right-1 -bottom-1 grid size-9 place-items-center rounded-xl border-2 border-card bg-foco text-accent-foreground">
+          <Camera className="size-5" aria-hidden strokeWidth={2.4} />
+        </span>
+      </button>
+      <div className="space-y-2">
+        <p className="font-extrabold">Tu foto</p>
+        <div className="flex flex-wrap gap-2">
+          <Button type="button" size="sm" variant="outline" onClick={() => input.current?.click()}>
+            {preview ? "Cambiar foto" : "Elegir foto"}
+          </Button>
+          {preview && (
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              onClick={() => {
+                URL.revokeObjectURL(preview);
+                setPreview(null);
+                onPick(null);
+              }}
+            >
+              <Trash2 aria-hidden /> Quitar
+            </Button>
+          )}
+        </div>
+        <p className="text-sm text-muted-foreground">Opcional. Sale en tu carta de jugador.</p>
+        {error && (
+          <p role="alert" className="text-sm font-bold text-destructive">
+            {error}
+          </p>
+        )}
+      </div>
+      <input
+        ref={input}
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        className="sr-only"
+        tabIndex={-1}
+        aria-hidden
+        onChange={(e) => void onFile(e.target.files?.[0])}
       />
     </div>
   );

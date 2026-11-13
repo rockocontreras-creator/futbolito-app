@@ -15,7 +15,9 @@ export default function EditProfilePage() {
   return (
     <Container className="max-w-3xl pt-8">
       <PageHeader title="Editar perfil" description="Tu rango no cambia acá: se mueve jugando." />
-      <Suspense fallback={<div className="h-[640px] animate-pulse rounded-2xl border bg-card" aria-hidden />}>
+      <Suspense
+        fallback={<div className="h-[640px] animate-pulse rounded-2xl border-2 bg-card" aria-hidden />}
+      >
         <Edit />
       </Suspense>
     </Container>
@@ -33,6 +35,7 @@ async function Edit() {
       defaultName={p.displayName}
       sectors={sectors}
       returnTo="/perfil"
+      photo={p.photoUrl}
       initial={{
         username: p.username,
         displayName: p.displayName,
