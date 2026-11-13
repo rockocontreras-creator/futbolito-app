@@ -14,6 +14,7 @@ import { Suspense } from "react";
 import { EmptyState } from "@/components/features/empty-state";
 import { MatchCard, MatchCardSkeleton } from "@/components/features/match/match-card";
 import { DivisionShield } from "@/components/features/player/division-badge";
+import { Mascot } from "@/components/layout/brand";
 import { Container } from "@/components/layout/container";
 import { Button } from "@/components/ui/button";
 import { DIVISIONS } from "@/lib/rating/divisions";
@@ -43,27 +44,28 @@ const steps = [
 export default function HomePage() {
   return (
     <>
-      <section className="relative overflow-hidden chalk-pitch text-white">
-        <Container className="grid gap-10 py-10 md:grid-cols-[1.1fr_1fr] md:items-center md:py-20">
-          <div className="space-y-6">
-            <h1 className="text-[3.6rem] font-display text-balance sm:text-7xl lg:text-[5.5rem]">
-              ¿Te sumas a la pichanga?
+      <section className="border-b-2 bg-secondary/70">
+        <Container className="grid gap-8 py-8 md:grid-cols-[1.05fr_1fr] md:items-center md:gap-12 md:py-16">
+          <div className="space-y-5">
+            <Mascot className="size-20 md:size-24" />
+            <h1 className="text-[2.6rem] font-display sm:text-6xl lg:text-[4.25rem]">
+              ¿Te sumas a la <span className="text-primary">pichanga</span>?
             </h1>
-            <p className="max-w-md text-lg text-pretty text-white/80">
+            <p className="max-w-md text-lg text-muted-foreground">
               Revoltijos, desafíos y ranking para los que juegan futbolito en San Clemente.
             </p>
-            <div className="flex flex-wrap gap-3">
-              <Button asChild variant="foco" size="lg">
+            <div className="flex flex-wrap gap-3 pb-1">
+              <Button asChild size="lg" className="w-full sm:w-auto">
                 <Link href="/partidos">
                   <Search aria-hidden /> Buscar pichanga
                 </Link>
               </Button>
-              <Button asChild variant="onDark" size="lg">
+              <Button asChild variant="outline" size="lg" className="w-full sm:w-auto">
                 <Link href="/publicar">Publicar revoltijo</Link>
               </Button>
             </div>
           </div>
-          <Suspense fallback={<div className="h-72 animate-pulse rounded-2xl bg-black/20" aria-hidden />}>
+          <Suspense fallback={<div className="h-72 animate-pulse rounded-3xl bg-primary/20" aria-hidden />}>
             <News />
           </Suspense>
         </Container>
@@ -72,11 +74,14 @@ export default function HomePage() {
       <Container className="space-y-16 pt-12">
         <section aria-labelledby="semana" className="space-y-5">
           <div className="flex items-end justify-between gap-4">
-            <h2 id="semana" className="text-4xl font-display text-cancha dark:text-white">
+            <h2 id="semana" className="text-3xl font-display sm:text-4xl">
               Esta semana
             </h2>
-            <Link href="/partidos?cuando=semana" className="text-sm font-bold text-primary hover:underline">
-              Ver todos los partidos
+            <Link
+              href="/partidos?cuando=semana"
+              className="shrink-0 text-[15px] font-extrabold text-primary hover:underline"
+            >
+              Ver todos
             </Link>
           </div>
           <Suspense
@@ -95,21 +100,24 @@ export default function HomePage() {
           <h2 id="atajos" className="sr-only">
             Atajos
           </h2>
-          <ul className="divide-y overflow-hidden rounded-2xl border bg-card sm:grid sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+          <ul className="grid gap-3 sm:grid-cols-3">
             {shortcuts.map(({ href, icon: Icon, title, text }) => (
               <li key={href}>
                 <Link
                   href={href}
-                  className="group flex h-full items-center gap-4 p-5 transition-colors hover:bg-secondary/60 focus-visible:bg-secondary focus-visible:outline-none"
+                  className="group flex h-full items-center gap-4 rounded-2xl border-2 bg-card p-4 relieve transition-[transform,box-shadow,background-color] duration-100 hover:bg-secondary/60 focus-visible:ring-4 focus-visible:ring-ring/30 focus-visible:outline-none active:translate-y-1 active:shadow-none"
                 >
-                  <Icon className="size-7 shrink-0 text-primary" aria-hidden />
+                  <span className="grid size-12 shrink-0 place-items-center rounded-xl bg-secondary text-primary">
+                    <Icon className="size-6" aria-hidden strokeWidth={2.4} />
+                  </span>
                   <span className="min-w-0 flex-1">
-                    <span className="block text-lg font-bold">{title}</span>
+                    <span className="block text-lg font-extrabold">{title}</span>
                     <span className="text-sm text-muted-foreground">{text}</span>
                   </span>
                   <ChevronRight
-                    className="size-5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5"
+                    className="size-5 shrink-0 text-muted-foreground"
                     aria-hidden
+                    strokeWidth={2.6}
                   />
                 </Link>
               </li>
@@ -119,7 +127,7 @@ export default function HomePage() {
 
         <section aria-labelledby="como" className="grid gap-10 lg:grid-cols-[1fr_1.2fr]">
           <div className="space-y-3">
-            <h2 id="como" className="text-4xl font-display text-cancha dark:text-white">
+            <h2 id="como" className="text-3xl font-display sm:text-4xl">
               Cómo funciona un revoltijo
             </h2>
             <p className="max-w-md text-muted-foreground">
@@ -130,14 +138,14 @@ export default function HomePage() {
           <ol className="space-y-5">
             {steps.map(({ icon: Icon, title, text }, i) => (
               <li key={title} className="grid grid-cols-[44px_1fr] gap-4">
-                <span className="relative grid size-11 place-items-center rounded-full bg-cancha text-white">
+                <span className="relative grid size-11 place-items-center rounded-xl bg-primary text-primary-foreground">
                   <Icon className="size-5" aria-hidden />
-                  <span className="absolute -top-1 -right-1 grid size-5 place-items-center rounded-full bg-foco text-[11px] font-score text-[#2a2205]">
+                  <span className="absolute -top-1 -right-1 grid size-5 place-items-center rounded-full bg-foco text-[12px] font-score text-[#2a2205]">
                     {i + 1}
                   </span>
                 </span>
                 <div>
-                  <h3 className="text-lg font-bold">{title}</h3>
+                  <h3 className="text-lg font-extrabold">{title}</h3>
                   <p className="text-[15px] text-muted-foreground">{text}</p>
                 </div>
               </li>
@@ -145,10 +153,10 @@ export default function HomePage() {
           </ol>
         </section>
 
-        <section aria-labelledby="rango" className="rounded-2xl border bg-card p-6 md:p-8">
+        <section aria-labelledby="rango" className="rounded-2xl border-2 bg-card p-6 md:p-8">
           <div className="grid gap-8 md:grid-cols-[1fr_1.4fr] md:items-center">
             <div className="space-y-2">
-              <h2 id="rango" className="text-4xl font-display text-cancha dark:text-white">
+              <h2 id="rango" className="text-3xl font-display sm:text-4xl">
                 Tu rango se gana en la cancha
               </h2>
               <p className="text-muted-foreground">
@@ -162,7 +170,7 @@ export default function HomePage() {
                     rating={d.min === Number.NEGATIVE_INFINITY ? 0 : d.min}
                     className={sizes[i]}
                   />
-                  <span className="text-[13px] font-bold">{d.label}</span>
+                  <span className="text-sm font-extrabold">{d.label}</span>
                   <span className="text-xs font-score text-muted-foreground">
                     {d.min === Number.NEGATIVE_INFINITY ? "< 900" : `${d.min}+`}
                   </span>

@@ -78,7 +78,7 @@ export function ReportResultForm({
   return (
     <section className="space-y-5 rounded-xl border-2 border-foco bg-card p-5" aria-labelledby="reportar">
       <div>
-        <h2 id="reportar" className="text-lg font-bold">
+        <h2 id="reportar" className="text-lg font-extrabold">
           {initial ? "Corregir resultado" : "¿Cómo salió?"}
         </h2>
         <p className="text-sm text-muted-foreground">
@@ -94,22 +94,22 @@ export function ReportResultForm({
       </div>
 
       <fieldset className="space-y-2">
-        <legend className="text-sm font-semibold">Goles y asistencia</legend>
-        <ul className="divide-y rounded-lg border">
+        <legend className="text-sm font-bold">Goles y asistencia</legend>
+        <ul className="divide-y-2 rounded-lg border">
           {players.map((p) => {
             const absent = noShow.has(p.userId);
             return (
               <li key={p.userId} className={cn("flex items-center gap-3 px-3 py-2", absent && "opacity-60")}>
                 <span
-                  className="grid size-6 shrink-0 place-items-center rounded border border-black/10 text-[11px] font-bold"
+                  className="grid size-6 shrink-0 place-items-center rounded border border-black/10 text-[12px] font-extrabold"
                   style={p.side ? sideStyle(colors, p.side) : undefined}
                   aria-label={p.side ? SIDE_NAME[p.side] : "Sin equipo"}
                 >
                   {p.side ?? "?"}
                 </span>
-                <span className="min-w-0 flex-1 truncate text-sm font-semibold">{p.name}</span>
+                <span className="min-w-0 flex-1 truncate text-sm font-bold">{p.name}</span>
                 {!p.isOrganizer && (
-                  <label className="flex items-center gap-1.5 text-[13px] text-muted-foreground">
+                  <label className="flex items-center gap-1.5 text-sm text-muted-foreground">
                     <input
                       type="checkbox"
                       checked={absent}
@@ -151,7 +151,7 @@ export function ReportResultForm({
       </fieldset>
 
       <label className="block space-y-1.5">
-        <span className="text-sm font-semibold">Figura del partido (MVP)</span>
+        <span className="text-sm font-bold">Figura del partido (MVP)</span>
         <select
           value={mvpId}
           onChange={(e) => setMvpId(e.target.value)}
@@ -202,7 +202,7 @@ function ScoreInput({
   const id = `score-${tone}`;
   return (
     <div className="space-y-1 text-center">
-      <label htmlFor={id} className="text-sm font-bold">
+      <label htmlFor={id} className="text-sm font-extrabold">
         {label}
       </label>
       <input

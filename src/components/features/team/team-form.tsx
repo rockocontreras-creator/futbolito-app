@@ -51,7 +51,7 @@ export function TeamForm() {
 
   return (
     <form onSubmit={onSubmit} noValidate className="grid gap-6 md:grid-cols-[1fr_260px]">
-      <div className="space-y-5 rounded-2xl border bg-card p-6">
+      <div className="space-y-5 rounded-2xl border-2 bg-card p-6">
         <Field id="name" label="Nombre del equipo" error={errors.name?.message}>
           <Input
             id="name"
@@ -100,7 +100,7 @@ export function TeamForm() {
       </div>
 
       <aside className="order-first space-y-3 md:order-none">
-        <div className="flex flex-col items-center gap-3 rounded-2xl border bg-card p-6 text-center">
+        <div className="flex flex-col items-center gap-3 rounded-2xl border-2 bg-card p-6 text-center">
           <TeamCrest name={name || "Mi equipo"} primary={primary} secondary={secondary} className="size-24" />
           <p className="text-xl font-display">{name || "Tu equipo"}</p>
           <p className="text-sm text-muted-foreground">Quedas como capitán. Arranca con rango 1000.</p>
@@ -123,7 +123,7 @@ function ColorPicker({
 }) {
   return (
     <fieldset className="space-y-2">
-      <legend className="text-sm font-semibold">{label}</legend>
+      <legend className="text-sm font-bold">{label}</legend>
       <div className="flex flex-wrap gap-2">
         {COLORS.map((c) => (
           <button
@@ -142,7 +142,7 @@ function ColorPicker({
         ))}
       </div>
       {error && (
-        <p role="alert" className="text-[13px] font-medium text-destructive">
+        <p role="alert" className="text-sm font-medium text-destructive">
           {error}
         </p>
       )}

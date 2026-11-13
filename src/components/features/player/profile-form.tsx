@@ -12,8 +12,10 @@ import { FOOT_LABEL, POSITION_LABEL, SKILL_LABEL } from "@/lib/labels";
 import { INITIAL_PLAYER_RATING } from "@/lib/rating/elo";
 import { cn } from "@/lib/utils";
 import { playerProfileSchema } from "@/lib/validations/player";
+import { uploadProfilePhoto } from "@/server/actions/photo";
 import { createProfile, updateProfile } from "@/server/actions/profile";
 import { DivisionBadge } from "./division-badge";
+import { PhotoPicker, PhotoUpload } from "./photo-upload";
 
 type FormIn = z.input<typeof playerProfileSchema>;
 type FormOut = z.output<typeof playerProfileSchema>;
@@ -29,17 +31,23 @@ export function ProfileForm({
   sectors,
   returnTo,
   initial,
+  photo,
 }: {
   defaultName: string;
   sectors: { id: string; name: string }[];
   returnTo: string | null;
   /** Si viene, el formulario edita un perfil existente. */
   initial?: Partial<Record<keyof FormIn, string>>;
+  /** Foto actual (al editar) o la que trae la cuenta de Google (al crear). */
+  photo?: string | null;
 }) {
   const editing = Boolean(initial);
   const router = useRouter();
   const [pending, startTransition] = useTransition();
   const [serverError, setServerError] = useState<string | null>(null);
+  const [pickedPhoto, setPickedPhoto] = useState<Blob | null>(null);
+  // Perfil creado pero la foto falló: se avisa y se deja seguir.
+  const [createdAs, setCreatedAs] = useState<string | null>(null);
   const form = useForm<FormIn, unknown, FormOut>({
     resolver: zodResolver(playerProfileSchema),
     defaultValues: {
@@ -67,7 +75,18 @@ export function ProfileForm({
     startTransition(async () => {
       const res = await (editing ? updateProfile : createProfile)(form.getValues());
       if (res.ok) {
-        router.push(returnTo ?? `/jugador/${res.data.username}`);
+        const next = returnTo ?? `/jugador/${res.data.username}`;
+        if (!editing && pickedPhoto) {
+          const fd = new FormData();
+          fd.set("photo", pickedPhoto, "foto");
+          const up = await uploadProfilePhoto(fd);
+          if (!up.ok) {
+            setCreatedAs(next);
+            setServerError(`Tu perfil quedó creado, pero la foto no se subió. ${up.error}`);
+            return;
+          }
+        }
+        router.push(next);
         router.refresh();
         return;
       }
@@ -86,11 +105,16 @@ export function ProfileForm({
 
   return (
     <form onSubmit={onSubmit} noValidate className="space-y-6">
-      <fieldset className="space-y-5 rounded-2xl border bg-card p-5 sm:p-6">
+      <fieldset className="space-y-5 rounded-2xl border-2 bg-card p-5 sm:p-6">
         <legend className="sr-only">Quién eres</legend>
-        <h2 className="text-lg font-bold">Quién eres</h2>
+        <h2 className="text-xl font-extrabold">Quién eres</h2>
+        {editing ? (
+          <PhotoUpload name={defaultName} photoUrl={photo ?? null} />
+        ) : (
+          <PhotoPicker name={defaultName} fallbackUrl={photo} onPick={setPickedPhoto} />
+        )}
         <div className="grid gap-4 sm:grid-cols-2">
-          <Field id="displayName" label="Nombre" error={err("displayName")}>
+          <Field id="displayName" label="Nombre y apellido" error={err("displayName")}>
             <Input
               id="displayName"
               autoComplete="name"
@@ -98,10 +122,16 @@ export function ProfileForm({
               {...aria("displayName")}
             />
           </Field>
-          <Field id="nickname" label="Apodo" optional error={err("nickname")}>
+          <Field
+            id="nickname"
+            label="¿Cómo te dicen en la cancha?"
+            optional
+            hint="Tu apodo. Es el nombre que sale en tu carta."
+            error={err("nickname")}
+          >
             <Input
               id="nickname"
-              placeholder="Como te dicen en la cancha"
+              placeholder="Ej: Chino, Flaco, Mago"
               {...register("nickname")}
               {...aria("nickname")}
             />
@@ -164,9 +194,9 @@ export function ProfileForm({
         </div>
       </fieldset>
 
-      <fieldset className="space-y-5 rounded-2xl border bg-card p-5 sm:p-6">
+      <fieldset className="space-y-5 rounded-2xl border-2 bg-card p-5 sm:p-6">
         <legend className="sr-only">Cómo juegas</legend>
-        <h2 className="text-lg font-bold">Cómo juegas</h2>
+        <h2 className="text-xl font-extrabold">Cómo juegas</h2>
         <div className="grid gap-4 sm:grid-cols-3">
           <Field id="primaryPosition" label="Posición">
             <NativeSelect id="primaryPosition" {...register("primaryPosition")}>
@@ -205,7 +235,7 @@ export function ProfileForm({
         </div>
 
         <div className={cn("space-y-2", editing && "hidden")}>
-          <p className="text-sm font-semibold" id="nivel-label">
+          <p className="text-sm font-bold" id="nivel-label">
             ¿Qué tan bueno eres?
           </p>
           <div className="grid gap-2 sm:grid-cols-3" role="radiogroup" aria-labelledby="nivel-label">
@@ -220,26 +250,23 @@ export function ProfileForm({
                   onClick={() => setValue("skillLevel", level)}
                   className={cn(
                     "rounded-xl border p-4 text-left transition-colors focus-visible:ring-4 focus-visible:ring-ring/30",
-                    active ? "border-cancha bg-cancha text-white" : "bg-card hover:bg-secondary",
+                    active ? "border-primary bg-secondary" : "bg-card hover:bg-secondary/60",
                   )}
                 >
-                  <span className="block font-bold">{SKILL_LABEL[level]}</span>
-                  <span
-                    className={cn(
-                      "mt-0.5 block text-[13px]",
-                      active ? "text-white/80" : "text-muted-foreground",
-                    )}
-                  >
-                    {SKILL_HINT[level]}
-                  </span>
+                  <span className="block font-extrabold">{SKILL_LABEL[level]}</span>
+                  <span className="mt-0.5 block text-sm text-muted-foreground">{SKILL_HINT[level]}</span>
                 </button>
               );
             })}
           </div>
-          <p className="flex items-center gap-2 text-sm text-muted-foreground">
+          <p className="text-[15px] text-muted-foreground">
             Partes con{" "}
-            <DivisionBadge rating={INITIAL_PLAYER_RATING[skill]} showRating className="text-foreground" /> y
-            de ahí sube o baja según tus resultados.
+            <DivisionBadge
+              rating={INITIAL_PLAYER_RATING[skill]}
+              showRating
+              className="align-middle text-foreground"
+            />{" "}
+            y de ahí sube o baja según tus resultados.
           </p>
         </div>
       </fieldset>
@@ -252,15 +279,21 @@ export function ProfileForm({
           {serverError}
         </p>
       )}
-      <Button type="submit" size="lg" variant="foco" className="w-full md:w-auto" disabled={pending}>
-        {pending
-          ? editing
-            ? "Guardando…"
-            : "Creando perfil…"
-          : editing
-            ? "Guardar cambios"
-            : "Crear mi perfil"}
-      </Button>
+      {createdAs ? (
+        <Button type="button" size="lg" className="w-full md:w-auto" onClick={() => router.push(createdAs)}>
+          Ir a mi perfil
+        </Button>
+      ) : (
+        <Button type="submit" size="lg" className="w-full md:w-auto" disabled={pending}>
+          {pending
+            ? editing
+              ? "Guardando…"
+              : "Creando perfil…"
+            : editing
+              ? "Guardar cambios"
+              : "Crear mi perfil"}
+        </Button>
+      )}
     </form>
   );
 }

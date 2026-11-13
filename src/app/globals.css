@@ -1,29 +1,35 @@
 @import "tailwindcss";
 @import "tw-animate-css";
-@import "@fontsource-variable/archivo/wdth.css";
+@import "@fontsource-variable/nunito";
 
 @custom-variant dark (&:is(.dark *));
 
 /*
-  Identidad "cancha de noche":
-  - cancha: verde profundo del pasto sintético
-  - pasto: verde vivo para acciones
-  - cal: el blanco de las líneas de la cancha (fondo)
-  - foco: amarillo de los focos (cupos, destacados)
+  Identidad "Club de la Pichanga": amigable y luminosa, como una app de juego.
+  - pasto: verde vivo de la cancha (acciones, enlaces)
+  - cancha: verde de las superficies grandes (portadas, marcador)
+  - foco: amarillo sol (cupos, destacados, botón principal de la portada)
+  - cielo: azul para avisos e información
   - roja: tarjeta roja (errores, salir)
+  Cada color de acción tiene su "canto" (un tono más oscuro) para el relieve de los botones.
 */
 :root {
-  --radius: 0.875rem;
+  --radius: 1rem;
 
-  --cancha: #0e5a36;
-  --cancha-oscura: #0a3f27;
-  --pasto: #1f8a4c;
-  --cal: #f3f5ee;
-  --foco: #ffd23f;
-  --roja: #d8352a;
-  --tinta: #14231b;
+  --pasto: #15803c;
+  --pasto-canto: #0e612c;
+  --cancha: #14803c;
+  --cancha-oscura: #0e612c;
+  --cal: #ffffff;
+  --foco: #ffc800;
+  --foco-canto: #dba400;
+  --cielo: #1479c9;
+  --cielo-claro: #e3f2fd;
+  --roja: #d93a34;
+  --roja-canto: #ab2823;
+  --tinta: #263b30;
 
-  --background: var(--cal);
+  --background: #ffffff;
   --foreground: var(--tinta);
   --card: #ffffff;
   --card-foreground: var(--tinta);
@@ -31,53 +37,63 @@
   --popover-foreground: var(--tinta);
   --primary: var(--pasto);
   --primary-foreground: #ffffff;
-  --secondary: #e4eadf;
+  --secondary: #eef6f0;
   --secondary-foreground: var(--tinta);
-  --muted: #e9ede4;
-  --muted-foreground: #4f6157;
+  --muted: #f1f5f2;
+  --muted-foreground: #56695e;
   --accent: var(--foco);
-  --accent-foreground: #2a2205;
+  --accent-foreground: #3d2f00;
   --destructive: var(--roja);
-  --border: #d6ddd1;
-  --input: #c9d2c3;
+  --border: #e2e9e4;
+  --input: #cfd9d2;
   --ring: var(--pasto);
+  --canto: #d3ddd6; /* relieve de botones y tarjetas claras */
 
-  --division-bronze: #a0622d;
+  --division-bronze: #b0672a;
   --division-silver: #7d8a93;
-  --division-gold: #c99a06;
-  --division-platinum: #2f8f9d;
-  --division-diamond: #5b5bd6;
+  --division-gold: #d19e00;
+  --division-platinum: #1f93a6;
+  --division-diamond: #6a5ae0;
 }
 
 .dark {
-  --background: #0b2618;
-  --foreground: #eef3ea;
-  --card: #113323;
-  --card-foreground: #eef3ea;
-  --popover: #113323;
-  --popover-foreground: #eef3ea;
-  --primary: #3fbf72;
+  --pasto: #4ad07a;
+  --pasto-canto: #2c9a54;
+  --cancha: #126f35;
+  --cancha-oscura: #0c5327;
+  --cielo: #6cc0ff;
+  --cielo-claro: #15324a;
+  --roja-canto: #a8322c;
+
+  --background: #10201a;
+  --foreground: #eef5f0;
+  --card: #172b22;
+  --card-foreground: #eef5f0;
+  --popover: #172b22;
+  --popover-foreground: #eef5f0;
+  --primary: var(--pasto);
   --primary-foreground: #06200f;
-  --secondary: #1a4130;
-  --secondary-foreground: #eef3ea;
-  --muted: #173a2a;
-  --muted-foreground: #a7b9ac;
+  --secondary: #1f3a2d;
+  --secondary-foreground: #eef5f0;
+  --muted: #1b3328;
+  --muted-foreground: #a9bcb0;
   --accent: var(--foco);
-  --accent-foreground: #2a2205;
-  --destructive: #f0645a;
-  --border: #24503a;
-  --input: #2c5c44;
-  --ring: #3fbf72;
+  --accent-foreground: #3d2f00;
+  --destructive: #f2675f;
+  --border: #2a4739;
+  --input: #35594a;
+  --ring: #4ad07a;
+  --canto: #0a1712;
 
   --division-bronze: #d08a4f;
   --division-silver: #b8c3ca;
   --division-gold: #f2c230;
   --division-platinum: #5cc4d2;
-  --division-diamond: #9d9dff;
+  --division-diamond: #a59bff;
 }
 
 @theme inline {
-  --font-sans: "Archivo Variable", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Nunito Variable", ui-rounded, "Segoe UI", system-ui, sans-serif;
   --radius-sm: calc(var(--radius) - 6px);
   --radius-md: calc(var(--radius) - 4px);
   --radius-lg: var(--radius);
@@ -104,6 +120,13 @@
   --color-cancha-oscura: var(--cancha-oscura);
   --color-cal: var(--cal);
   --color-foco: var(--foco);
+  --color-foco-canto: var(--foco-canto);
+  --color-pasto: var(--pasto);
+  --color-pasto-canto: var(--pasto-canto);
+  --color-cielo: var(--cielo);
+  --color-cielo-claro: var(--cielo-claro);
+  --color-roja-canto: var(--roja-canto);
+  --color-canto: var(--canto);
   --color-division-bronze: var(--division-bronze);
   --color-division-silver: var(--division-silver);
   --color-division-gold: var(--division-gold);
@@ -117,45 +140,68 @@
   }
   html {
     -webkit-tap-highlight-color: transparent;
+    scrollbar-color: var(--input) transparent;
   }
   body {
     @apply bg-background text-foreground;
+    font-weight: 500;
     font-feature-settings: "tnum" 1;
+    text-wrap: pretty;
+  }
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+  ::selection {
+    background: color-mix(in oklab, var(--foco) 55%, transparent);
+    color: var(--tinta);
+  }
+  a,
+  u {
+    text-underline-offset: 0.2em;
   }
 }
 
-/* Titulares: Archivo condensado y pesado, como los números de una camiseta. */
+/* Titulares: Nunito negra, redonda y apretada. */
 @utility font-display {
-  font-stretch: 72%;
-  font-weight: 800;
-  letter-spacing: -0.01em;
-  line-height: 0.95;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
 }
 
-/* Números grandes (horas, rating): condensado medio, cifras tabulares. */
+/* Números grandes (horas, rango): pesados y con cifras tabulares. */
 @utility font-score {
-  font-stretch: 80%;
-  font-weight: 700;
+  font-weight: 900;
+  letter-spacing: -0.01em;
   font-variant-numeric: tabular-nums;
 }
 
-/* Líneas de cal de la cancha, usadas como textura en superficies verdes. */
+/* Relieve: un canto sólido bajo el elemento, que se hunde al apretar. Lo usan botones y tarjetas-enlace. */
+@utility relieve {
+  box-shadow: 0 4px 0 var(--relieve-color, var(--canto));
+}
+@utility relieve-sm {
+  box-shadow: 0 2px 0 var(--relieve-color, var(--canto));
+}
+
+/* Cancha recién cortada: franjas de pasto y líneas de cal. Fondo de portadas y marcador. */
 @utility chalk-pitch {
   background-color: var(--cancha);
   background-image:
     radial-gradient(
       circle at 50% 50%,
-      transparent 0 63px,
-      rgb(255 255 255 / 0.13) 64px 66px,
-      transparent 67px
+      transparent 0 70px,
+      rgb(255 255 255 / 0.16) 71px 74px,
+      transparent 75px
     ),
     linear-gradient(
       90deg,
-      transparent calc(50% - 1px),
-      rgb(255 255 255 / 0.13) calc(50% - 1px) calc(50% + 1px),
-      transparent calc(50% + 1px)
+      transparent calc(50% - 1.5px),
+      rgb(255 255 255 / 0.16) calc(50% - 1.5px) calc(50% + 1.5px),
+      transparent calc(50% + 1.5px)
     ),
-    repeating-linear-gradient(90deg, rgb(255 255 255 / 0.025) 0 48px, transparent 48px 96px);
+    repeating-linear-gradient(90deg, rgb(255 255 255 / 0.06) 0 64px, transparent 64px 128px);
 }
 
 @media (prefers-reduced-motion: reduce) {

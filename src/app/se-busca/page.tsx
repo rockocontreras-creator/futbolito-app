@@ -32,7 +32,7 @@ export default function RequestsPage({ searchParams }: PageProps<"/se-busca">) {
           </Button>
         }
       />
-      <Suspense fallback={<div className="h-64 animate-pulse rounded-xl border bg-card" aria-hidden />}>
+      <Suspense fallback={<div className="h-64 animate-pulse rounded-2xl border-2 bg-card" aria-hidden />}>
         <RequestsList searchParams={searchParams} />
       </Suspense>
     </Container>
@@ -53,8 +53,8 @@ async function RequestsList({ searchParams }: { searchParams: PageProps<"/se-bus
         <Link
           href="/se-busca"
           className={cn(
-            "rounded-full border px-3 py-1 text-[13px] font-semibold",
-            !position && "border-primary bg-primary/10 text-primary",
+            "rounded-xl border-2 px-3.5 py-1.5 text-sm font-extrabold",
+            !position && "border-primary bg-secondary text-primary",
           )}
         >
           Lo que sea
@@ -64,8 +64,8 @@ async function RequestsList({ searchParams }: { searchParams: PageProps<"/se-bus
             key={p}
             href={`/se-busca?posicion=${p.toLowerCase()}`}
             className={cn(
-              "rounded-full border px-3 py-1 text-[13px] font-semibold",
-              position === p && "border-primary bg-primary/10 text-primary",
+              "rounded-xl border-2 px-3.5 py-1.5 text-sm font-extrabold",
+              position === p && "border-primary bg-secondary text-primary",
             )}
           >
             {POSITION_LABEL[p]}
@@ -107,23 +107,23 @@ function RequestCard({ r }: { r: RequestListItem }) {
   return (
     <Link
       href={`/se-busca/${r.id}`}
-      className="flex h-full gap-4 rounded-xl border bg-card p-5 transition-colors hover:border-primary/40 focus-visible:ring-4 focus-visible:ring-ring/30 focus-visible:outline-none"
+      className="flex h-full gap-4 rounded-2xl border-2 bg-card p-5 transition-colors hover:border-primary/40 focus-visible:ring-4 focus-visible:ring-ring/30 focus-visible:outline-none"
     >
       <span className="grid w-20 shrink-0 place-items-center rounded-lg bg-cancha py-3 text-center text-white">
         <span className="text-5xl leading-none font-score">{missing}</span>
-        <span className="text-[12px] font-semibold text-white/80">{missing === 1 ? "falta" : "faltan"}</span>
+        <span className="text-[13px] font-bold text-white/80">{missing === 1 ? "falta" : "faltan"}</span>
       </span>
       <span className="min-w-0 flex-1 space-y-1.5">
-        <span className="block text-lg font-bold">
+        <span className="block text-lg font-extrabold">
           {r.positions.length ? r.positions.map((p) => POSITION_LABEL[p]).join(", ") : "Cualquier posición"}
         </span>
-        <span className="flex items-center gap-1.5 text-sm font-semibold first-letter:uppercase">
+        <span className="flex items-center gap-1.5 text-sm font-bold first-letter:uppercase">
           <Clock3 className="size-4 text-primary" aria-hidden /> {formatMatchDate(r.startsAt)}
         </span>
         <span className="flex items-center gap-1.5 text-sm text-muted-foreground">
           <MapPin className="size-4" aria-hidden /> {r.venue?.name ?? "Cancha a coordinar"}
         </span>
-        <span className="flex items-center gap-2 pt-1 text-[13px] text-muted-foreground">
+        <span className="flex items-center gap-2 pt-1 text-sm text-muted-foreground">
           <PlayerAvatar name={author} src={r.author.profile?.photoUrl} className="size-6 text-[10px]" /> Busca{" "}
           {author}
         </span>

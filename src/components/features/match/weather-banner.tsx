@@ -33,13 +33,13 @@ export function WeatherBanner({ weather }: { weather: MatchWeather }) {
     >
       <WeatherIcon title={weather.title} />
       <div className="min-w-0 flex-1">
-        <p className="font-bold">{weather.title}</p>
+        <p className="font-extrabold">{weather.title}</p>
         <p className="text-sm opacity-90">
           {weather.level === "ok" ? meta : weather.detail}
           {weather.level !== "ok" && meta ? ` (${meta})` : ""}
         </p>
       </div>
-      <span className="hidden text-[11px] opacity-70 sm:block">Open-Meteo</span>
+      <span className="hidden text-[12px] opacity-70 sm:block">Open-Meteo</span>
     </section>
   );
 }

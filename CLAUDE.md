@@ -12,8 +12,9 @@ Una plataforma web (mobile-first, instalable como PWA) para **organizar partidos
 en Chile, partiendo por la **comuna de San Clemente (Región del Maule)**, que hoy no tiene ninguna
 herramienta para esto.
 
-Nombre provisional: **Futbolito App** (se puede cambiar; mantener el nombre en una sola constante
-`APP_NAME` en `src/config/site.ts`).
+Nombre: **Club de la Pichanga** (antes "Futbolito App"). El nombre vive en una sola constante,
+`APP_NAME` en `src/config/site.ts` (y `APP_SHORT_NAME` para el ícono de la app instalada). El repo y el
+proyecto de Vercel conservan el nombre `futbolito-app`.
 
 ### Problemas que resuelve
 
@@ -121,7 +122,16 @@ Aunque partimos solo en San Clemente, el modelo debe permitir crecer a otras com
 - **Fair play / reputación**: asistencia vs. inscripciones (no-shows bajan la reputación),
   valoraciones de compañeros tras el partido (1–5, anónimas).
 - Historial de partidos y equipos.
-- **Foto de perfil** en Supabase Storage (bucket público `avatars`); el navegador la recorta a 512 px.
+- **Foto de perfil** en Supabase Storage (bucket público `avatars`); el navegador la recorta a 512 px. Se elige
+  al crear el perfil (se sube apenas se crea) y se cambia en el perfil o en `/perfil/editar`. Si la cuenta
+  viene de Google, el perfil parte con esa foto.
+- **Carta de jugador** (`src/lib/player-card.ts`, funciones puras; no se guarda nada): número general que sale
+  del rango (1000 → 65, +6 cada 100 puntos, entre 40 y 99) y seis atributos de 40 a 99: `GOL` goles por
+  partido, `VIC` victorias, `MVP` veces figura, `ASI` asistencia, `VAL` valoración de compañeros, `EXP`
+  partidos jugados. Con pocos partidos parten de un valor neutro. El color de la carta es el de la división.
+  Se ve en el perfil y se comparte por WhatsApp.
+- El apodo ("¿Cómo te dicen en la cancha?") se pregunta **una sola vez**, en el perfil; en el registro solo se
+  pide nombre y apellido.
 - **Comentarios en el perfil** (máx. 280 caracteres). Los borra su autor, el dueño del perfil o un admin.
 - **Apodos de la cancha** automáticos (ej. "La Abeja", "El Alérgico al Gol"): reglas puras en
   `src/lib/nicknames.ts` a partir de estadísticas, etiquetas de las valoraciones y palabras de los comentarios.
@@ -318,8 +328,14 @@ tests/
 
 ## 9. Diseño visual
 
-- Estética deportiva, moderna y limpia. Color principal verde cancha, acento amarillo/blanco.
-- Modo claro y oscuro.
+- Estética **amigable y luminosa, tipo app de juego**: fondo blanco, verde pasto como color principal,
+  amarillo de acento, letra redondeada (**Nunito**), esquinas grandes y bordes de 2 px.
+- **Relieve**: botones y tarjetas-enlace tienen un canto sólido abajo y se hunden al apretarlos (utilidad
+  `relieve` en `globals.css`; cada color de acción tiene su `-canto`).
+- **Mascota "Pichanguita"**: la pelota con cara (`Mascot` en `src/components/layout/brand.tsx`). Es el logo y
+  aparece en la portada y el ingreso. No usar mascotas, logos ni pantallas de otras apps.
+- Sin etiquetas chicas sobre los títulos, sin cristal/desenfoque y sin tarjetas dentro de tarjetas.
+- Modo claro y oscuro (el oscuro tiene sus propios tonos, no es una inversión).
 - Tarjetas de partido muy legibles: tipo, hora, cancha, cupos ("7/14"), rango promedio, botón
   grande "Sumarme".
 - Insignias de división (Bronce → Diamante) consistentes en todo el sitio.

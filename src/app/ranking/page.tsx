@@ -28,7 +28,7 @@ export default function RankingPage({ searchParams }: PageProps<"/ranking">) {
         title="Clasificación"
         description="Los de mejor rango en San Clemente. Sube jugando: cada resultado confirmado mueve el Elo."
       />
-      <Suspense fallback={<div className="h-96 animate-pulse rounded-xl border bg-card" aria-hidden />}>
+      <Suspense fallback={<div className="h-96 animate-pulse rounded-2xl border-2 bg-card" aria-hidden />}>
         <RankingContent searchParams={searchParams} />
       </Suspense>
     </Container>
@@ -41,8 +41,10 @@ function Tab({ href, active, children }: { href: string; active: boolean; childr
       href={href}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "rounded-full px-4 py-2 text-sm font-bold transition-colors",
-        active ? "bg-cancha text-white" : "bg-card text-muted-foreground hover:text-foreground",
+        "rounded-xl border-2 px-4 py-2 text-[15px] font-extrabold transition-colors",
+        active
+          ? "border-primary bg-primary text-primary-foreground"
+          : "bg-card text-muted-foreground hover:text-foreground",
       )}
     >
       {children}
@@ -73,8 +75,8 @@ async function RankingContent({ searchParams }: { searchParams: PageProps<"/rank
           <Link
             href="/ranking"
             className={cn(
-              "rounded-full border px-3 py-1 text-[13px] font-semibold",
-              !position && "border-primary bg-primary/10 text-primary",
+              "rounded-xl border-2 px-3.5 py-1.5 text-sm font-extrabold",
+              !position && "border-primary bg-secondary text-primary",
             )}
           >
             Todas
@@ -84,8 +86,8 @@ async function RankingContent({ searchParams }: { searchParams: PageProps<"/rank
               key={p}
               href={`/ranking?posicion=${p.toLowerCase()}`}
               className={cn(
-                "rounded-full border px-3 py-1 text-[13px] font-semibold",
-                position === p && "border-primary bg-primary/10 text-primary",
+                "rounded-xl border-2 px-3.5 py-1.5 text-sm font-extrabold",
+                position === p && "border-primary bg-secondary text-primary",
               )}
             >
               {POSITION_LABEL[p]}
@@ -138,7 +140,7 @@ async function Players({
     );
   }
   return (
-    <ol className="divide-y overflow-hidden rounded-xl border bg-card">
+    <ol className="divide-y-2 overflow-hidden rounded-2xl border-2 bg-card">
       {rows.map((p, i) => (
         <li key={p.userId} className={cn(p.userId === meId && "bg-foco/12")}>
           <Link
@@ -148,10 +150,10 @@ async function Players({
             <Rank n={i + 1} />
             <PlayerAvatar name={p.displayName} src={p.photoUrl} className="size-10" />
             <span className="min-w-0 flex-1">
-              <span className="block truncate font-semibold">
+              <span className="block truncate font-bold">
                 {p.nickname ? `${p.displayName} “${p.nickname}”` : p.displayName}
               </span>
-              <span className="block truncate text-[13px] text-muted-foreground">
+              <span className="block truncate text-sm text-muted-foreground">
                 {POSITION_LABEL[p.primaryPosition]} · {p.matchesPlayed} PJ
                 <span className="hidden sm:inline">
                   {" "}
@@ -189,7 +191,7 @@ async function Teams({ comunaId }: { comunaId: string }) {
     );
   }
   return (
-    <ol className="divide-y overflow-hidden rounded-xl border bg-card">
+    <ol className="divide-y-2 overflow-hidden rounded-2xl border-2 bg-card">
       {rows.map((t, i) => (
         <li key={t.id}>
           <Link
@@ -204,8 +206,8 @@ async function Teams({ comunaId }: { comunaId: string }) {
               className="size-10"
             />
             <span className="min-w-0 flex-1">
-              <span className="block truncate font-semibold">{t.name}</span>
-              <span className="block truncate text-[13px] text-muted-foreground">
+              <span className="block truncate font-bold">{t.name}</span>
+              <span className="block truncate text-sm text-muted-foreground">
                 {t._count.members} jugadores · {t.matchesPlayed} PJ · {t.wins}G {t.draws}E {t.losses}P
               </span>
             </span>

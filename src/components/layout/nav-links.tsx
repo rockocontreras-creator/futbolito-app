@@ -1,6 +1,6 @@
 "use client";
 
-import { LayoutGrid, Medal, PlusCircle, Search, UserSearch } from "lucide-react";
+import { LayoutGrid, Medal, Plus, Search, UserSearch } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Suspense } from "react";
@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 const items = [
   { href: "/partidos", label: "Partidos", icon: Search },
   { href: "/se-busca", label: "Se busca", icon: UserSearch },
-  { href: "/publicar", label: "Publicar", icon: PlusCircle },
+  { href: "/publicar", label: "Publicar", icon: Plus },
   { href: "/ranking", label: "Ranking", icon: Medal },
   { href: "/mas", label: "Más", icon: LayoutGrid },
 ] as const;
@@ -69,8 +69,8 @@ function TopNavView({ isActive }: { isActive: IsActive }) {
               href={href}
               aria-current={isActive(href) ? "page" : undefined}
               className={cn(
-                "rounded-full px-3 py-2 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground",
-                isActive(href) && "bg-secondary text-foreground",
+                "rounded-xl border-2 border-transparent px-3 py-2 text-[15px] font-extrabold text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground",
+                isActive(href) && "border-primary/25 bg-secondary text-primary hover:text-primary",
               )}
             >
               {label}
@@ -87,9 +87,9 @@ function BottomNavView({ isActive }: { isActive: IsActive }) {
   return (
     <nav
       aria-label="Principal"
-      className="fixed inset-x-0 bottom-0 z-40 border-t bg-card/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md lg:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 border-t-2 bg-card pb-[env(safe-area-inset-bottom)] lg:hidden"
     >
-      <ul className="mx-auto grid max-w-md grid-cols-5 items-end">
+      <ul className="mx-auto grid max-w-md grid-cols-5 items-end px-1">
         {items.map(({ href, label, icon: Icon }) => {
           const active = isActive(href);
           const featured = href === "/publicar";
@@ -99,16 +99,23 @@ function BottomNavView({ isActive }: { isActive: IsActive }) {
                 href={href}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "flex flex-col items-center gap-1 px-2 pt-2 pb-2.5 text-[11px] font-semibold text-muted-foreground",
+                  "flex w-full flex-col items-center gap-0.5 pt-2 pb-2 text-[13px] font-extrabold text-muted-foreground",
                   active && "text-primary",
                 )}
               >
                 {featured ? (
-                  <span className="-mt-5 grid size-12 place-items-center rounded-full bg-foco text-[#2a2205] shadow-[0_6px_16px_-6px_rgb(14_90_54/0.6)] ring-4 ring-card">
-                    <Icon className="size-6" aria-hidden />
+                  <span className="-mt-6 grid size-[52px] place-items-center rounded-2xl bg-foco text-accent-foreground ring-4 relieve ring-card [--relieve-color:var(--foco-canto)]">
+                    <Icon className="size-7" aria-hidden strokeWidth={2.6} />
                   </span>
                 ) : (
-                  <Icon className="size-[22px]" aria-hidden strokeWidth={active ? 2.4 : 2} />
+                  <span
+                    className={cn(
+                      "grid h-9 w-14 place-items-center rounded-xl border-2 border-transparent",
+                      active && "border-primary/25 bg-secondary",
+                    )}
+                  >
+                    <Icon className="size-6" aria-hidden strokeWidth={active ? 2.6 : 2.2} />
+                  </span>
                 )}
                 {label}
               </Link>

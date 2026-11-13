@@ -29,6 +29,8 @@ export async function createProfile(input: unknown) {
         username: data.username,
         displayName: data.displayName,
         nickname: data.nickname,
+        // Parte con la foto de la cuenta (Google), si tiene; después puede subir otra.
+        photoUrl: user.image ?? null,
         birthDate: data.birthDate,
         gender: data.gender ?? null,
         phone: data.phone,

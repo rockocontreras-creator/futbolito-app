@@ -80,8 +80,10 @@ function Chip({ href, active, children }: { href: string; active: boolean; child
       aria-current={active ? "true" : undefined}
       scroll={false}
       className={cn(
-        "rounded-full border px-3.5 py-1.5 text-sm font-semibold whitespace-nowrap transition-colors",
-        active ? "border-cancha bg-cancha text-white" : "bg-card text-muted-foreground hover:text-foreground",
+        "rounded-xl border-2 px-3.5 py-1.5 text-sm font-extrabold whitespace-nowrap transition-colors",
+        active
+          ? "border-primary bg-secondary text-primary"
+          : "bg-card text-muted-foreground hover:text-foreground",
       )}
     >
       {children}

@@ -31,10 +31,10 @@ export function DivisionBadge({
 }) {
   const d = divisionFor(rating);
   return (
-    <span className={cn("inline-flex items-center gap-1.5 text-[13px] font-semibold", className)}>
+    <span className={cn("inline-flex items-center gap-1.5 text-sm font-bold", className)}>
       <DivisionShield rating={rating} className="size-4" />
       {d.label}
-      {showRating && <span className="font-score font-semibold text-muted-foreground">{rating}</span>}
+      {showRating && <span className="font-score font-bold text-muted-foreground">{rating}</span>}
     </span>
   );
 }

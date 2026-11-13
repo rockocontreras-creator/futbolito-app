@@ -146,11 +146,11 @@ export function RegisterForm({ callbackUrl }: { callbackUrl: string }) {
 
   return (
     <form onSubmit={onSubmit} noValidate className="space-y-4">
-      <Field id="name" label="Nombre" error={errors.name?.message}>
+      <Field id="name" label="Nombre y apellido" error={errors.name?.message}>
         <Input
           id="name"
           autoComplete="name"
-          placeholder="Como te conocen en la cancha"
+          placeholder="Ej: Matías Rojas"
           aria-invalid={Boolean(errors.name) || undefined}
           aria-describedby={errors.name ? "name-error" : undefined}
           {...form.register("name")}
@@ -173,7 +173,7 @@ export function RegisterForm({ callbackUrl }: { callbackUrl: string }) {
           ¿Quisiste decir{" "}
           <button
             type="button"
-            className="font-bold text-primary underline underline-offset-4"
+            className="font-extrabold text-primary underline underline-offset-4"
             onClick={() => form.setValue("email", suggestion, { shouldValidate: true })}
           >
             {suggestion}
@@ -193,7 +193,7 @@ export function RegisterForm({ callbackUrl }: { callbackUrl: string }) {
       <Button type="submit" size="lg" className="w-full" disabled={pending}>
         {pending ? "Creando cuenta…" : "Crear cuenta"}
       </Button>
-      <p className="text-center text-[13px] text-muted-foreground">
+      <p className="text-center text-sm text-muted-foreground">
         Te mandaremos un código a tu correo para confirmar que es tuyo.
       </p>
     </form>
@@ -290,7 +290,7 @@ function ConfirmEmailStep({
         <button
           type="button"
           onClick={onBack}
-          className="inline-flex items-center gap-1 font-semibold text-muted-foreground hover:text-foreground"
+          className="inline-flex items-center gap-1 font-bold text-muted-foreground hover:text-foreground"
         >
           <ArrowLeft className="size-4" aria-hidden /> Cambiar correo
         </button>
@@ -305,7 +305,7 @@ function ConfirmEmailStep({
               setWait(60);
             })
           }
-          className="font-bold text-primary underline-offset-4 hover:underline disabled:text-muted-foreground disabled:no-underline"
+          className="font-extrabold text-primary underline-offset-4 hover:underline disabled:text-muted-foreground disabled:no-underline"
         >
           {sending ? "Enviando…" : wait > 0 ? `Mandar otro en ${wait} s` : "Mandar otro código"}
         </button>

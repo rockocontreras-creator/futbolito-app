@@ -44,12 +44,12 @@ async function RegisterBox({ searchParams }: { searchParams: PageProps<"/registr
           href={
             callbackUrl === "/" ? "/ingresar" : `/ingresar?callbackUrl=${encodeURIComponent(callbackUrl)}`
           }
-          className="font-bold text-primary underline-offset-4 hover:underline"
+          className="font-extrabold text-primary underline-offset-4 hover:underline"
         >
           Ingresa
         </Link>
       </p>
-      <p className="text-[13px] text-muted-foreground">
+      <p className="text-sm text-muted-foreground">
         Al crear tu cuenta aceptas los{" "}
         <Link href="/terminos" className="underline underline-offset-4 hover:text-foreground">
           Términos de uso

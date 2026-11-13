@@ -11,7 +11,7 @@ export default function CheckEmailPage() {
         <span className="mx-auto grid size-14 place-items-center rounded-full bg-secondary text-primary">
           <MailCheck className="size-7" aria-hidden />
         </span>
-        <h1 className="text-4xl font-display text-cancha dark:text-white">Revisa tu correo</h1>
+        <h1 className="text-4xl font-display text-foreground">Revisa tu correo</h1>
         <p className="text-muted-foreground">
           Te mandamos un enlace para entrar. Ábrelo desde este mismo teléfono o computador. Si no llega en un
           par de minutos, mira en spam.

@@ -10,7 +10,7 @@ export function ResultVote({ matchId, vote }: { matchId: string; vote: "yes" | "
   const { pending, error, run } = useServerAction();
   return (
     <div className="space-y-2">
-      <p className="text-sm font-semibold">
+      <p className="text-sm font-bold">
         {vote === "yes"
           ? "Confirmaste el resultado."
           : vote === "no"

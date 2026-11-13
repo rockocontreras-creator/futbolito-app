@@ -33,7 +33,7 @@ export function CommentForm({ targetUserId, targetName }: { targetUserId: string
         className="min-h-20"
       />
       <div className="flex items-center justify-between gap-3">
-        <span className="text-[13px] text-muted-foreground">{body.length}/280</span>
+        <span className="text-sm text-muted-foreground">{body.length}/280</span>
         <Button type="submit" size="sm" disabled={pending || body.trim().length < 2}>
           {pending ? "Publicando…" : "Comentar"}
         </Button>

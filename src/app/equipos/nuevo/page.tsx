@@ -15,7 +15,9 @@ export default function NewTeamPage() {
         title="Crear equipo"
         description="Nombre y colores. Después tus compañeros piden unirse desde la página del equipo."
       />
-      <Suspense fallback={<div className="h-[520px] animate-pulse rounded-2xl border bg-card" aria-hidden />}>
+      <Suspense
+        fallback={<div className="h-[520px] animate-pulse rounded-2xl border-2 bg-card" aria-hidden />}
+      >
         <NewTeamGate />
       </Suspense>
     </Container>

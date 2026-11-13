@@ -14,8 +14,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f3f5ee" },
-    { media: "(prefers-color-scheme: dark)", color: "#0b2618" },
+    { media: "(prefers-color-scheme: light)", color: "#ffffff" },
+    { media: "(prefers-color-scheme: dark)", color: "#10201a" },
   ],
 };
 
@@ -26,7 +26,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <ThemeProvider>
           <a
             href="#contenido"
-            className="sr-only z-50 rounded-md bg-card px-3 py-2 font-semibold focus:not-sr-only focus:fixed focus:top-3 focus:left-3"
+            className="sr-only z-50 rounded-xl border-2 bg-card px-3 py-2 font-extrabold focus:not-sr-only focus:fixed focus:top-3 focus:left-3"
           >
             Saltar al contenido
           </a>

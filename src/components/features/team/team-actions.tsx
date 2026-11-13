@@ -63,7 +63,7 @@ export function TeamMembership({
       break;
     case "requested":
       body = (
-        <p className="flex items-center justify-center gap-2 rounded-full bg-secondary py-3 text-sm font-bold">
+        <p className="flex items-center justify-center gap-2 rounded-2xl bg-secondary py-3 text-sm font-extrabold">
           <Clock className="size-4 text-primary" aria-hidden /> Solicitud enviada al capitán
         </p>
       );
@@ -83,7 +83,7 @@ export function TeamMembership({
     case "member":
       body = (
         <div className="space-y-2">
-          <p className="flex items-center justify-center gap-2 rounded-full bg-secondary py-3 text-sm font-bold">
+          <p className="flex items-center justify-center gap-2 rounded-2xl bg-secondary py-3 text-sm font-extrabold">
             <Check className="size-4 text-primary" aria-hidden />
             {viewer.captain ? "Eres capitán de este equipo" : "Juegas en este equipo"}
           </p>

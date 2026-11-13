@@ -78,7 +78,7 @@ export function NewsCarousel({ slides }: { slides: NewsSlide[] }) {
     >
       <div
         ref={track}
-        className="flex snap-x snap-mandatory [scrollbar-width:none] overflow-x-auto rounded-2xl border border-white/15 bg-black/20 shadow-[0_24px_60px_-28px_rgb(0_0_0/0.6)] [&::-webkit-scrollbar]:hidden"
+        className="flex snap-x snap-mandatory [scrollbar-width:none] overflow-x-auto rounded-3xl chalk-pitch relieve [--relieve-color:var(--cancha-oscura)] [&::-webkit-scrollbar]:hidden"
       >
         {slides.map((s, i) => {
           const Icon = ICONS[s.icon];
@@ -94,29 +94,27 @@ export function NewsCarousel({ slides }: { slides: NewsSlide[] }) {
                   <PlayerAvatar
                     name={s.headline}
                     src={s.photo}
-                    className="size-14 border-2 border-foco text-lg"
+                    className="size-16 border-[3px] border-foco text-xl"
                   />
                 ) : (
-                  <span className="grid size-12 place-items-center rounded-full bg-foco text-[#2a2205]">
-                    <Icon className="size-6" aria-hidden />
+                  <span className="grid size-14 place-items-center rounded-2xl bg-foco text-accent-foreground">
+                    <Icon className="size-7" aria-hidden strokeWidth={2.4} />
                   </span>
                 )}
                 {s.stat && (
                   <p className="text-right leading-none">
                     <span className="block text-6xl font-score text-foco tabular-nums">{s.stat}</span>
-                    <span className="text-sm text-white/75">{s.statLabel}</span>
+                    <span className="text-sm font-bold text-white/85">{s.statLabel}</span>
                   </p>
                 )}
               </div>
               <div className="mt-auto space-y-2">
-                <h3 className="text-[1.75rem] font-display leading-[1.05] text-balance first-letter:uppercase">
-                  {s.headline}
-                </h3>
-                <p className="text-[15px] text-pretty text-white/80">{s.text}</p>
+                <h3 className="text-[1.6rem] font-display first-letter:uppercase">{s.headline}</h3>
+                <p className="text-base text-white/90">{s.text}</p>
               </div>
               <Link
                 href={s.href}
-                className="inline-flex w-fit items-center gap-1 rounded-full bg-white px-4 py-2 text-sm font-bold text-cancha transition-colors hover:bg-foco focus-visible:ring-4 focus-visible:ring-white/50 focus-visible:outline-none"
+                className="inline-flex h-11 w-fit items-center gap-1 rounded-2xl bg-foco px-5 text-[15px] font-extrabold text-accent-foreground relieve transition-[transform,box-shadow] duration-100 [--relieve-color:var(--foco-canto)] focus-visible:ring-4 focus-visible:ring-white/50 focus-visible:outline-none active:translate-y-1 active:shadow-none"
               >
                 {s.cta} <ChevronRight className="size-4" aria-hidden />
               </Link>
@@ -126,7 +124,7 @@ export function NewsCarousel({ slides }: { slides: NewsSlide[] }) {
       </div>
 
       {slides.length > 1 && (
-        <div className="mt-3 flex items-center justify-between gap-3">
+        <div className="mt-4 flex items-center justify-between gap-3">
           <div className="flex gap-1.5">
             {slides.map((s, i) => (
               <button
@@ -139,8 +137,8 @@ export function NewsCarousel({ slides }: { slides: NewsSlide[] }) {
               >
                 <span
                   className={cn(
-                    "block h-1.5 rounded-full transition-all duration-300",
-                    i === index ? "w-6 bg-foco" : "w-1.5 bg-white/35 hover:bg-white/60",
+                    "block h-2 rounded-full transition-all duration-300",
+                    i === index ? "w-7 bg-primary" : "w-2 bg-input hover:bg-muted-foreground/60",
                   )}
                 />
               </button>
@@ -151,7 +149,7 @@ export function NewsCarousel({ slides }: { slides: NewsSlide[] }) {
               type="button"
               onClick={() => go(index - 1)}
               aria-label="Noticia anterior"
-              className="grid size-9 place-items-center rounded-full border border-white/25 text-white hover:bg-white/10 focus-visible:ring-4 focus-visible:ring-white/40 focus-visible:outline-none"
+              className="grid size-10 place-items-center rounded-xl border-2 bg-card text-foreground relieve-sm hover:bg-secondary focus-visible:ring-4 focus-visible:ring-ring/30 focus-visible:outline-none active:translate-y-0.5 active:shadow-none"
             >
               <ChevronLeft className="size-5" aria-hidden />
             </button>
@@ -159,7 +157,7 @@ export function NewsCarousel({ slides }: { slides: NewsSlide[] }) {
               type="button"
               onClick={() => go(index + 1)}
               aria-label="Noticia siguiente"
-              className="grid size-9 place-items-center rounded-full border border-white/25 text-white hover:bg-white/10 focus-visible:ring-4 focus-visible:ring-white/40 focus-visible:outline-none"
+              className="grid size-10 place-items-center rounded-xl border-2 bg-card text-foreground relieve-sm hover:bg-secondary focus-visible:ring-4 focus-visible:ring-ring/30 focus-visible:outline-none active:translate-y-0.5 active:shadow-none"
             >
               <ChevronRight className="size-5" aria-hidden />
             </button>

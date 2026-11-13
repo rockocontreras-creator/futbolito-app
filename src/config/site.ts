@@ -1,5 +1,7 @@
 // Nombre de la app en un solo lugar (CLAUDE.md §1).
-export const APP_NAME = "Futbolito App";
+export const APP_NAME = "Club de la Pichanga";
+// Nombre corto para el ícono de la app instalada.
+export const APP_SHORT_NAME = "Pichanga";
 export const APP_DESCRIPTION = "Organiza pichangas, revoltijos, desafíos y ligas de futbolito en tu comuna.";
 export const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 

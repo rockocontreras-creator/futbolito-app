@@ -47,12 +47,12 @@ export function ProposeVenueForm({ center }: { center?: LatLng }) {
   });
 
   return (
-    <form onSubmit={onSubmit} noValidate className="space-y-5 rounded-2xl border bg-card p-5 sm:p-6">
+    <form onSubmit={onSubmit} noValidate className="space-y-5 rounded-2xl border-2 bg-card p-5 sm:p-6">
       <Field id="name" label="Nombre" error={errors.name?.message}>
         <Input id="name" placeholder="Ej: Sintética Villa Los Aromos" {...register("name")} />
       </Field>
       <div className="space-y-1.5">
-        <span className="text-sm font-semibold">Ubicación</span>
+        <span className="text-sm font-bold">Ubicación</span>
         <LocationPicker
           value={point}
           center={center}
@@ -94,11 +94,11 @@ export function ProposeVenueForm({ center }: { center?: LatLng }) {
         </Field>
       </div>
       <div className="flex flex-wrap gap-5">
-        <label className="flex items-center gap-2 text-sm font-semibold">
+        <label className="flex items-center gap-2 text-sm font-bold">
           <input type="checkbox" className="size-4 accent-[var(--primary)]" {...register("hasLighting")} />
           Tiene iluminación
         </label>
-        <label className="flex items-center gap-2 text-sm font-semibold">
+        <label className="flex items-center gap-2 text-sm font-bold">
           <input type="checkbox" className="size-4 accent-[var(--primary)]" {...register("isCovered")} />
           Es techada
         </label>
@@ -114,7 +114,7 @@ export function ProposeVenueForm({ center }: { center?: LatLng }) {
       <Button type="submit" size="lg" className="w-full" disabled={pending}>
         {pending ? "Enviando…" : "Proponer cancha"}
       </Button>
-      <p className="text-center text-[13px] text-muted-foreground">
+      <p className="text-center text-sm text-muted-foreground">
         Tú la puedes usar altiro al publicar. Para el resto aparece cuando la apruebe un admin.
       </p>
     </form>

@@ -64,9 +64,9 @@ export function RequestForm({
   });
 
   return (
-    <form onSubmit={onSubmit} noValidate className="space-y-5 rounded-2xl border bg-card p-5 sm:p-6">
+    <form onSubmit={onSubmit} noValidate className="space-y-5 rounded-2xl border-2 bg-card p-5 sm:p-6">
       <div className="space-y-2">
-        <span className="text-sm font-semibold">¿Cuántos faltan?</span>
+        <span className="text-sm font-bold">¿Cuántos faltan?</span>
         <div className="flex items-center gap-4">
           <Button
             type="button"
@@ -96,7 +96,7 @@ export function RequestForm({
       </div>
 
       <fieldset className="space-y-2">
-        <legend className="text-sm font-semibold">
+        <legend className="text-sm font-bold">
           ¿Qué posición? <span className="font-normal text-muted-foreground">(si no eliges, cualquiera)</span>
         </legend>
         <div className="flex flex-wrap gap-2">
@@ -107,7 +107,7 @@ export function RequestForm({
               aria-pressed={positions.includes(p)}
               onClick={() => togglePos(p)}
               className={cn(
-                "rounded-full border px-4 py-2 text-sm font-semibold focus-visible:ring-4 focus-visible:ring-ring/30 focus-visible:outline-none",
+                "rounded-xl border-2 px-4 py-2 text-sm font-extrabold focus-visible:ring-4 focus-visible:ring-ring/30 focus-visible:outline-none",
                 positions.includes(p)
                   ? "border-primary bg-primary text-primary-foreground"
                   : "hover:bg-secondary",

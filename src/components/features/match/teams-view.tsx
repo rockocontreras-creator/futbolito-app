@@ -45,7 +45,7 @@ export function BalanceMeter({
         </span>
         <span
           className={cn(
-            "rounded-full px-2.5 py-0.5 text-xs font-bold",
+            "rounded-full px-2.5 py-0.5 text-xs font-extrabold",
             level === "ok" && "bg-primary/12 text-primary",
             level === "warn" && "bg-foco/30 text-[#5a4500] dark:text-foco",
             level === "bad" && "bg-destructive/12 text-destructive",
@@ -82,16 +82,18 @@ export function PlayerLine({
     <>
       <PlayerAvatar name={p.name} src={p.photo} className="size-9 text-sm" />
       <span className="min-w-0 flex-1">
-        <span className="flex items-center gap-1.5 truncate font-semibold">
+        <span className="flex items-center gap-1.5 truncate font-bold">
           {p.name}
           {p.isOrganizer && (
-            <span className="rounded bg-secondary px-1.5 py-0.5 text-[11px] font-bold">Organiza</span>
+            <span className="rounded bg-secondary px-1.5 py-0.5 text-[12px] font-extrabold">Organiza</span>
           )}
           {mvp && (
-            <span className="rounded bg-foco px-1.5 py-0.5 text-[11px] font-bold text-[#2a2205]">MVP</span>
+            <span className="rounded bg-foco px-1.5 py-0.5 text-[12px] font-extrabold text-[#2a2205]">
+              MVP
+            </span>
           )}
         </span>
-        <span className="text-[13px] text-muted-foreground">
+        <span className="text-sm text-muted-foreground">
           {p.position ? POSITION_LABEL[p.position] : "Sin perfil"}
           {goals ? ` · ${goals} ${goals === 1 ? "gol" : "goles"}` : ""}
           {p.status === "NO_SHOW" ? " · No llegó" : ""}
@@ -136,10 +138,10 @@ export function TeamsView({
       <div className="grid gap-3 sm:grid-cols-2">
         {(["A", "B"] as const).map((side) => (
           <div key={side} className="overflow-hidden rounded-lg border">
-            <h3 className="px-4 py-2 text-sm font-bold" style={sideStyle(colors, side)}>
+            <h3 className="px-4 py-2 text-sm font-extrabold" style={sideStyle(colors, side)}>
               {sideTitle(colors, side, side === "A" ? a.length : b.length)}
             </h3>
-            <ul className="divide-y">
+            <ul className="divide-y-2">
               {(side === "A" ? a : b).map((p) => (
                 <PlayerLine key={p.userId} p={p} goals={goalsOf?.get(p.userId)} mvp={mvpId === p.userId} />
               ))}

@@ -27,11 +27,11 @@ export default function LeaguesPage() {
         description="Campeonatos con temporadas, fixture y tabla de posiciones. Los arma un organizador aprobado."
       />
       <div className="grid gap-6 lg:grid-cols-[1fr_340px] lg:items-start">
-        <Suspense fallback={<div className="h-48 animate-pulse rounded-xl border bg-card" aria-hidden />}>
+        <Suspense fallback={<div className="h-48 animate-pulse rounded-2xl border-2 bg-card" aria-hidden />}>
           <LeaguesList />
         </Suspense>
-        <aside className="space-y-3 rounded-xl border bg-card p-5">
-          <h2 className="text-lg font-bold">¿Quieres organizar una liga?</h2>
+        <aside className="space-y-3 rounded-2xl border-2 bg-card p-5">
+          <h2 className="text-lg font-extrabold">¿Quieres organizar una liga?</h2>
           <p className="text-[15px] text-muted-foreground">
             Las ligas las crean organizadores aprobados por el administrador, para que los resultados sean
             confiables. Mientras tanto, arma tu equipo: cuando abra la primera liga podrás inscribirlo.
@@ -71,12 +71,12 @@ async function LeaguesList() {
       {leagues.map((l) => {
         const season = l.seasons[0];
         return (
-          <li key={l.id} className="flex items-center gap-4 rounded-xl border bg-card p-5">
+          <li key={l.id} className="flex items-center gap-4 rounded-2xl border-2 bg-card p-5">
             <span className="grid size-12 shrink-0 place-items-center rounded-full bg-cancha text-foco">
               <Trophy className="size-6" aria-hidden />
             </span>
             <span className="min-w-0 flex-1 space-y-1">
-              <span className="block text-lg font-bold">{l.name}</span>
+              <span className="block text-lg font-extrabold">{l.name}</span>
               <span className="block text-sm text-muted-foreground">
                 {season
                   ? `${season.name}: ${SEASON_STATUS[season.status]}, ${season._count.teams} equipos`

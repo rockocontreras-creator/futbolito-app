@@ -3,26 +3,29 @@ import { Slot } from "radix-ui";
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
+// Relieve: el botón tiene un canto sólido abajo y se hunde al apretarlo.
+const RELIEVE = "relieve active:translate-y-1 active:shadow-none";
+
 const buttonVariants = cva(
-  "inline-flex shrink-0 items-center justify-center gap-2 rounded-full text-sm font-semibold whitespace-nowrap transition-[background-color,box-shadow,transform] outline-none select-none focus-visible:ring-4 focus-visible:ring-ring/35 active:translate-y-px disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  "inline-flex shrink-0 items-center justify-center gap-2 font-extrabold whitespace-nowrap transition-[background-color,box-shadow,transform,filter] duration-100 outline-none select-none focus-visible:ring-4 focus-visible:ring-ring/35 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-[1.15em]",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90",
-        foco: "bg-foco text-[#2a2205] hover:bg-foco/90",
-        dark: "bg-cancha text-white hover:bg-cancha-oscura",
-        destructive: "bg-destructive text-white hover:bg-destructive/90",
-        outline: "border border-input bg-card hover:bg-secondary",
-        secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/70",
+        default: `bg-primary text-primary-foreground [--relieve-color:var(--pasto-canto)] hover:brightness-110 ${RELIEVE}`,
+        foco: `bg-foco text-accent-foreground [--relieve-color:var(--foco-canto)] hover:brightness-105 ${RELIEVE}`,
+        dark: `bg-primary text-primary-foreground [--relieve-color:var(--pasto-canto)] hover:brightness-110 ${RELIEVE}`,
+        destructive: `bg-destructive text-white [--relieve-color:var(--roja-canto)] hover:brightness-110 ${RELIEVE}`,
+        outline: `border-2 border-border bg-card text-foreground hover:bg-secondary ${RELIEVE}`,
+        secondary: `bg-secondary text-primary hover:brightness-97 ${RELIEVE}`,
         ghost: "hover:bg-secondary",
-        onDark: "border border-white/30 text-white hover:bg-white/10",
+        onDark: `border-2 border-white/35 bg-white/10 text-white [--relieve-color:rgb(0_0_0/0.22)] hover:bg-white/20 ${RELIEVE}`,
         link: "rounded-none px-0 text-primary underline-offset-4 hover:underline",
       },
       size: {
-        default: "h-10 px-5",
-        sm: "h-8 px-3.5 text-[13px]",
-        lg: "h-12 px-6 text-base",
-        icon: "size-10",
+        default: "h-11 rounded-2xl px-5 text-[15px]",
+        sm: "h-9 rounded-xl px-3.5 text-sm",
+        lg: "h-[52px] rounded-2xl px-7 text-[17px]",
+        icon: "size-11 rounded-2xl",
       },
     },
     defaultVariants: { variant: "default", size: "default" },

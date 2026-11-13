@@ -13,7 +13,7 @@ export const metadata: Metadata = { title: "Jugador" };
 export default function PlayerPage({ params }: PageProps<"/jugador/[username]">) {
   return (
     <Container className="max-w-4xl pt-8">
-      <Suspense fallback={<div className="h-96 animate-pulse rounded-2xl border bg-card" aria-hidden />}>
+      <Suspense fallback={<div className="h-96 animate-pulse rounded-2xl border-2 bg-card" aria-hidden />}>
         <PublicProfile params={params} />
       </Suspense>
     </Container>
@@ -29,7 +29,7 @@ async function PublicProfile({ params }: { params: PageProps<"/jugador/[username
   const community = await getPlayerCommunity(profile.userId);
   return (
     <div className="space-y-8">
-      <ProfileView profile={profile} />
+      <ProfileView profile={profile} reviews={community.reviews} />
       <PlayerCommunity
         profile={profile}
         community={community}

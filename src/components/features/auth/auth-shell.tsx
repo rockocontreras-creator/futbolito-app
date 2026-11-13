@@ -1,4 +1,5 @@
 import { Medal, Shuffle, Users } from "lucide-react";
+import { Mascot } from "@/components/layout/brand";
 import { Button } from "@/components/ui/button";
 import { signInWithGoogle } from "@/server/actions/auth";
 
@@ -22,10 +23,11 @@ export function AuthShell({
     <div className="grid min-h-[calc(100dvh-4rem)] lg:grid-cols-[1fr_1.1fr]">
       <aside className="relative hidden overflow-hidden chalk-pitch p-12 text-white lg:flex lg:flex-col lg:justify-end">
         <div className="max-w-md space-y-8">
-          <p className="text-6xl font-display text-balance">La pichanga de San Clemente, en un solo lugar.</p>
+          <Mascot mood="wink" className="size-24" />
+          <p className="text-5xl font-display">La pichanga de San Clemente, en un solo lugar.</p>
           <ul className="space-y-4">
             {POINTS.map(({ icon: Icon, text }) => (
-              <li key={text} className="flex gap-3 text-[17px] text-white/85">
+              <li key={text} className="flex gap-3 text-[17px] font-semibold text-white/90">
                 <Icon className="mt-0.5 size-5 shrink-0 text-foco" aria-hidden />
                 {text}
               </li>
@@ -36,8 +38,9 @@ export function AuthShell({
       <div className="flex items-start justify-center px-4 py-10 sm:items-center lg:px-12">
         <div className="w-full max-w-sm space-y-7">
           <div className="space-y-2">
-            <h1 className="text-5xl font-display text-cancha dark:text-white">{title}</h1>
-            <p className="text-pretty text-muted-foreground">{intro}</p>
+            <Mascot className="mb-3 size-16 lg:hidden" />
+            <h1 className="text-[2.5rem] font-display">{title}</h1>
+            <p className="text-[17px] text-muted-foreground">{intro}</p>
           </div>
           {children}
         </div>
@@ -65,7 +68,7 @@ export function GoogleButton({
 
 export function OrDivider({ children = "o con tu correo" }: { children?: React.ReactNode }) {
   return (
-    <p className="flex items-center gap-3 text-[13px] text-muted-foreground before:h-px before:flex-1 before:bg-border after:h-px after:flex-1 after:bg-border">
+    <p className="flex items-center gap-3 text-sm text-muted-foreground before:h-px before:flex-1 before:bg-border after:h-px after:flex-1 after:bg-border">
       {children}
     </p>
   );

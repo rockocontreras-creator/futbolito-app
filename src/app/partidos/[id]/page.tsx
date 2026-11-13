@@ -116,12 +116,12 @@ async function MatchDetailView({ params }: { params: PageProps<"/partidos/[id]">
         <Container className="space-y-5 py-8 md:py-12">
           <Link
             href="/partidos"
-            className="inline-flex items-center gap-1.5 text-sm font-semibold text-white/80 hover:text-white"
+            className="inline-flex items-center gap-1.5 text-sm font-bold text-white/80 hover:text-white"
           >
             <ArrowLeft className="size-4" aria-hidden /> Partidos
           </Link>
           <div className="space-y-3">
-            <p className="inline-flex rounded-full bg-foco px-3 py-1 text-sm font-bold text-[#2a2205]">
+            <p className="inline-flex rounded-xl bg-foco px-3 py-1 text-sm font-extrabold text-accent-foreground">
               {MATCH_TYPE_LABEL[match.type]} {match.playersPerSide}v{match.playersPerSide}
             </p>
             <h1 className="text-5xl font-display sm:text-6xl">
@@ -137,7 +137,7 @@ async function MatchDetailView({ params }: { params: PageProps<"/partidos/[id]">
               </span>
             </p>
             <p
-              className="flex flex-wrap items-center gap-2 text-sm font-semibold"
+              className="flex flex-wrap items-center gap-2 text-sm font-bold"
               aria-label="Colores de los equipos"
             >
               {(["A", "B"] as const).map((side) => (
@@ -161,9 +161,9 @@ async function MatchDetailView({ params }: { params: PageProps<"/partidos/[id]">
       <Container className="grid gap-6 pt-6 lg:grid-cols-[1fr_360px] lg:items-start">
         <div className="space-y-6 lg:order-1">
           {weather && <WeatherBanner weather={weather} />}
-          <section className="space-y-4 rounded-xl border bg-card p-5" aria-labelledby="cupos">
+          <section className="space-y-4 rounded-2xl border-2 bg-card p-5" aria-labelledby="cupos">
             <div className="flex items-center justify-between">
-              <h2 id="cupos" className="text-lg font-bold">
+              <h2 id="cupos" className="text-lg font-extrabold">
                 Cupos
               </h2>
               <span className="text-sm text-muted-foreground">Organiza {organizerName}</span>
@@ -212,18 +212,21 @@ async function MatchDetailView({ params }: { params: PageProps<"/partidos/[id]">
           {isOrganizer && manageable ? (
             <ManageRoster matchId={match.id} players={players} colors={colors} />
           ) : hasSides ? (
-            <section className="space-y-3 rounded-xl border bg-card p-5" aria-labelledby="equipos">
-              <h2 id="equipos" className="flex items-center gap-2 text-lg font-bold">
+            <section className="space-y-3 rounded-2xl border-2 bg-card p-5" aria-labelledby="equipos">
+              <h2 id="equipos" className="flex items-center gap-2 text-lg font-extrabold">
                 <Users className="size-5 text-primary" aria-hidden /> Equipos
               </h2>
               <TeamsView players={lineup} goalsOf={goalsOf} mvpId={mvpId} colors={colors} />
             </section>
           ) : (
-            <section className="rounded-xl border bg-card" aria-labelledby="jugadores">
-              <h2 id="jugadores" className="flex items-center gap-2 border-b px-5 py-4 text-lg font-bold">
+            <section className="rounded-2xl border-2 bg-card" aria-labelledby="jugadores">
+              <h2
+                id="jugadores"
+                className="flex items-center gap-2 border-b-2 px-5 py-4 text-lg font-extrabold"
+              >
                 <Users className="size-5 text-primary" aria-hidden /> Quiénes van
               </h2>
-              <ul className="divide-y">
+              <ul className="divide-y-2">
                 {registered.map((p) => (
                   <PlayerRow key={p.id} p={p} isOrganizer={p.userId === match.organizerId} />
                 ))}
@@ -232,11 +235,11 @@ async function MatchDetailView({ params }: { params: PageProps<"/partidos/[id]">
           )}
 
           {!(isOrganizer && manageable) && waitlist.length > 0 && (
-            <section className="rounded-xl border bg-card" aria-labelledby="espera">
-              <h2 id="espera" className="border-b bg-secondary/50 px-5 py-3 text-sm font-bold">
+            <section className="rounded-2xl border-2 bg-card" aria-labelledby="espera">
+              <h2 id="espera" className="border-b-2 bg-secondary/50 px-5 py-3 text-sm font-extrabold">
                 Lista de espera
               </h2>
-              <ul className="divide-y">
+              <ul className="divide-y-2">
                 {waitlist.map((p) => (
                   <PlayerRow key={p.id} p={p} />
                 ))}
@@ -248,14 +251,14 @@ async function MatchDetailView({ params }: { params: PageProps<"/partidos/[id]">
           (isOrganizer || (me && ["REGISTERED", "WAITLIST", "ATTENDED", "NO_SHOW"].includes(me.status))) ? (
             <MatchChat matchId={match.id} meId={user.id} canModerate={isOrganizer || user.role === "ADMIN"} />
           ) : (
-            <p className="rounded-xl border border-dashed bg-card/60 px-5 py-4 text-sm text-muted-foreground">
+            <p className="rounded-2xl border-2 border-dashed bg-secondary/40 px-5 py-4 text-sm text-muted-foreground">
               La sala del partido tiene chat. Súmate para hablar con los demás.
             </p>
           )}
 
           {match.notes && (
-            <section className="rounded-xl border bg-card p-5" aria-labelledby="notas">
-              <h2 id="notas" className="mb-2 text-lg font-bold">
+            <section className="rounded-2xl border-2 bg-card p-5" aria-labelledby="notas">
+              <h2 id="notas" className="mb-2 text-lg font-extrabold">
                 Notas del organizador
               </h2>
               <p className="text-[15px] whitespace-pre-line text-muted-foreground">{match.notes}</p>
@@ -264,9 +267,9 @@ async function MatchDetailView({ params }: { params: PageProps<"/partidos/[id]">
         </div>
 
         <aside className="space-y-4 lg:sticky lg:top-24 lg:order-2">
-          <div className="space-y-4 rounded-xl border bg-card p-5">
+          <div className="space-y-4 rounded-2xl border-2 bg-card p-5">
             {reported ? (
-              <p className="rounded-full bg-secondary py-3 text-center text-sm font-bold">
+              <p className="rounded-2xl bg-secondary py-3 text-center text-sm font-extrabold">
                 {match.status === "RESULT_CONFIRMED"
                   ? "Partido jugado"
                   : "Partido jugado, resultado en revisión"}
@@ -383,18 +386,18 @@ function ResultBoard({
             confirmations < needed ? ` (faltan ${needed - confirmations})` : ""
           }.${objections ? ` Dicen que está mal: ${objections}.` : ""}`;
   return (
-    <section className="overflow-hidden rounded-xl border bg-card" aria-labelledby="resultado">
+    <section className="overflow-hidden rounded-2xl border-2 bg-card" aria-labelledby="resultado">
       <h2 id="resultado" className="sr-only">
         Resultado
       </h2>
       <div className="grid grid-cols-[1fr_auto_1fr] items-center chalk-pitch px-5 py-6 text-white">
         <p className="text-center">
-          <span className="block text-sm font-bold text-white/80">Equipo A</span>
+          <span className="block text-sm font-extrabold text-white/80">Equipo A</span>
           <span className="text-6xl font-score">{scoreA}</span>
         </p>
         <span className="text-3xl font-score text-white/60">–</span>
         <p className="text-center">
-          <span className="block text-sm font-bold text-foco">Equipo B</span>
+          <span className="block text-sm font-extrabold text-foco">Equipo B</span>
           <span className="text-6xl font-score">{scoreB}</span>
         </p>
       </div>
@@ -411,11 +414,11 @@ function capitalizeFirst(text: string) {
 function Detail({ label, value, icon: Icon }: { label: string; value: string; icon: typeof Clock3 }) {
   return (
     <div className="space-y-1 bg-card p-4">
-      <dt className="flex items-center gap-1.5 text-[13px] text-muted-foreground">
+      <dt className="flex items-center gap-1.5 text-sm text-muted-foreground">
         <Icon className="size-3.5" aria-hidden />
         {label}
       </dt>
-      <dd className="font-semibold">{value}</dd>
+      <dd className="font-bold">{value}</dd>
     </div>
   );
 }
@@ -433,13 +436,15 @@ function PlayerRow({
     <>
       <PlayerAvatar name={name} src={profile?.photoUrl ?? p.user.image} />
       <div className="min-w-0 flex-1">
-        <p className="truncate font-semibold">
+        <p className="truncate font-bold">
           {name}
           {isOrganizer && (
-            <span className="ml-2 rounded bg-secondary px-1.5 py-0.5 text-[11px] font-bold">Organiza</span>
+            <span className="ml-2 rounded bg-secondary px-1.5 py-0.5 text-[12px] font-extrabold">
+              Organiza
+            </span>
           )}
         </p>
-        <p className="text-[13px] text-muted-foreground">
+        <p className="text-sm text-muted-foreground">
           {profile ? POSITION_LABEL[profile.primaryPosition] : "Sin perfil"}
         </p>
       </div>
@@ -467,8 +472,8 @@ function DetailSkeleton() {
     <>
       <div className="h-56 chalk-pitch" aria-hidden />
       <Container className="grid gap-6 pt-6 lg:grid-cols-[1fr_360px]">
-        <div className="h-64 animate-pulse rounded-xl border bg-card" />
-        <div className="h-48 animate-pulse rounded-xl border bg-card" />
+        <div className="h-64 animate-pulse rounded-2xl border-2 bg-card" />
+        <div className="h-48 animate-pulse rounded-2xl border-2 bg-card" />
       </Container>
     </>
   );

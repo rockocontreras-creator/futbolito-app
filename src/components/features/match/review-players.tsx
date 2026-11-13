@@ -25,9 +25,9 @@ export function ReviewPlayers({
   const givenOf = new Map(given.map((g) => [g.targetId, g]));
   const pendingCount = players.filter((p) => !givenOf.has(p.userId)).length;
   return (
-    <section className="space-y-3 rounded-xl border bg-card p-5" aria-labelledby="valorar">
+    <section className="space-y-3 rounded-2xl border-2 bg-card p-5" aria-labelledby="valorar">
       <div>
-        <h2 id="valorar" className="text-lg font-bold">
+        <h2 id="valorar" className="text-lg font-extrabold">
           Valora a los jugadores
         </h2>
         <p className="text-sm text-muted-foreground">
@@ -64,21 +64,21 @@ function ReviewRow({ matchId, p, given }: { matchId: string; p: RosterPlayer; gi
         className="flex w-full items-center gap-3 px-3 py-2.5 text-left"
       >
         <PlayerAvatar name={p.name} src={p.photo} className="size-9 text-sm" />
-        <span className="min-w-0 flex-1 truncate font-semibold">{p.name}</span>
+        <span className="min-w-0 flex-1 truncate font-bold">{p.name}</span>
         {saved ? (
           <span
-            className="flex items-center gap-0.5 text-sm font-bold text-primary"
+            className="flex items-center gap-0.5 text-sm font-extrabold text-primary"
             aria-label={`${score} estrellas`}
           >
             {score}
             <Star className="size-4 fill-current" aria-hidden />
           </span>
         ) : (
-          <span className="text-[13px] text-muted-foreground">Sin valorar</span>
+          <span className="text-sm text-muted-foreground">Sin valorar</span>
         )}
       </button>
       {open && (
-        <div className="space-y-3 border-t px-3 py-3">
+        <div className="space-y-3 border-t-2 px-3 py-3">
           <div className="flex gap-1" role="radiogroup" aria-label={`Estrellas para ${p.name}`}>
             {[1, 2, 3, 4, 5].map((n) => (
               <button
@@ -142,7 +142,7 @@ function TagGroup({
 }) {
   return (
     <fieldset className="space-y-1.5">
-      <legend className="text-[13px] font-semibold text-muted-foreground">{title}</legend>
+      <legend className="text-sm font-bold text-muted-foreground">{title}</legend>
       <div className="flex flex-wrap gap-1.5">
         {tags.map((t) => {
           const on = selected.includes(t);
@@ -153,7 +153,7 @@ function TagGroup({
               aria-pressed={on}
               onClick={() => onToggle(t)}
               className={cn(
-                "rounded-full border px-3 py-1 text-[13px] font-semibold transition-colors focus-visible:ring-4 focus-visible:ring-ring/30 focus-visible:outline-none",
+                "rounded-xl border-2 px-3.5 py-1.5 text-sm font-extrabold transition-colors focus-visible:ring-4 focus-visible:ring-ring/30 focus-visible:outline-none",
                 on ? "border-primary bg-primary text-primary-foreground" : "hover:bg-secondary",
               )}
             >

@@ -60,7 +60,7 @@ export function RosterActions({ matchId, viewer }: { matchId: string; viewer: Vi
       break;
     case "organizer":
       body = (
-        <p className="flex items-center justify-center gap-2 rounded-full bg-secondary py-3 text-sm font-bold">
+        <p className="flex items-center justify-center gap-2 rounded-2xl bg-secondary py-3 text-sm font-extrabold">
           <Check className="size-4 text-primary" aria-hidden /> Organizas este partido
         </p>
       );
@@ -68,7 +68,7 @@ export function RosterActions({ matchId, viewer }: { matchId: string; viewer: Vi
     case "registered":
       body = (
         <div className="space-y-2">
-          <p className="flex items-center justify-center gap-2 rounded-full bg-primary/12 py-3 text-sm font-bold text-primary">
+          <p className="flex items-center justify-center gap-2 rounded-2xl bg-primary/12 py-3 text-sm font-extrabold text-primary">
             <Check className="size-4" aria-hidden /> Estás dentro
           </p>
           <Button
@@ -85,7 +85,7 @@ export function RosterActions({ matchId, viewer }: { matchId: string; viewer: Vi
     case "waitlist":
       body = (
         <div className="space-y-2">
-          <p className="flex items-center justify-center gap-2 rounded-full bg-foco/30 py-3 text-sm font-bold">
+          <p className="flex items-center justify-center gap-2 rounded-2xl bg-foco/30 py-3 text-sm font-extrabold">
             <Clock className="size-4" aria-hidden /> En lista de espera, puesto {viewer.position}
           </p>
           <Button
@@ -118,7 +118,7 @@ export function RosterActions({ matchId, viewer }: { matchId: string; viewer: Vi
       break;
     case "closed":
       body = (
-        <p className="rounded-full bg-secondary py-3 text-center text-sm font-bold text-muted-foreground">
+        <p className="rounded-2xl bg-secondary py-3 text-center text-sm font-extrabold text-muted-foreground">
           {viewer.reason}
         </p>
       );
