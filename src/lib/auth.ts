@@ -33,12 +33,23 @@ const providers: Provider[] = [
       });
       // Compara igual aunque el usuario no exista, para no revelar qué cuentas hay.
       const ok = await verifyPassword(password, user?.passwordHash ?? (await dummyHash()));
-      if (!user || !user.passwordHash || !ok || user.suspendedAt) return null;
+      // Las cuentas con contraseña deben confirmar su correo con el código antes de entrar.
+      if (!user || !user.passwordHash || !ok || user.suspendedAt || !user.emailVerified) return null;
       return { id: user.id, name: user.name, email: user.email, image: user.image };
     },
   }),
 ];
-if (authProviders.google) providers.push(Google);
+// Google confirma que el correo es de quien entra, así que puede entrar a una cuenta ya existente con
+// ese mismo correo (por ejemplo la del admin o la de alguien que antes usó contraseña).
+if (authProviders.google) providers.push(Google({ allowDangerousEmailAccountLinking: true }));
+
+/** Correos que siempre son admin (variable ADMIN_EMAILS, separados por coma). */
+export function adminEmails(): string[] {
+  return (process.env.ADMIN_EMAILS ?? "")
+    .split(",")
+    .map((e) => e.trim().toLowerCase())
+    .filter(Boolean);
+}
 if (authProviders.email) providers.push(Resend({ from: process.env.AUTH_EMAIL_FROM }));
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
@@ -48,6 +59,24 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   providers,
   trustHost: true,
   pages: { signIn: "/ingresar", verifyRequest: "/ingresar/revisa-tu-correo", error: "/ingresar" },
+  events: {
+    async signIn({ user, account }) {
+      if (!user.id) return;
+      const email = user.email?.toLowerCase();
+      const data: { role?: "ADMIN"; emailVerified?: Date; passwordHash?: null } = {};
+      if (email && adminEmails().includes(email)) data.role = "ADMIN";
+      if (account?.provider === "google") {
+        const current = await db.user.findUnique({ where: { id: user.id }, select: { emailVerified: true } });
+        if (!current?.emailVerified) {
+          // Si alguien había dejado una contraseña sin confirmar en este correo, deja de servir:
+          // el dueño real del correo es quien acaba de entrar con Google.
+          data.emailVerified = new Date();
+          data.passwordHash = null;
+        }
+      }
+      if (Object.keys(data).length) await db.user.update({ where: { id: user.id }, data });
+    },
+  },
   callbacks: {
     jwt({ token, user }) {
       if (user?.id) token.sub = user.id;

@@ -18,5 +18,14 @@ export const loginSchema = z.object({
   password: z.string().min(1, "Escribe tu contraseña"),
 });
 
+export const confirmEmailSchema = z.object({
+  email: z.email().trim().toLowerCase(),
+  code: z
+    .string()
+    .transform((v) => v.replace(/\D/g, ""))
+    .pipe(z.string().length(6, "El código tiene 6 números")),
+  password: z.string().min(1),
+});
+
 export type RegisterInput = z.input<typeof registerSchema>;
 export type LoginInput = z.input<typeof loginSchema>;
