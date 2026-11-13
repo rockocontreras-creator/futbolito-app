@@ -83,7 +83,7 @@ async function main() {
     const user = await db.user.upsert({
       where: { email: `${username}@demo.futbolito` },
       update: {},
-      create: { email: `${username}@demo.futbolito`, name },
+      create: { email: `${username}@demo.futbolito`, name, emailVerified: new Date() },
     });
     await db.playerProfile.upsert({
       where: { userId: user.id },

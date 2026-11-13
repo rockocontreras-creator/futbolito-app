@@ -39,6 +39,14 @@ export default function MorePage() {
           </li>
         ))}
       </ul>
+      <p className="mt-8 flex justify-center gap-5 text-sm text-muted-foreground">
+        <Link href="/privacidad" className="underline underline-offset-4 hover:text-foreground">
+          Privacidad
+        </Link>
+        <Link href="/terminos" className="underline underline-offset-4 hover:text-foreground">
+          Términos de uso
+        </Link>
+      </p>
     </Container>
   );
 }

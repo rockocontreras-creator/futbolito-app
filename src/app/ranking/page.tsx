@@ -151,9 +151,13 @@ async function Players({
               <span className="block truncate font-semibold">
                 {p.nickname ? `${p.displayName} “${p.nickname}”` : p.displayName}
               </span>
-              <span className="text-[13px] text-muted-foreground">
-                {POSITION_LABEL[p.primaryPosition]} · {p.matchesPlayed} PJ · {p.wins}G {p.draws}E {p.losses}P
-                · {p.goals} goles
+              <span className="block truncate text-[13px] text-muted-foreground">
+                {POSITION_LABEL[p.primaryPosition]} · {p.matchesPlayed} PJ
+                <span className="hidden sm:inline">
+                  {" "}
+                  · {p.wins}G {p.draws}E {p.losses}P
+                </span>{" "}
+                · {p.goals} {p.goals === 1 ? "gol" : "goles"}
               </span>
             </span>
             <span className="text-right">
@@ -201,7 +205,7 @@ async function Teams({ comunaId }: { comunaId: string }) {
             />
             <span className="min-w-0 flex-1">
               <span className="block truncate font-semibold">{t.name}</span>
-              <span className="text-[13px] text-muted-foreground">
+              <span className="block truncate text-[13px] text-muted-foreground">
                 {t._count.members} jugadores · {t.matchesPlayed} PJ · {t.wins}G {t.draws}E {t.losses}P
               </span>
             </span>

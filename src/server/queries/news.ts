@@ -4,7 +4,9 @@ import { formatMatchDate } from "@/lib/format";
 
 export interface NewsSlide {
   id: string;
-  kicker: string; // "Próximo partido", "Máximo goleador"…
+  /** Tema de la noticia: solo para lectores de pantalla y los puntos del carrusel. */
+  topic: string;
+  icon: "swords" | "calendar" | "trophy" | "medal" | "score" | "search" | "shield";
   headline: string;
   stat?: string; // número grande opcional ("12", "3–2")
   statLabel?: string;
@@ -80,9 +82,10 @@ export async function getNewsSlides(comunaId: string): Promise<NewsSlide[]> {
   if (nextClash) {
     slides.push({
       id: "enfrentamiento",
-      kicker: "Próximo enfrentamiento",
-      headline: `${nextClash.homeTeam?.name ?? "Por definir"} vs ${nextClash.awayTeam?.name ?? "Rival por definir"}`,
-      text: `${formatMatchDate(nextClash.startsAt)}${nextClash.venue ? ` en ${nextClash.venue.name}` : ""}.`,
+      topic: "Próximo enfrentamiento",
+      icon: "swords",
+      headline: `${nextClash.homeTeam?.name ?? "Por definir"} vs ${nextClash.awayTeam?.name ?? "rival por definir"}`,
+      text: `El próximo desafío: ${formatMatchDate(nextClash.startsAt)}${nextClash.venue ? `, en ${nextClash.venue.name}` : ""}.`,
       href: `/partidos/${nextClash.id}`,
       cta: "Ver partido",
     });
@@ -92,11 +95,12 @@ export async function getNewsSlides(comunaId: string): Promise<NewsSlide[]> {
     const missing = Math.max(0, total - nextPickup._count.participants);
     slides.push({
       id: "proximo",
-      kicker: "Próximo revoltijo",
-      headline: `${nextPickup.playersPerSide}v${nextPickup.playersPerSide} ${formatMatchDate(nextPickup.startsAt)}`,
+      topic: "Próximo revoltijo",
+      icon: "calendar",
+      headline: `Revoltijo ${nextPickup.playersPerSide}v${nextPickup.playersPerSide} el ${formatMatchDate(nextPickup.startsAt)}`,
       stat: missing ? String(missing) : "Lleno",
       statLabel: missing ? (missing === 1 ? "cupo libre" : "cupos libres") : "lista de espera",
-      text: nextPickup.venue ? `En ${nextPickup.venue.name}.` : "Cancha a coordinar.",
+      text: `${nextPickup.venue ? `En ${nextPickup.venue.name}.` : "Cancha a coordinar."} Es el próximo partido de la comuna.`,
       href: `/partidos/${nextPickup.id}`,
       cta: missing ? "Sumarme" : "Ver partido",
     });
@@ -104,8 +108,9 @@ export async function getNewsSlides(comunaId: string): Promise<NewsSlide[]> {
   if (scorer) {
     slides.push({
       id: "goleador",
-      kicker: "Máximo goleador",
-      headline: scorer.displayName,
+      topic: "Máximo goleador",
+      icon: "trophy",
+      headline: `${scorer.displayName}, el goleador de la comuna`,
       stat: String(scorer.goals),
       statLabel: scorer.goals === 1 ? "gol" : "goles",
       text: `En ${scorer.matchesPlayed} ${scorer.matchesPlayed === 1 ? "partido" : "partidos"}.`,
@@ -117,11 +122,12 @@ export async function getNewsSlides(comunaId: string): Promise<NewsSlide[]> {
   if (leader) {
     slides.push({
       id: "lider",
-      kicker: "N°1 del ranking",
-      headline: leader.displayName,
+      topic: "N°1 del ranking",
+      icon: "medal",
+      headline: `${leader.displayName} lidera el ranking`,
       stat: String(leader.rating),
       statLabel: "de rango",
-      text: "El jugador con mejor rango de la comuna.",
+      text: "Es quien tiene el mejor rango de la comuna. ¿Quién lo baja?",
       href: "/ranking",
       cta: "Ver clasificación",
       photo: leader.photoUrl,
@@ -130,11 +136,12 @@ export async function getNewsSlides(comunaId: string): Promise<NewsSlide[]> {
   if (lastResult && lastResult.scoreA != null && lastResult.scoreB != null) {
     slides.push({
       id: "resultado",
-      kicker: "Último resultado",
-      headline: lastResult.venue ? `Revoltijo en ${lastResult.venue.name}` : "Revoltijo",
+      topic: "Último resultado",
+      icon: "score",
+      headline: "Así terminó el último revoltijo",
       stat: `${lastResult.scoreA}–${lastResult.scoreB}`,
-      statLabel: "confirmado por los jugadores",
-      text: formatMatchDate(lastResult.startsAt),
+      statLabel: "confirmado",
+      text: `${formatMatchDate(lastResult.startsAt)}${lastResult.venue ? `, en ${lastResult.venue.name}` : ""}.`,
       href: `/partidos/${lastResult.id}`,
       cta: "Ver partido",
     });
@@ -142,7 +149,8 @@ export async function getNewsSlides(comunaId: string): Promise<NewsSlide[]> {
   if (openRequests > 0) {
     slides.push({
       id: "se-busca",
-      kicker: "Se busca",
+      topic: "Se busca",
+      icon: "search",
       headline:
         openRequests === 1 ? "Un partido necesita jugadores" : `${openRequests} partidos necesitan jugadores`,
       stat: String(openRequests),
@@ -155,9 +163,10 @@ export async function getNewsSlides(comunaId: string): Promise<NewsSlide[]> {
   if (newestTeam) {
     slides.push({
       id: "equipo",
-      kicker: "Equipo nuevo",
-      headline: newestTeam.name,
-      text: "Se acaba de armar. Pide unirte o desafíalos cuando abran los desafíos.",
+      topic: "Equipo nuevo",
+      icon: "shield",
+      headline: `Nació ${newestTeam.name}`,
+      text: "Es el equipo más nuevo de la comuna. Mira su plantel o pide unirte.",
       href: `/equipo/${newestTeam.slug}`,
       cta: "Ver equipo",
     });

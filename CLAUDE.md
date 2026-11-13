@@ -39,24 +39,25 @@ Nombre provisional: **Futbolito App** (se puede cambiar; mantener el nombre en u
 Elegido por ser el estándar profesional actual para apps web full-stack, tener un solo lenguaje
 de punta a punta (TypeScript), hosting gratuito para empezar y excelente soporte de IA.
 
-| Capa                      | Tecnología                                                     |
-| ------------------------- | -------------------------------------------------------------- |
-| Lenguaje                  | **TypeScript** (modo `strict`)                                 |
-| Framework                 | **Next.js** (App Router, Server Components, Server Actions)    |
-| UI                        | **Tailwind CSS** + **shadcn/ui** + iconos **lucide-react**     |
-| Base de datos             | **PostgreSQL** (hosting en **Supabase** o Neon, plan gratuito) |
-| ORM / migraciones         | **Prisma**                                                     |
-| Autenticación             | **Auth.js (NextAuth)** con Google + enlace mágico por email    |
-| Validación                | **Zod** (compartido entre formularios y servidor)              |
-| Formularios               | **react-hook-form** + `@hookform/resolvers/zod`                |
-| Imágenes (fotos, escudos) | **Supabase Storage**                                           |
-| Mapas                     | **Leaflet** + OpenStreetMap (gratis, sin API key)              |
-| Fechas                    | **date-fns** con locale `es` y zona horaria `America/Santiago` |
-| Tests                     | **Vitest** (unitarios) + **Playwright** (end-to-end)           |
-| Calidad                   | ESLint + Prettier + Husky/lint-staged                          |
-| CI                        | GitHub Actions (lint, typecheck, tests en cada PR)             |
-| Deploy                    | **Vercel** (preview automático por cada PR)                    |
-| Gestor de paquetes        | **pnpm**                                                       |
+| Capa                      | Tecnología                                                      |
+| ------------------------- | --------------------------------------------------------------- |
+| Lenguaje                  | **TypeScript** (modo `strict`)                                  |
+| Framework                 | **Next.js** (App Router, Server Components, Server Actions)     |
+| UI                        | **Tailwind CSS** + **shadcn/ui** + iconos **lucide-react**      |
+| Base de datos             | **PostgreSQL** (hosting en **Supabase** o Neon, plan gratuito)  |
+| ORM / migraciones         | **Prisma**                                                      |
+| Autenticación             | **Auth.js (NextAuth)** con Google + correo/usuario y contraseña |
+| Correos salientes         | **Nodemailer** por SMTP (Gmail con contraseña de aplicación)    |
+| Validación                | **Zod** (compartido entre formularios y servidor)               |
+| Formularios               | **react-hook-form** + `@hookform/resolvers/zod`                 |
+| Imágenes (fotos, escudos) | **Supabase Storage**                                            |
+| Mapas                     | **Leaflet** + OpenStreetMap (gratis, sin API key)               |
+| Fechas                    | **date-fns** con locale `es` y zona horaria `America/Santiago`  |
+| Tests                     | **Vitest** (unitarios) + **Playwright** (end-to-end)            |
+| Calidad                   | ESLint + Prettier + Husky/lint-staged                           |
+| CI                        | GitHub Actions (lint, typecheck, tests en cada PR)              |
+| Deploy                    | **Vercel** (preview automático por cada PR)                     |
+| Gestor de paquetes        | **pnpm**                                                        |
 
 Usar siempre las **últimas versiones estables** al momento de instalar. No agregar librerías nuevas
 sin justificarlo en `docs/DECISIONES.md`.
@@ -88,6 +89,19 @@ Aunque partimos solo en San Clemente, el modelo debe permitir crecer a otras com
 ---
 
 ## 5. Funcionalidades
+
+### 5.0 Cuentas
+
+- Se entra con **Google** (primera opción en pantalla) o con **correo/usuario + contraseña**.
+- Crear cuenta con contraseña exige **confirmar el correo** con un código de 6 dígitos (vence en 15 min,
+  5 intentos, reenvío cada 60 s y máximo 5 por hora). Antes de mandarlo se rechazan dominios que no existen
+  (DNS: MX o A) y correos desechables; se sugiere el dominio correcto ante errores de tipeo ("gmial.com").
+- Sin confirmar no se puede entrar: al intentarlo se manda un código nuevo.
+- Google puede entrar a una cuenta existente con el mismo correo (Google verifica el correo). Si esa cuenta
+  tenía una contraseña sin confirmar, la contraseña se borra.
+- Los correos en la variable `ADMIN_EMAILS` quedan como admin al entrar.
+- Páginas `/privacidad` y `/terminos` (Google las exige para publicar el ingreso con Google). Si cambia qué
+  datos se guardan o quién los ve, hay que actualizar `/privacidad`.
 
 ### 5.1 Perfil de jugador
 
@@ -199,7 +213,7 @@ Aunque partimos solo en San Clemente, el modelo debe permitir crecer a otras com
 
 ### 5.7 Búsqueda (pantalla principal)
 
-- **Carrusel de noticias** de la comuna bajo la portada (`src/server/queries/news.ts`): próximo
+- **Carrusel de noticias** de la comuna en la portada (junto al título) (`src/server/queries/news.ts`): próximo
   enfrentamiento, próximo revoltijo, máximo goleador, N°1 del ranking, último resultado, búsquedas abiertas,
   equipo nuevo. Solo aparecen las que tienen datos.
 - Feed "Partidos cerca de ti" con filtros: tipo, fecha, sector, formato, cupos disponibles, rango.
@@ -258,7 +272,7 @@ Basado en **Elo**, simple de explicar y robusto.
 inscrito/espera/asistió/no-show) · `Challenge` (propuestas entre equipos) · `ResultReport` ·
 `Goal` · `PeerReview` (valoración entre pares con etiquetas; antes "PlayerRating") · `RatingHistory` ·
 `ResultObjection` · `ResultConfirmation` · `MatchMessage` (chat) · `ProfileComment` · `PlayerRequest` · `PlayerRequestResponse` · `League` · `Season` ·
-`SeasonTeam` · `Notification` · `Report` (moderación).
+`SeasonTeam` · `Notification` · `Report` (moderación) · `EmailCode` (código para confirmar el correo).
 
 Reglas: IDs `cuid()`, `createdAt`/`updatedAt` en todas las tablas, soft-delete (`deletedAt`)
 en usuarios, equipos y partidos, índices en campos de búsqueda (zona, fecha, estado).

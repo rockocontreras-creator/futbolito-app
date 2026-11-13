@@ -21,15 +21,6 @@ export function ProfileView({ profile }: { profile: Profile }) {
   const next = nextDivision(profile.rating);
   const attendance =
     profile.registrations > 0 ? Math.round((profile.attendances / profile.registrations) * 100) : null;
-  const stats = [
-    { label: "Partidos", value: profile.matchesPlayed },
-    { label: "Ganados", value: profile.wins },
-    { label: "Empatados", value: profile.draws },
-    { label: "Perdidos", value: profile.losses },
-    { label: "Goles", value: profile.goals },
-    { label: "MVP", value: profile.mvps },
-  ];
-
   const badges = profileBadges(profile);
   return (
     <div className="space-y-6">
@@ -93,20 +84,29 @@ export function ProfileView({ profile }: { profile: Profile }) {
         <h2 id="stats" className="text-lg font-bold">
           Estadísticas
         </h2>
-        <dl className="grid grid-cols-3 gap-px overflow-hidden rounded-xl border bg-border sm:grid-cols-7">
-          {stats.map((s) => (
-            <div key={s.label} className="bg-card p-4 text-center">
-              <dd className="text-3xl leading-none font-score">{s.value}</dd>
-              <dt className="mt-1 text-[13px] text-muted-foreground">{s.label}</dt>
-            </div>
-          ))}
-          <div className="col-span-3 bg-card p-4 text-center sm:col-span-1">
-            <dd className="text-3xl leading-none font-score">
-              {attendance == null ? "—" : `${attendance}%`}
-            </dd>
-            <dt className="mt-1 text-[13px] text-muted-foreground">Asistencia</dt>
-          </div>
-        </dl>
+        <div className="grid gap-3 sm:grid-cols-[1.4fr_1fr]">
+          <RecordBar
+            played={profile.matchesPlayed}
+            wins={profile.wins}
+            draws={profile.draws}
+            losses={profile.losses}
+          />
+          <dl className="grid grid-cols-3 divide-x rounded-xl border bg-card">
+            {[
+              { label: "Goles", value: String(profile.goals) },
+              { label: "MVP", value: String(profile.mvps) },
+              { label: "Asistencia", value: attendance == null ? "—" : `${attendance}%` },
+            ].map((x) => (
+              <div
+                key={x.label}
+                className="flex flex-col-reverse items-center justify-center p-4 text-center"
+              >
+                <dt className="mt-1 text-[13px] text-muted-foreground">{x.label}</dt>
+                <dd className="text-3xl leading-none font-score tabular-nums">{x.value}</dd>
+              </div>
+            ))}
+          </dl>
+        </div>
         {profile.matchesPlayed === 0 && (
           <p className="text-sm text-muted-foreground">
             Las estadísticas y el rango se mueven cuando se confirma el resultado de un partido.
@@ -123,3 +123,50 @@ const BADGE_STYLE: Record<ProfileBadge["id"], string> = {
   "joven-promesa": "bg-[#dbeafe] text-[#1e3a8a] dark:bg-[#1e3a8a]/40 dark:text-[#dbeafe]",
   comodin: "bg-primary/12 text-primary",
 };
+
+/** Partidos jugados con la barra de ganados / empatados / perdidos. */
+function RecordBar({
+  played,
+  wins,
+  draws,
+  losses,
+}: {
+  played: number;
+  wins: number;
+  draws: number;
+  losses: number;
+}) {
+  const total = wins + draws + losses;
+  const parts = [
+    { key: "G", label: "ganados", n: wins, className: "bg-primary" },
+    { key: "E", label: "empatados", n: draws, className: "bg-foco" },
+    { key: "P", label: "perdidos", n: losses, className: "bg-muted-foreground/40" },
+  ];
+  return (
+    <div className="space-y-3 rounded-xl border bg-card p-4">
+      <p className="flex items-baseline justify-between gap-3">
+        <span>
+          <span className="text-3xl leading-none font-score tabular-nums">{played}</span>{" "}
+          <span className="text-muted-foreground">{played === 1 ? "partido" : "partidos"}</span>
+        </span>
+        {total > 0 && (
+          <span className="text-sm font-semibold">{Math.round((wins / total) * 100)}% ganados</span>
+        )}
+      </p>
+      <div className="flex h-2.5 gap-0.5 overflow-hidden rounded-full bg-secondary" aria-hidden>
+        {total > 0 &&
+          parts.map((p) =>
+            p.n > 0 ? <span key={p.key} className={p.className} style={{ flexGrow: p.n }} /> : null,
+          )}
+      </div>
+      <ul className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
+        {parts.map((p) => (
+          <li key={p.key} className="flex items-center gap-1.5">
+            <span className={`size-2.5 rounded-full ${p.className}`} aria-hidden />
+            <b className="font-score tabular-nums">{p.n}</b> {p.label}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}

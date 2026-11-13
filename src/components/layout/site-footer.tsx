@@ -31,6 +31,12 @@ export function SiteFooter() {
           <Link href="/torneos" className="hover:text-foreground">
             Torneos
           </Link>
+          <Link href="/privacidad" className="hover:text-foreground">
+            Privacidad
+          </Link>
+          <Link href="/terminos" className="hover:text-foreground">
+            Términos
+          </Link>
         </nav>
       </div>
     </footer>

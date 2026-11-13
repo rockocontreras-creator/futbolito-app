@@ -5,3 +5,6 @@ export const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000
 
 export const TIMEZONE = "America/Santiago";
 export const DEFAULT_COMUNA_SLUG = "san-clemente";
+
+// Correo de contacto que se muestra en Privacidad y Términos (opcional).
+export const CONTACT_EMAIL = process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? "";

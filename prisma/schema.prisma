@@ -947,3 +947,17 @@ model MatchMessage {
 
   @@index([matchId, createdAt])
 }
+
+// Código de 6 dígitos para confirmar el correo al crear cuenta con contraseña.
+// Se guarda solo el hash (HMAC con AUTH_SECRET) y se borra al usarse.
+model EmailCode {
+  id        String   @id @default(cuid())
+  email     String
+  codeHash  String
+  attempts  Int      @default(0)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([email, createdAt])
+}
