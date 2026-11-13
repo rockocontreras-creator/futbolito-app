@@ -38,6 +38,8 @@ Fases cortas, cada una deployable. Marcar con [x] al terminar.
 - [x] Confirmación del resultado por mayoría
 - [x] Etiquetas de perfil, posición comodín, edición de perfil, edad mínima 14
 - [x] Carrusel de noticias en la portada
+- [x] Entrar con Google y confirmar el correo con un código al crear cuenta
+- [ ] Recuperar contraseña con un código por correo
 
 ## Fase 2 · Equipos y desafíos
 

@@ -138,3 +138,26 @@ es para menores de 18 (no 15, para que coincida con esa regla).
 
 **Etiquetas y colores sin tabla nueva.** Las etiquetas del perfil se calculan (como los apodos). Los colores
 del revoltijo son dos columnas en `Match` con valores de una paleta fija validada con Zod.
+
+## 2026-11-12 · Google, confirmar el correo y diseño
+
+**Código por correo en vez de solo revisar el dominio.** Revisar el DNS frena dominios inventados
+(`asdf@adjkdjas.com`) pero no direcciones inventadas en dominios reales (`asdf123@gmail.com`). Solo un
+código que llega al correo prueba que existe y es de quien se registra. Igual se revisa el dominio antes,
+para no gastar envíos. Si el DNS del servidor no responde (ni siquiera gmail.com), no se bloquea a nadie.
+
+**Nodemailer + Gmail (contraseña de aplicación)** para enviar los códigos: gratis, sin dominio propio y
+~500 correos al día. Resend exige un dominio propio para mandar a cualquier persona. Si algún día hay
+dominio, basta con cambiar `EMAIL_SERVER_HOST`/`PORT`/`USER`/`PASSWORD`.
+
+**Cuentas existentes quedan confirmadas** (migración `verificacion_correo`), para que nadie quede afuera.
+
+**Google se vincula por correo** (`allowDangerousEmailAccountLinking`): Google verifica el correo, y así
+la cuenta admin creada a mano y las cuentas con contraseña pueden entrar también con Google.
+
+**Admin por variable `ADMIN_EMAILS`** además del rol en la base: si se borra o recrea la cuenta, sigue
+siendo admin al volver a entrar.
+
+**Diseño:** el carrusel pasa a la portada en lugar de la tarjeta "El próximo partido" (mostraban lo mismo).
+Se quitan las etiquetas chicas sobre los títulos; los títulos del carrusel son frases completas. El
+plantel deja de tener cajas dentro de cajas. El perfil muestra el récord con una barra G/E/P.
