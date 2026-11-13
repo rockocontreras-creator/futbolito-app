@@ -37,10 +37,10 @@ export function MatchCard({ match }: { match: MatchCardData }) {
       <div className="flex min-w-0 flex-col gap-3 p-4">
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
-            <p className="text-[12px] font-semibold text-primary">{MATCH_TYPE_LABEL[match.type]}</p>
             <h3 className="truncate text-[17px] leading-snug font-bold group-hover:underline group-hover:underline-offset-2">
               {match.title}
             </h3>
+            <span className="sr-only">{MATCH_TYPE_LABEL[match.type]}. </span>
             <p className="mt-0.5 flex items-center gap-1 truncate text-sm text-muted-foreground">
               <MapPin className="size-3.5 shrink-0" aria-hidden />
               {match.venueName ?? "Cancha a coordinar"}

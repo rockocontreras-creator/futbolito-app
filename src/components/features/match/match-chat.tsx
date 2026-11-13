@@ -98,14 +98,17 @@ export function MatchChat({
           const el = e.currentTarget;
           stickToBottom.current = el.scrollHeight - el.scrollTop - el.clientHeight < 40;
         }}
-        className="h-80 space-y-3 overflow-y-auto px-4 py-4"
+        className={cn(
+          "space-y-3 overflow-y-auto px-4 py-4",
+          loaded && messages.length === 0 ? "py-8" : "h-80",
+        )}
         aria-live="polite"
         aria-label="Mensajes"
       >
         {!loaded && <li className="text-sm text-muted-foreground">Cargando mensajes…</li>}
         {loaded && messages.length === 0 && (
-          <li className="pt-16 text-center text-sm text-muted-foreground">
-            Nadie ha escrito todavía. Coordinen quién lleva la pelota 🙂
+          <li className="text-center text-sm text-muted-foreground">
+            Nadie ha escrito todavía. Coordinen acá quién lleva la pelota y los petos.
           </li>
         )}
         {messages.map((m) => {

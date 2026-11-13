@@ -1,4 +1,13 @@
-import { CalendarPlus, MapPin, Medal, Search, Shuffle, UserPlus, UserSearch } from "lucide-react";
+import {
+  CalendarPlus,
+  ChevronRight,
+  MapPin,
+  Medal,
+  Search,
+  Shuffle,
+  UserPlus,
+  UserSearch,
+} from "lucide-react";
 import Link from "next/link";
 import { connection } from "next/server";
 import { Suspense } from "react";
@@ -35,17 +44,13 @@ export default function HomePage() {
   return (
     <>
       <section className="relative overflow-hidden chalk-pitch text-white">
-        <Container className="grid gap-10 py-12 md:grid-cols-[1.15fr_1fr] md:items-center md:py-20">
+        <Container className="grid gap-10 py-10 md:grid-cols-[1.1fr_1fr] md:items-center md:py-20">
           <div className="space-y-6">
-            <p className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-sm font-semibold">
-              <span className="size-2 rounded-full bg-foco" aria-hidden />
-              San Clemente, Región del Maule
-            </p>
             <h1 className="text-[3.6rem] font-display text-balance sm:text-7xl lg:text-[5.5rem]">
               ¿Te sumas a la pichanga?
             </h1>
-            <p className="max-w-md text-lg text-white/80">
-              Encuentra revoltijos cerca de ti, completa equipos y sube de división jugando.
+            <p className="max-w-md text-lg text-pretty text-white/80">
+              Revoltijos, desafíos y ranking para los que juegan futbolito en San Clemente.
             </p>
             <div className="flex flex-wrap gap-3">
               <Button asChild variant="foco" size="lg">
@@ -58,20 +63,13 @@ export default function HomePage() {
               </Button>
             </div>
           </div>
-          <div className="rounded-2xl bg-cal/95 p-4 text-foreground shadow-[0_24px_60px_-24px_rgb(0_0_0/0.55)] dark:bg-card">
-            <p className="px-1 pb-3 text-sm font-bold text-cancha dark:text-white">El próximo partido</p>
-            <Suspense fallback={<MatchCardSkeleton />}>
-              <NextMatch />
-            </Suspense>
-          </div>
+          <Suspense fallback={<div className="h-72 animate-pulse rounded-2xl bg-black/20" aria-hidden />}>
+            <News />
+          </Suspense>
         </Container>
       </section>
 
       <Container className="space-y-16 pt-12">
-        <Suspense fallback={<div className="h-56 animate-pulse rounded-2xl bg-secondary" aria-hidden />}>
-          <News />
-        </Suspense>
-
         <section aria-labelledby="semana" className="space-y-5">
           <div className="flex items-end justify-between gap-4">
             <h2 id="semana" className="text-4xl font-display text-cancha dark:text-white">
@@ -97,20 +95,22 @@ export default function HomePage() {
           <h2 id="atajos" className="sr-only">
             Atajos
           </h2>
-          <ul className="grid gap-3 sm:grid-cols-3">
+          <ul className="divide-y overflow-hidden rounded-2xl border bg-card sm:grid sm:grid-cols-3 sm:divide-x sm:divide-y-0">
             {shortcuts.map(({ href, icon: Icon, title, text }) => (
               <li key={href}>
                 <Link
                   href={href}
-                  className="flex h-full items-center gap-4 rounded-xl border bg-card p-5 transition-colors hover:border-primary/40 focus-visible:ring-4 focus-visible:ring-ring/30 focus-visible:outline-none"
+                  className="group flex h-full items-center gap-4 p-5 transition-colors hover:bg-secondary/60 focus-visible:bg-secondary focus-visible:outline-none"
                 >
-                  <span className="grid size-12 shrink-0 place-items-center rounded-full bg-cancha text-foco">
-                    <Icon className="size-6" aria-hidden />
-                  </span>
-                  <span>
+                  <Icon className="size-7 shrink-0 text-primary" aria-hidden />
+                  <span className="min-w-0 flex-1">
                     <span className="block text-lg font-bold">{title}</span>
                     <span className="text-sm text-muted-foreground">{text}</span>
                   </span>
+                  <ChevronRight
+                    className="size-5 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5"
+                    aria-hidden
+                  />
                 </Link>
               </li>
             ))}
@@ -189,29 +189,6 @@ const shortcuts = [
 
 const sizes = ["size-8", "size-9", "size-10", "size-11", "size-12"];
 
-async function NextMatch() {
-  await connection();
-  const comuna = await getActiveComuna();
-  const [next] = comuna ? await withWeather(await listUpcomingMatches({ comunaId: comuna.id, take: 1 })) : [];
-  if (!next) {
-    return (
-      <EmptyState
-        icon={CalendarPlus}
-        title="Todavía no hay partidos"
-        className="border-solid bg-card py-8"
-        action={
-          <Button asChild>
-            <Link href="/publicar">Publicar el primero</Link>
-          </Button>
-        }
-      >
-        Arma el primer revoltijo de San Clemente y comparte el link por WhatsApp.
-      </EmptyState>
-    );
-  }
-  return <MatchCard match={next} />;
-}
-
 async function WeekMatches() {
   await connection();
   const comuna = await getActiveComuna();
@@ -243,7 +220,22 @@ async function WeekMatches() {
 }
 
 async function News() {
+  await connection();
   const comuna = await getActiveComuna();
   const slides = comuna ? await getNewsSlides(comuna.id) : [];
+  if (slides.length === 0) {
+    return (
+      <div className="space-y-4 rounded-2xl border border-white/15 bg-black/20 p-7">
+        <CalendarPlus className="size-10 text-foco" aria-hidden />
+        <h2 className="text-3xl font-display">Todavía no hay partidos</h2>
+        <p className="text-white/80">
+          Arma el primer revoltijo de San Clemente y comparte el link por WhatsApp.
+        </p>
+        <Button asChild variant="foco">
+          <Link href="/publicar">Publicar el primero</Link>
+        </Button>
+      </div>
+    );
+  }
   return <NewsCarousel slides={slides} />;
 }

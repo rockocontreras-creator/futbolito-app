@@ -13,14 +13,7 @@ import {
   setParticipantSide,
 } from "@/server/actions/match-admin";
 import type { RosterPlayer } from "./roster-types";
-import {
-  BalanceMeter,
-  DEFAULT_COLORS,
-  PlayerLine,
-  sideStyle,
-  sideTitle,
-  type TeamColors,
-} from "./teams-view";
+import { BalanceMeter, DEFAULT_COLORS, PlayerLine, sideTitle, type TeamColors } from "./teams-view";
 
 /** Panel del organizador: armar equipos parejos, mover, subir/bajar de la espera y expulsar. */
 export function ManageRoster({
@@ -86,7 +79,7 @@ export function ManageRoster({
 
       {hasTeams && <BalanceMeter a={a} b={b} colors={colors} />}
 
-      <div className={cn("grid gap-3", hasTeams && "sm:grid-cols-2")}>
+      <div className={cn("grid gap-6", hasTeams && "sm:grid-cols-2 sm:gap-x-8")}>
         {hasTeams &&
           (["A", "B"] as const).map((side) => {
             const list = side === "A" ? a : b;
@@ -146,11 +139,15 @@ function Group({
   pending: boolean;
 }) {
   return (
-    <div className="overflow-hidden rounded-lg border">
-      <h3
-        className={cn("px-4 py-2 text-sm font-bold", !tone && "bg-secondary")}
-        style={tone ? sideStyle(colors, tone) : undefined}
-      >
+    <div>
+      <h3 className="flex items-center gap-2 border-b pb-2 text-sm font-bold">
+        {tone && (
+          <span
+            className="size-3.5 rounded-full ring-1 ring-black/15"
+            style={{ backgroundColor: colors[tone] }}
+            aria-hidden
+          />
+        )}
         {title}
       </h3>
       <ul className="divide-y">
