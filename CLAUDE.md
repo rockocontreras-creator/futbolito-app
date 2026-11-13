@@ -100,6 +100,8 @@ Aunque partimos solo en San Clemente, el modelo debe permitir crecer a otras com
 - Google puede entrar a una cuenta existente con el mismo correo (Google verifica el correo). Si esa cuenta
   tenía una contraseña sin confirmar, la contraseña se borra.
 - Los correos en la variable `ADMIN_EMAILS` quedan como admin al entrar.
+- Páginas `/privacidad` y `/terminos` (Google las exige para publicar el ingreso con Google). Si cambia qué
+  datos se guardan o quién los ve, hay que actualizar `/privacidad`.
 
 ### 5.1 Perfil de jugador
 

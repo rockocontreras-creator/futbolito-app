@@ -49,6 +49,17 @@ async function RegisterBox({ searchParams }: { searchParams: PageProps<"/registr
           Ingresa
         </Link>
       </p>
+      <p className="text-[13px] text-muted-foreground">
+        Al crear tu cuenta aceptas los{" "}
+        <Link href="/terminos" className="underline underline-offset-4 hover:text-foreground">
+          Términos de uso
+        </Link>{" "}
+        y la{" "}
+        <Link href="/privacidad" className="underline underline-offset-4 hover:text-foreground">
+          Privacidad
+        </Link>
+        .
+      </p>
     </div>
   );
 }

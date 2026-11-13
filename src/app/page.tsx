@@ -171,6 +171,15 @@ export default function HomePage() {
             </ol>
           </div>
         </section>
+
+        <p className="flex justify-center gap-5 text-sm text-muted-foreground lg:hidden">
+          <Link href="/privacidad" className="underline underline-offset-4 hover:text-foreground">
+            Privacidad
+          </Link>
+          <Link href="/terminos" className="underline underline-offset-4 hover:text-foreground">
+            Términos de uso
+          </Link>
+        </p>
       </Container>
     </>
   );
