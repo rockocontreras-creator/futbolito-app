@@ -202,3 +202,27 @@ Elo, estadísticas e historial que cuando confirma la mayoría, solo que se salt
 
 **Acciones que no se deshacen piden dos toques** (anular, rechazar, suspender) en vez de una ventana de
 confirmación del navegador.
+
+## 2026-11-14 · Avisos al celular, reloj, pichanga fija, desafíos y reportes
+
+**Web Push con `web-push`** (librería nueva). Es el estándar del navegador: no depende de una app en las
+tiendas ni de un servicio pagado. En iPhone solo funciona con la página instalada en la pantalla de inicio;
+se explica en el botón.
+
+**Llaves y secretos en la base (`AppSetting`), no en Vercel.** Las llaves VAPID y el secreto del reloj se
+crean solos. Quien administra no programa, y cada variable manual en Vercel ha sido un tropiezo. La tabla
+tiene RLS activado y nunca se muestra en pantalla.
+
+**El reloj es de Supabase (`pg_cron` + `pg_net`), no de Vercel.** El plan gratis de Vercel solo permite
+tareas una vez al día, y los recordatorios necesitan correr cada pocos minutos. Si el reloj de Supabase no
+está programado, las visitas a la página disparan las tareas (menos puntual, pero no se pierde nada).
+
+**"¿Vas o no vas?" no saca a nadie por no responder.** Sacar gente sola puede dejar un partido sin jugadores
+por un aviso que no vieron. El organizador ve quién falta y decide.
+
+**La pichanga fija avisa, no inscribe.** Inscribir automático infla los cupos con gente que quizás no va.
+
+**Desafíos sin contrapropuesta (por ahora).** Publicar y aceptar cubre lo pedido; los detalles se coordinan
+en la sala del partido. El rango de los jugadores se mueve solo para quienes el capitán marca que jugaron.
+
+**Reportes anónimos para el reportado**, con tope diario, para que se usen sin miedo y sin abuso.

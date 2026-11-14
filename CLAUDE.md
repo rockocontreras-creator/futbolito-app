@@ -163,16 +163,25 @@ Aunque partimos solo en San Clemente, el modelo debe permitir crecer a otras com
 - **Clima**: pronóstico de Open-Meteo para la hora y ubicación de la cancha (hasta 15 días antes). Si hay
   mal clima se muestra un aviso en el partido, un ícono en la tarjeta y una notificación en la campana a los
   inscritos (48 h antes, una vez por tipo de alerta).
+- **Pichanga fija** (`MatchSeries`): al publicar se puede marcar "Repetir todas las semanas". Cuando la fecha
+  de esta semana ya empezó, se publica sola la siguiente (mismo día y hora **de Chile**, `src/lib/series.ts`)
+  y se les avisa a quienes estuvieron en las últimas 3 fechas. No los inscribe. Quien organiza (o un admin)
+  puede dejar de repetirla.
+- **"¿Vas o no vas?"**: desde 10 horas antes, cada inscrito recibe el aviso y responde. "Voy" queda a la vista
+  de todos; "No voy" lo baja y sube al primero de la lista de espera (a quien se le avisa). Al que no responde
+  no se le saca: el organizador ve quién falta por responder (`src/lib/match-timing.ts`).
 - Botón **"Compartir por WhatsApp"** con texto prearmado y link (clave en Chile).
 - El organizador gestiona el plantel: expulsar (`KICKED`, no puede volver a inscribirse), mover entre equipo
   A/B/sin equipo, subir o bajar de la lista de espera. La nivelación compara **promedios** de rango por lado.
 
 **b) Desafío / amistoso entre equipos (`CHALLENGE`)**
 
-- Un capitán publica "Buscamos rival": fecha/hora (o rango de fechas), cancha propuesta o
-  "a coordinar", rango de rivales deseado.
-- Otro capitán lo acepta o hace contrapropuesta. Se confirma cuando ambos están de acuerdo.
-- También se puede desafiar directamente a un equipo desde su perfil.
+- Un capitán publica "Buscamos rival" en `/desafios`: fecha/hora, formato, cancha o "a coordinar" y notas.
+  Máximo 3 desafíos abiertos por equipo.
+- El capitán de otro equipo de la misma comuna lo **acepta** y se crea el partido (`CONFIRMED`), con su
+  página propia (los dos planteles, sala de chat para ambos equipos, clima). La contrapropuesta todavía no
+  existe: se coordina en la sala.
+- También se puede desafiar directamente a un equipo desde su perfil; ahí solo ese equipo puede aceptar.
 
 **c) Partido de liga (`LEAGUE`)**
 
@@ -183,10 +192,12 @@ Aunque partimos solo en San Clemente, el modelo debe permitir crecer a otras com
 
 ### 5.4 Resultados
 
-- Tras el partido, cada lado reporta marcador (y opcionalmente goleadores y MVP).
-- Si ambos coinciden → `RESULT_CONFIRMED` y se actualiza el rango.
-- Si no coinciden → `DISPUTED` → lo resuelve el organizador (liga) o un admin.
-- Si un lado no reporta en 48 h, se confirma automáticamente lo reportado por el otro.
+- Entre equipos: tras el partido, el capitán de cada lado reporta el marcador y marca **quiénes de su
+  equipo jugaron** (`ResultReport` por lado; la nómina queda en `MatchParticipant`).
+- Si ambos coinciden → `RESULT_CONFIRMED`: se mueve el rango de los dos equipos y el de los jugadores
+  marcados (`src/server/services/team-match.ts`).
+- Si no coinciden → `DISPUTED` → lo resuelve un admin desde el panel, fijando el marcador.
+- Pendiente: confirmar solo si un lado no reporta en 48 h (hoy el admin puede cerrarlo a mano).
 - En revoltijos: reporta el organizador (su reporte cuenta como 1 confirmación) y a los que jugaron les llega
   un aviso para **confirmar o rechazar**. Se confirma cuando lo aprueba la **mayoría absoluta** de los que
   jugaron (`floor(n/2)+1`). Si la mitad o más lo rechaza → `DISPUTED` (lo resuelve un admin o el organizador
@@ -232,11 +243,17 @@ Aunque partimos solo en San Clemente, el modelo debe permitir crecer a otras com
 
 ### 5.8 Notificaciones
 
-- En la app (campana) y por email. Push web (PWA) en una fase posterior.
-- Eventos: invitación a equipo, alguien se sumó a tu revoltijo, revoltijo lleno, desafío
-  aceptado, recordatorio 2 h antes, reportar resultado, cambio de rango.
-- Hechas: confirmar resultado (`CONFIRM_RESULT`) y alerta de clima (`WEATHER_ALERT`). `Notification.key`
-  evita duplicados. La página es `/notificaciones`.
+- En la app (campana, `/notificaciones`) y **al celular (Web Push)**. Por email, más adelante.
+- **Avisos al celular**: cada persona los activa por dispositivo en `/notificaciones` (`PushSubscription`).
+  Todo lo que llega a la campana (`notifyUsers`) se manda también como aviso. En iPhone hay que instalar la
+  página primero ("Agregar a inicio"). Las llaves VAPID se crean solas y viven en `AppSetting`.
+- Hechas: alguien se sumó a tu revoltijo, falta 1, revoltijo lleno, entraste desde la lista de espera,
+  "¿Vas o no vas?", recordatorio 2 h antes, próxima fecha de la pichanga fija, confirma el resultado, desafío
+  recibido/aceptado, resultado confirmado, clima, cancha aprobada. `Notification.key` evita duplicados.
+- **Reloj** (`src/server/services/scheduled.ts`): recordatorios, "¿Vas o no vas?" y pichangas fijas. Lo llama
+  Supabase (`pg_cron` + `pg_net`) cada 10 minutos en `POST /api/cron` con el secreto de `AppSetting`
+  (`cronSecret`). Como respaldo, las visitas a la página lo disparan como mucho cada 5 minutos. Es
+  idempotente. Sigue sin haber cron en Vercel.
 
 ### 5.9 Moderación
 
@@ -251,7 +268,11 @@ Aunque partimos solo en San Clemente, el modelo debe permitir crecer a otras com
     cambia a sí mismo; los admin de `ADMIN_EMAILS` no se pueden bajar desde el panel; para suspender a un
     admin primero se le quita el rol. Reglas en `src/lib/admin.ts`.
   - **Sectores**: agregar, renombrar y ocultar los sectores de la comuna.
-- Pendiente: reportar usuario/equipo/partido y revisar esos reportes en el panel.
+  - **Reportes**: los que mandan los jugadores. El admin suspende la cuenta, lo marca como visto o lo
+    descarta, y ve cuántos reportes acumula cada cuenta.
+- **Reportar a un jugador** desde su perfil: motivo (`src/lib/reports.ts`) y detalle. Un reporte abierto por
+  par de personas y máximo 5 al día. El reportado no sabe quién fue. Les llega aviso a los admin.
+- Pendiente: reportar equipos y partidos.
 
 ---
 
@@ -292,7 +313,9 @@ Basado en **Elo**, simple de explicar y robusto.
 inscrito/espera/asistió/no-show) · `Challenge` (propuestas entre equipos) · `ResultReport` ·
 `Goal` · `PeerReview` (valoración entre pares con etiquetas; antes "PlayerRating") · `RatingHistory` ·
 `ResultObjection` · `ResultConfirmation` · `MatchMessage` (chat) · `ProfileComment` · `PlayerRequest` · `PlayerRequestResponse` · `League` · `Season` ·
-`SeasonTeam` · `Notification` · `Report` (moderación) · `EmailCode` (código para confirmar el correo).
+`SeasonTeam` · `Notification` · `Report` (moderación) · `EmailCode` (código para confirmar el correo) ·
+`MatchSeries` (pichanga fija) · `PushSubscription` (avisos al celular) · `AppSetting` (valores internos:
+llaves de avisos y secreto del reloj; nunca se muestran).
 
 Reglas: IDs `cuid()`, `createdAt`/`updatedAt` en todas las tablas, soft-delete (`deletedAt`)
 en usuarios, equipos y partidos, índices en campos de búsqueda (zona, fecha, estado).
