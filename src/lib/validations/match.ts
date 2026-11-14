@@ -49,6 +49,8 @@ export const createPickupSchema = z
       .string()
       .regex(/^#[0-9a-fA-F]{6}$/, "Elige un color")
       .default("#ffd23f"),
+    // Pichanga fija: se vuelve a publicar sola cada semana, el mismo día y a la misma hora.
+    weekly: z.boolean().default(false),
   })
   .refine((d) => d.maxPlayers >= d.playersPerSide * 2, {
     message: "Los cupos no alcanzan para dos equipos completos",
@@ -70,6 +72,8 @@ export const createPickupSchema = z
 export type CreatePickupInput = z.input<typeof createPickupSchema>;
 
 export const matchIdSchema = z.object({ matchId: idSchema });
+export const answerGoingSchema = z.object({ matchId: idSchema, going: z.boolean() });
+export const seriesIdSchema = z.object({ seriesId: idSchema });
 
 const playerTag = z.enum([
   "GOLEADOR",
