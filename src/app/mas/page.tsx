@@ -4,6 +4,7 @@ import {
   Medal,
   Shield,
   ShieldCheck,
+  Swords,
   Trophy,
   User,
   UserSearch,
@@ -25,6 +26,7 @@ const sections = [
   { href: "/canchas", icon: MapPin, title: "Canchas", text: "Mapa y cómo llegar" },
   { href: "/ranking", icon: Medal, title: "Clasificación", text: "Los de mejor rango" },
   { href: "/equipos", icon: Shield, title: "Equipos", text: "Arma el tuyo o únete a uno" },
+  { href: "/desafios", icon: Swords, title: "Desafíos", text: "Equipos que buscan rival" },
   { href: "/ligas", icon: Users, title: "Ligas", text: "Temporadas y tabla" },
   { href: "/torneos", icon: Trophy, title: "Torneos", text: "Próximamente" },
 ] as const;
