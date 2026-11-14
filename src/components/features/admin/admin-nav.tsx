@@ -31,7 +31,7 @@ function Live({ badges }: { badges: Badges }) {
 
 function View({ active, badges }: { active: string | null; badges: Badges }) {
   return (
-    <nav aria-label="Panel de administración" className="-mx-4 overflow-x-auto px-4 pb-1">
+    <nav aria-label="Panel de administración" className="relative -mx-4 overflow-x-auto px-4 pb-1">
       <ul className="flex gap-2">
         {tabs.map(({ href, label }) => {
           const on = active === href;
