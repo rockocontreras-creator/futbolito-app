@@ -27,6 +27,13 @@ export default async function AdminHome() {
       many: "resultados esperando confirmación",
       none: "Ningún resultado esperando confirmación",
     },
+    {
+      href: "/admin/reportes",
+      n: c.openReports,
+      one: "reporte de jugador por revisar",
+      many: "reportes de jugadores por revisar",
+      none: "Ningún reporte por revisar",
+    },
   ];
   const facts = [
     { one: "cuenta", many: "cuentas", value: c.users },

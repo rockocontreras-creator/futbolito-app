@@ -18,6 +18,7 @@ import { AuthError, requireAdmin } from "@/server/permissions";
 import { getActiveComuna } from "@/server/queries/zones";
 import { forceConfirmResult } from "@/server/services/finalize-results";
 import { notifyUsers } from "@/server/services/notify";
+import { finalizeTeamMatch, teamPlayerIds } from "@/server/services/team-match";
 
 // Panel de administración (CLAUDE.md §5.9). Toda acción parte con requireAdmin().
 
@@ -52,11 +53,29 @@ export async function reviewVenue(input: unknown) {
 export async function resolveResult(input: unknown) {
   return runAction(resolveResultSchema, input, async ({ matchId, scoreA, scoreB }) => {
     await requireAdmin();
-    const match = await db.match.findFirst({ where: { id: matchId, deletedAt: null, type: "PICKUP" } });
+    const match = await db.match.findFirst({ where: { id: matchId, deletedAt: null } });
     if (!match) throw new AuthError("Ese partido no existe.");
     if (match.status !== "PLAYED" && match.status !== "DISPUTED") {
       throw new AuthError("Ese partido no tiene un resultado por resolver.");
     }
+    const notice = {
+      type: "SYSTEM" as const,
+      key: `resolved:${matchId}`,
+      title: `Resultado confirmado: ${scoreA}–${scoreB}`,
+      body: "Lo cerró un administrador. El rango y las estadísticas ya están actualizados.",
+      href: `/partidos/${matchId}`,
+    };
+
+    if (match.type !== "PICKUP") {
+      // Entre equipos: el admin fija el marcador y se aplica a los equipos y a quienes jugaron.
+      if ((await finalizeTeamMatch(matchId, { scoreA, scoreB })) !== "CONFIRMED") {
+        throw new AuthError("No se pudo confirmar. Inténtalo de nuevo.");
+      }
+      await notifyUsers(await teamPlayerIds([match.homeTeamId, match.awayTeamId]), notice);
+      refresh();
+      return null;
+    }
+
     if (match.scoreA !== scoreA || match.scoreB !== scoreB) {
       // Los goleadores reportados ya no calzan con el marcador corregido.
       await db.$transaction([
@@ -72,13 +91,7 @@ export async function resolveResult(input: unknown) {
     });
     await notifyUsers(
       players.map((p) => p.userId),
-      {
-        type: "SYSTEM",
-        key: `resolved:${matchId}`,
-        title: `Resultado confirmado: ${scoreA}–${scoreB}`,
-        body: "Lo cerró un administrador. Tu rango y estadísticas ya están actualizados.",
-        href: `/partidos/${matchId}`,
-      },
+      notice,
     );
     refresh();
     return null;
@@ -100,16 +113,14 @@ export async function cancelMatchAsAdmin(input: unknown) {
       where: { matchId, status: { in: ["REGISTERED", "WAITLIST", "ATTENDED"] } },
       select: { userId: true },
     });
-    await notifyUsers(
-      players.map((p) => p.userId),
-      {
-        type: "SYSTEM",
-        key: `cancelled:${matchId}`,
-        title: "Se anuló un partido en el que estabas",
-        body: "Lo anuló un administrador. No cuenta para el rango.",
-        href: `/partidos/${matchId}`,
-      },
-    );
+    const teamPlayers = await teamPlayerIds([match.homeTeamId, match.awayTeamId]);
+    await notifyUsers([...players.map((p) => p.userId), ...teamPlayers], {
+      type: "SYSTEM",
+      key: `cancelled:${matchId}`,
+      title: "Se anuló un partido en el que estabas",
+      body: "Lo anuló un administrador. No cuenta para el rango.",
+      href: `/partidos/${matchId}`,
+    });
     refresh();
     return null;
   });

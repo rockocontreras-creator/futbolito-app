@@ -6,6 +6,7 @@ import { useServerAction } from "@/components/features/use-action";
 import { Button } from "@/components/ui/button";
 import { Input, NativeSelect } from "@/components/ui/input";
 import { ROLE_LABEL, type UserRole } from "@/lib/admin";
+import { resolveReport } from "@/server/actions/report";
 import {
   cancelMatchAsAdmin,
   createSector,
@@ -104,10 +105,17 @@ export function ResolveResult({
   matchId,
   scoreA,
   scoreB,
+  labelA = "Equipo A",
+  labelB = "Equipo B",
+  pickup = true,
 }: {
   matchId: string;
   scoreA: number;
   scoreB: number;
+  labelA?: string;
+  labelB?: string;
+  /** Revoltijo: al corregir el marcador se borran los goleadores reportados. */
+  pickup?: boolean;
 }) {
   const [a, setA] = useState(String(scoreA));
   const [b, setB] = useState(String(scoreB));
@@ -123,7 +131,7 @@ export function ResolveResult({
     >
       <div className="flex flex-wrap items-end gap-3">
         <label className="flex flex-col gap-1 text-sm font-extrabold">
-          Equipo A
+          {labelA}
           <Input
             type="number"
             inputMode="numeric"
@@ -135,7 +143,7 @@ export function ResolveResult({
           />
         </label>
         <label className="flex flex-col gap-1 text-sm font-extrabold">
-          Equipo B
+          {labelB}
           <Input
             type="number"
             inputMode="numeric"
@@ -156,7 +164,7 @@ export function ResolveResult({
           onConfirm={() => run(() => cancelMatchAsAdmin({ matchId }))}
         />
       </div>
-      {changed && (
+      {changed && pickup && (
         <p className="text-sm text-muted-foreground">
           Cambiaste el marcador: los goleadores que reportó el organizador se borran.
         </p>
@@ -357,5 +365,40 @@ export function SectorRow({
       </div>
       <ErrorText text={error} />
     </li>
+  );
+}
+
+export function ReportActions({ reportId, canSuspend }: { reportId: string; canSuspend: boolean }) {
+  const { pending, error, run } = useServerAction();
+  return (
+    <div className="space-y-2">
+      <div className="flex flex-wrap gap-2">
+        {canSuspend && (
+          <ConfirmButton
+            label="Suspender cuenta"
+            confirmLabel="Sí, suspender"
+            pending={pending}
+            onConfirm={() => run(() => resolveReport({ reportId, outcome: "RESOLVED", suspend: true }))}
+          />
+        )}
+        <Button
+          size="sm"
+          variant="outline"
+          disabled={pending}
+          onClick={() => run(() => resolveReport({ reportId, outcome: "RESOLVED" }))}
+        >
+          <Check aria-hidden /> Ya lo vi
+        </Button>
+        <Button
+          size="sm"
+          variant="ghost"
+          disabled={pending}
+          onClick={() => run(() => resolveReport({ reportId, outcome: "DISMISSED" }))}
+        >
+          Descartar
+        </Button>
+      </div>
+      <ErrorText text={error} />
+    </div>
   );
 }

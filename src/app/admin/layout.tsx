@@ -48,11 +48,15 @@ async function Gate({ children }: { children: ReactNode }) {
   const counts = await adminCounts();
   return (
     <div className="space-y-6">
-      <PageHeader title="Administración" description="Canchas, resultados, cuentas y sectores del club." />
+      <PageHeader
+        title="Administración"
+        description="Canchas, resultados, reportes, cuentas y sectores del club."
+      />
       <AdminNav
         badges={{
           "/admin/canchas": counts.pendingVenues,
           "/admin/partidos": counts.disputed + counts.pendingResults,
+          "/admin/reportes": counts.openReports,
         }}
       />
       {children}
