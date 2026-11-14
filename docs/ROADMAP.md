@@ -39,6 +39,9 @@ Fases cortas, cada una deployable. Marcar con [x] al terminar.
 - [x] Etiquetas de perfil, posición comodín, edición de perfil, edad mínima 14
 - [x] Carrusel de noticias en la portada
 - [x] Nombre "Club de la Pichanga", rediseño amigable con mascota y carta de jugador
+- [x] Avisos al celular (Web Push) y reloj de recordatorios
+- [x] Pichanga fija semanal y "¿Vas o no vas?"
+- [x] Desafíos entre equipos con resultado reportado por los capitanes
 - [x] Entrar con Google y confirmar el correo con un código al crear cuenta
 - [ ] Recuperar contraseña con un código por correo
 
@@ -46,7 +49,7 @@ Fases cortas, cada una deployable. Marcar con [x] al terminar.
 
 - [x] Crear equipo (nombre y colores, escudo dibujado), plantel, pedir unirse, capitán acepta, salir
 - [ ] Escudo con imagen (Supabase Storage), invitaciones por link y búsqueda
-- [ ] "Buscamos rival": publicar, aceptar, contrapropuesta, desafío directo
+- [~] "Buscamos rival": publicar, aceptar y desafío directo listos; falta la contrapropuesta
 - [ ] Reporte de resultado por ambos lados, disputas, autoconfirmación a las 48 h
 - [ ] Rango de equipo + gráfico de evolución
 - [~] Notificaciones en la app (campana) y por email — campana lista (confirmar resultado, clima); falta email
@@ -62,6 +65,6 @@ Fases cortas, cada una deployable. Marcar con [x] al terminar.
 
 - [x] Vista mapa (Leaflet)
 - [ ] Fair play: asistencia/no-shows y valoraciones entre pares
-- [ ] Moderación: reportes, suspensiones
+- [x] Moderación: panel `/admin` (canchas, resultados, reportes, usuarios, sectores) y reportar jugadores
 - [ ] PWA con push, íconos, modo offline básico
 - [ ] Abrir otras comunas

@@ -1,6 +1,8 @@
 import { Bell } from "lucide-react";
 import Link from "next/link";
+import { after } from "next/server";
 import { db } from "@/lib/db";
+import { runScheduledJobsIfDue } from "@/server/services/scheduled";
 import { ensureWeatherAlerts } from "@/server/services/weather-alerts";
 import { getCurrentUser } from "@/server/session";
 
@@ -9,6 +11,8 @@ export async function NotificationBell() {
   const user = await getCurrentUser();
   if (!user) return null;
   await ensureWeatherAlerts(user.id).catch((e) => console.error("alertas de clima", e));
+  // Respaldo del reloj: si Supabase no lo está llamando, las visitas disparan los avisos pendientes.
+  after(runScheduledJobsIfDue);
   const unread = await db.notification.count({ where: { userId: user.id, readAt: null } });
   return (
     <Link

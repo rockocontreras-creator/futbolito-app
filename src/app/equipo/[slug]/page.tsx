@@ -1,4 +1,4 @@
-import { ArrowLeft, Crown, Users } from "lucide-react";
+import { ArrowLeft, Crown, Swords, Users } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -13,7 +13,10 @@ import {
 } from "@/components/features/team/team-actions";
 import { TeamCrest } from "@/components/features/team/team-crest";
 import { Container } from "@/components/layout/container";
+import { Button } from "@/components/ui/button";
+import { formatMatchDate } from "@/lib/format";
 import { POSITION_LABEL } from "@/lib/labels";
+import { listCaptainTeams, listTeamMatches } from "@/server/queries/challenges";
 import { getTeamBySlug, type TeamDetail } from "@/server/queries/teams";
 import { getCurrentUser, type CurrentUser } from "@/server/session";
 
@@ -40,6 +43,12 @@ async function TeamView({ params }: { params: PageProps<"/equipo/[slug]">["param
   const { slug } = await params;
   const [team, user] = await Promise.all([getTeamBySlug(decodeURIComponent(slug)), getCurrentUser()]);
   if (!team) notFound();
+  const [matches, captainTeams] = await Promise.all([
+    listTeamMatches(team.id),
+    user ? listCaptainTeams(user.id) : Promise.resolve([]),
+  ]);
+  // Puede desafiarlo quien es capitán de otro equipo.
+  const canChallenge = captainTeams.some((t) => t.id !== team.id);
 
   const viewer = viewerFor(team, user);
   const isCaptain = viewer.kind === "member" && viewer.captain;
@@ -181,8 +190,60 @@ async function TeamView({ params }: { params: PageProps<"/equipo/[slug]">["param
               </div>
             ))}
           </dl>
+          {canChallenge && (
+            <Button asChild size="lg" className="w-full">
+              <Link href={`/desafios/nuevo?rival=${encodeURIComponent(team.slug)}`}>
+                <Swords aria-hidden /> Desafiar a este equipo
+              </Link>
+            </Button>
+          )}
+          {isCaptain && (
+            <Button asChild variant="outline" className="w-full">
+              <Link href="/desafios/nuevo">
+                <Swords aria-hidden /> Buscar rival
+              </Link>
+            </Button>
+          )}
+          {(matches.upcoming.length > 0 || matches.played.length > 0) && (
+            <section className="rounded-2xl border-2 bg-card" aria-labelledby="partidos-equipo">
+              <h2 id="partidos-equipo" className="border-b-2 px-4 py-3 text-lg font-extrabold">
+                Partidos
+              </h2>
+              <ul className="divide-y-2">
+                {[...matches.upcoming, ...matches.played].map((m) => {
+                  const rival = m.homeTeamId === team.id ? m.awayTeam?.name : m.homeTeam?.name;
+                  const mine = m.homeTeamId === team.id ? m.scoreA : m.scoreB;
+                  const theirs = m.homeTeamId === team.id ? m.scoreB : m.scoreA;
+                  return (
+                    <li key={m.id}>
+                      <Link
+                        href={`/partidos/${m.id}`}
+                        className="flex items-center gap-3 px-4 py-3 hover:bg-secondary/60"
+                      >
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate font-bold">vs {rival ?? "Rival"}</span>
+                          <span className="text-sm text-muted-foreground first-letter:uppercase">
+                            {formatMatchDate(m.startsAt)}
+                          </span>
+                        </span>
+                        {m.status === "RESULT_CONFIRMED" ? (
+                          <span className="text-xl font-score">
+                            {mine}–{theirs}
+                          </span>
+                        ) : (
+                          <span className="rounded-lg bg-secondary px-2 py-0.5 text-sm font-extrabold text-primary">
+                            {m.startsAt > new Date() ? "Por jugar" : "Falta resultado"}
+                          </span>
+                        )}
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            </section>
+          )}
           <p className="px-1 text-sm text-muted-foreground">
-            Los desafíos entre equipos llegan en la próxima fase. El rango del equipo se mueve con ellos.
+            El rango del equipo se mueve con cada desafío confirmado por los dos capitanes.
           </p>
         </aside>
       </Container>

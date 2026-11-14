@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { PlayerCommunity } from "@/components/features/player/player-community";
 import { ProfileView } from "@/components/features/player/profile-view";
+import { ReportPlayer } from "@/components/features/player/report-player";
 import { Container } from "@/components/layout/container";
 import { getPlayerCommunity, getPublicProfile } from "@/server/queries/players";
 import { finalizeDueResults } from "@/server/services/finalize-results";
@@ -39,6 +40,9 @@ async function PublicProfile({ params }: { params: PageProps<"/jugador/[username
           isAdmin: viewer?.role === "ADMIN",
         }}
       />
+      {viewer?.profile && viewer.id !== profile.userId && (
+        <ReportPlayer username={profile.username} name={profile.nickname || profile.displayName} />
+      )}
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import { CalendarDays, LogOut, Pencil, Share2 } from "lucide-react";
+import { CalendarDays, LogOut, Pencil, Share2, ShieldCheck } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -157,6 +157,13 @@ async function ProfileGate({ searchParams }: { searchParams: PageProps<"/perfil"
         <Button asChild variant="outline">
           <Link href={`/jugador/${profile.username}`}>Ver mi perfil público</Link>
         </Button>
+        {user.role === "ADMIN" && (
+          <Button asChild variant="outline">
+            <Link href="/admin">
+              <ShieldCheck aria-hidden /> Administración
+            </Link>
+          </Button>
+        )}
         <form action={signOutAction}>
           <Button type="submit" variant="ghost" className="text-destructive hover:text-destructive">
             <LogOut aria-hidden /> Cerrar sesión

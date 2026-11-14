@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function PrivacyPage() {
   return (
-    <LegalPage title="Privacidad" updated="13 de noviembre de 2026">
+    <LegalPage title="Privacidad" updated="14 de noviembre de 2026">
       <p>
         {APP_NAME} sirve para organizar partidos de futbolito en San Clemente. Acá explicamos, sin letra
         chica, qué datos guardamos, para qué y quién los ve.
@@ -30,6 +30,14 @@ export default function PrivacyPage() {
             <strong>Lo que haces en la página:</strong> partidos que publicas o juegas, equipos, resultados,
             goles, rango, mensajes en la sala de un partido, comentarios en perfiles y valoraciones a otros
             jugadores.
+          </li>
+          <li>
+            <strong>Avisos al celular:</strong> si los activas, guardamos la dirección técnica de ese
+            dispositivo para poder mandártelos. Se borra cuando los desactivas.
+          </li>
+          <li>
+            <strong>Reportes:</strong> si reportas a un jugador, guardamos el motivo y quién lo envió. Solo lo
+            ven los administradores; la persona reportada no sabe quién fue.
           </li>
         </ul>
       </LegalSection>

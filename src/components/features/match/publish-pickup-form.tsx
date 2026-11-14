@@ -52,6 +52,7 @@ export function PublishPickupForm({
       maxRating: "",
       pricePerPerson: "",
       notes: "",
+      weekly: false,
       colorA: "#0e5a36",
       colorB: "#ffd23f",
     },
@@ -313,6 +314,16 @@ export function PublishPickupForm({
         >
           <Textarea id="notes" rows={3} {...register("notes")} {...aria("notes")} />
         </Field>
+        <label className="flex cursor-pointer items-start gap-3 rounded-2xl border-2 bg-secondary/50 p-4 has-checked:border-primary has-checked:bg-secondary">
+          <input type="checkbox" className="mt-1 size-5 accent-(--pasto)" {...register("weekly")} />
+          <span>
+            <span className="block font-extrabold">Repetir todas las semanas</span>
+            <span className="text-sm text-muted-foreground">
+              Pichanga fija: cada semana se publica sola la fecha siguiente, el mismo día y a la misma hora, y
+              les avisa a los que jugaron. Puedes dejar de repetirla cuando quieras.
+            </span>
+          </span>
+        </label>
       </fieldset>
 
       {serverError && (

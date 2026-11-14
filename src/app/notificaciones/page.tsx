@@ -7,10 +7,12 @@ import { Suspense } from "react";
 import { SignInRequired } from "@/components/features/auth/sign-in-required";
 import { EmptyState } from "@/components/features/empty-state";
 import { MarkAllRead } from "@/components/features/mark-read";
+import { PushToggle } from "@/components/features/push/push-toggle";
 import { Container } from "@/components/layout/container";
 import { PageHeader } from "@/components/layout/page-header";
 import { db } from "@/lib/db";
 import { cn } from "@/lib/utils";
+import { pushPublicKey } from "@/server/push";
 import { getCurrentUser } from "@/server/session";
 
 export const metadata: Metadata = { title: "Notificaciones" };
@@ -38,6 +40,7 @@ async function List() {
         text="Clima de tus partidos, resultados por confirmar y más."
       />
     );
+  const publicKey = await pushPublicKey();
   const items = await db.notification.findMany({
     where: { userId: user.id },
     orderBy: { updatedAt: "desc" },
@@ -46,13 +49,19 @@ async function List() {
   const hasUnread = items.some((n) => !n.readAt);
   if (items.length === 0) {
     return (
-      <EmptyState icon={Bell} title="Sin notificaciones">
-        Acá te avisamos si va a llover en tus partidos o si tienes que confirmar un resultado.
-      </EmptyState>
+      <div className="space-y-5">
+        <PushToggle publicKey={publicKey} />
+        <EmptyState icon={Bell} title="Sin notificaciones">
+          Acá te avisamos de tus partidos: cupos, clima, resultados por confirmar y más.
+        </EmptyState>
+      </div>
     );
   }
   return (
     <>
+      <div className="mb-5">
+        <PushToggle publicKey={publicKey} />
+      </div>
       <MarkAllRead hasUnread={hasUnread} />
       <ul className="divide-y-2 overflow-hidden rounded-2xl border-2 bg-card">
         {items.map((n) => {

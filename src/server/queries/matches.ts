@@ -14,6 +14,7 @@ const cardSelect = {
   pricePerPerson: true,
   minRating: true,
   maxRating: true,
+  seriesId: true,
   venue: { select: { name: true, latitude: true, longitude: true } },
   homeTeam: { select: { name: true } },
   awayTeam: { select: { name: true } },
@@ -38,6 +39,8 @@ export interface MatchCardData {
   avgRating: number | null;
   latitude: number | null;
   longitude: number | null;
+  /** Pichanga fija: se repite cada semana. */
+  weekly: boolean;
   /** Se completa aparte (withWeather) solo cuando hay alerta. */
   weather?: { level: "watch" | "bad"; title: string } | null;
 }
@@ -55,6 +58,7 @@ function toCard(m: RawCard): MatchCardData {
       m.type === "PICKUP"
         ? `Revoltijo ${m.playersPerSide}v${m.playersPerSide}`
         : `${m.homeTeam?.name ?? "Por definir"} vs ${m.awayTeam?.name ?? "Rival por definir"}`,
+    weekly: m.seriesId != null,
     taken: m.participants.length,
     total,
     pricePerPerson: m.pricePerPerson,
@@ -101,6 +105,7 @@ export function getMatchDetail(id: string) {
     include: {
       venue: true,
       comuna: true,
+      series: { select: { id: true, weekday: true, timeLocal: true, isActive: true } },
       organizer: {
         select: { id: true, name: true, profile: { select: { displayName: true, username: true } } },
       },

@@ -253,6 +253,8 @@ model User {
   matchMessages       MatchMessage[]
   playerRequests      PlayerRequest[]
   requestResponses    PlayerRequestResponse[]
+  pushSubscriptions   PushSubscription[]
+  matchSeries         MatchSeries[]
 }
 
 model Account {
@@ -564,6 +566,7 @@ model Match {
   awayTeamId String?
   seasonId   String?
   round      Int? // fecha del fixture
+  seriesId   String? // pichanga fija: la serie semanal que publicó este partido
 
   // Resultado final (lo que queda tras confirmar o resolver disputa)
   scoreA            Int?
@@ -582,6 +585,7 @@ model Match {
   homeTeam      Team?                @relation("HomeTeam", fields: [homeTeamId], references: [id])
   awayTeam      Team?                @relation("AwayTeam", fields: [awayTeamId], references: [id])
   season        Season?              @relation(fields: [seasonId], references: [id])
+  series        MatchSeries?         @relation(fields: [seriesId], references: [id], onDelete: SetNull)
   participants  MatchParticipant[]
   resultReports ResultReport[]
   goals         Goal[]
@@ -597,6 +601,7 @@ model Match {
   @@index([type, status])
   @@index([startsAt])
   @@index([seasonId])
+  @@index([seriesId, startsAt])
 }
 
 model MatchParticipant {
@@ -607,6 +612,7 @@ model MatchParticipant {
   status    ParticipantStatus @default(REGISTERED)
   // Orden de inscripción: define quién sube desde la lista de espera
   joinedAt  DateTime          @default(now())
+  goingAt   DateTime? // respondió "Voy" al aviso del día del partido
   createdAt DateTime          @default(now())
   updatedAt DateTime          @updatedAt
 
@@ -829,6 +835,7 @@ model Report {
   targetUserId  String?
   targetTeamId  String?
   targetMatchId String?
+  category      String? // DISRESPECT, NO_SHOW, ROUGH_PLAY, FAKE_PROFILE, OTHER
   reason        String
   status        ReportStatus @default(OPEN)
   resolution    String?
@@ -960,4 +967,62 @@ model EmailCode {
   updatedAt DateTime @updatedAt
 
   @@index([email, createdAt])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Pichanga fija: un revoltijo que se publica solo cada semana
+// ─────────────────────────────────────────────────────────────
+
+model MatchSeries {
+  id              String   @id @default(cuid())
+  organizerId     String
+  comunaId        String
+  venueId         String?
+  weekday         Int // 0 = domingo … 6 = sábado (hora de Chile)
+  timeLocal       String // "21:00" (hora de Chile)
+  durationMinutes Int      @default(60)
+  playersPerSide  Int
+  maxPlayers      Int
+  minRating       Int?
+  maxRating       Int?
+  pricePerPerson  Int?
+  notes           String?
+  colorA          String   @default("#0e5a36")
+  colorB          String   @default("#ffd23f")
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  organizer User    @relation(fields: [organizerId], references: [id], onDelete: Cascade)
+  matches   Match[]
+
+  @@index([isActive])
+}
+
+// ─────────────────────────────────────────────────────────────
+// Avisos al celular (Web Push) y ajustes internos
+// ─────────────────────────────────────────────────────────────
+
+// Un navegador o teléfono donde el usuario activó los avisos.
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  userAgent String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// Valores internos de la app (llaves de los avisos, secreto del reloj, última pasada). Nunca se muestran.
+model AppSetting {
+  key       String   @id
+  value     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

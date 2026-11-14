@@ -1,7 +1,7 @@
 import { TZDate } from "@date-fns/tz";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { CloudRain, MapPin } from "lucide-react";
+import { CloudRain, MapPin, Repeat } from "lucide-react";
 import Link from "next/link";
 import { DivisionBadge } from "@/components/features/player/division-badge";
 import { TIMEZONE } from "@/config/site";
@@ -50,6 +50,11 @@ export function MatchCard({ match }: { match: MatchCardData }) {
             </span>
           ) : null}
         </div>
+        {match.weekly && (
+          <p className="flex items-center gap-1.5 text-sm font-bold text-primary">
+            <Repeat className="size-4 shrink-0" aria-hidden /> Pichanga fija, todas las semanas
+          </p>
+        )}
         {match.weather && (
           <p
             className={
@@ -61,13 +66,26 @@ export function MatchCard({ match }: { match: MatchCardData }) {
             <CloudRain className="size-4 shrink-0" aria-hidden /> {match.weather.title}
           </p>
         )}
-        <SlotBar taken={match.taken} total={match.total} />
-        <div className="flex items-center justify-between">
-          {match.avgRating ? <DivisionBadge rating={match.avgRating} showRating /> : <span />}
-          <span className="rounded-xl bg-primary px-3.5 py-1.5 text-sm font-extrabold text-primary-foreground">
-            {missing > 0 ? "Sumarme" : "Lista de espera"}
-          </span>
-        </div>
+        {match.type === "PICKUP" ? (
+          <>
+            <SlotBar taken={match.taken} total={match.total} />
+            <div className="flex items-center justify-between">
+              {match.avgRating ? <DivisionBadge rating={match.avgRating} showRating /> : <span />}
+              <span className="rounded-xl bg-primary px-3.5 py-1.5 text-sm font-extrabold text-primary-foreground">
+                {missing > 0 ? "Sumarme" : "Lista de espera"}
+              </span>
+            </div>
+          </>
+        ) : (
+          <div className="mt-auto flex items-center justify-between">
+            <span className="rounded-lg bg-secondary px-2 py-0.5 text-sm font-extrabold text-primary">
+              {MATCH_TYPE_LABEL[match.type]} {match.playersPerSide}v{match.playersPerSide}
+            </span>
+            <span className="rounded-xl bg-primary px-3.5 py-1.5 text-sm font-extrabold text-primary-foreground">
+              Ver partido
+            </span>
+          </div>
+        )}
       </div>
     </Link>
   );

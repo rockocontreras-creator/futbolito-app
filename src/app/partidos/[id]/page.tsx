@@ -1,12 +1,24 @@
 import { TZDate } from "@date-fns/tz";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { ArrowLeft, Banknote, Clock3, MapPin, MessageCircle, Navigation, Shield, Users } from "lucide-react";
+import {
+  ArrowLeft,
+  Banknote,
+  Check,
+  Clock3,
+  MapPin,
+  MessageCircle,
+  Navigation,
+  Shield,
+  Users,
+} from "lucide-react";
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
+import { TeamMatchView } from "@/components/features/challenge/team-match-view";
+import { GoingCard, SeriesNote } from "@/components/features/match/going-card";
 import { ManageRoster } from "@/components/features/match/manage-roster";
 import { MatchChat } from "@/components/features/match/match-chat";
 import { ReportResultForm } from "@/components/features/match/report-result-form";
@@ -27,7 +39,10 @@ import { Button } from "@/components/ui/button";
 import { TIMEZONE } from "@/config/site";
 import { formatCLP } from "@/lib/format";
 import { MATCH_TYPE_LABEL, POSITION_LABEL, SURFACE_LABEL } from "@/lib/labels";
+import { goingWindowOpen } from "@/lib/match-timing";
+import { seriesLabel } from "@/lib/series";
 import { pickupShareText, whatsappUrl } from "@/lib/share";
+import { getTeamMatch } from "@/server/queries/challenges";
 import { getMatchDetail, listMyReviews, type MatchDetail } from "@/server/queries/matches";
 import { finalizeDueResults } from "@/server/services/finalize-results";
 import { getMatchWeather } from "@/server/weather";
@@ -68,6 +83,20 @@ async function MatchDetailView({ params }: { params: PageProps<"/partidos/[id]">
   const [match, user, h] = await Promise.all([getMatchDetail(id), getCurrentUser(), headers()]);
   if (!match) notFound();
 
+  // Partido entre equipos (desafío o liga): tiene su propia página.
+  if (match.type !== "PICKUP") {
+    const teamMatch = await getTeamMatch(id);
+    if (!teamMatch) notFound();
+    const teamWeather = ["OPEN", "FULL", "CONFIRMED"].includes(match.status)
+      ? await getMatchWeather({
+          startsAt: match.startsAt,
+          latitude: match.venue?.latitude,
+          longitude: match.venue?.longitude,
+        }).catch(() => null)
+      : null;
+    return <TeamMatchView match={teamMatch} user={user} weather={teamWeather} />;
+  }
+
   const now = new Date();
   const players = toRoster(match);
   const isOrganizer = user?.id === match.organizerId;
@@ -104,6 +133,11 @@ async function MatchDetailView({ params }: { params: PageProps<"/partidos/[id]">
     missing,
     url: `${origin}/partidos/${match.id}`,
   });
+  // "¿Vas o no vas?": abierto desde 10 horas antes, para los inscritos.
+  const goingOpen = goingWindowOpen(match.startsAt, match.status, now);
+  const myEntry = match.participants.find((p) => p.userId === user?.id);
+  const going = registered.filter((p) => p.goingAt != null);
+  const notAnswered = registered.filter((p) => p.goingAt == null);
   const organizerName = match.organizer.profile?.displayName ?? match.organizer.name ?? "Un jugador";
   const ratingRange =
     match.minRating != null || match.maxRating != null
@@ -169,6 +203,30 @@ async function MatchDetailView({ params }: { params: PageProps<"/partidos/[id]">
               <span className="text-sm text-muted-foreground">Organiza {organizerName}</span>
             </div>
             <SlotBar taken={registered.length} total={total} />
+            {goingOpen && (
+              <p className="text-[15px]">
+                <b className="font-extrabold">
+                  Confirmaron que van {going.length} de {registered.length}.
+                </b>{" "}
+                {isOrganizer && notAnswered.length > 0 && (
+                  <span className="text-muted-foreground">
+                    Faltan por responder:{" "}
+                    {notAnswered
+                      .map((p) => p.user.profile?.nickname || p.user.profile?.displayName || p.user.name)
+                      .join(", ")}
+                    .
+                  </span>
+                )}
+              </p>
+            )}
+            {match.series && (
+              <SeriesNote
+                seriesId={match.series.id}
+                label={seriesLabel(match.series)}
+                active={match.series.isActive}
+                canStop={isOrganizer || user?.role === "ADMIN"}
+              />
+            )}
           </section>
 
           {reported && match.scoreA != null && match.scoreB != null && (
@@ -228,7 +286,12 @@ async function MatchDetailView({ params }: { params: PageProps<"/partidos/[id]">
               </h2>
               <ul className="divide-y-2">
                 {registered.map((p) => (
-                  <PlayerRow key={p.id} p={p} isOrganizer={p.userId === match.organizerId} />
+                  <PlayerRow
+                    key={p.id}
+                    p={p}
+                    isOrganizer={p.userId === match.organizerId}
+                    going={goingOpen && p.goingAt != null}
+                  />
                 ))}
               </ul>
             </section>
@@ -275,7 +338,12 @@ async function MatchDetailView({ params }: { params: PageProps<"/partidos/[id]">
                   : "Partido jugado, resultado en revisión"}
               </p>
             ) : (
-              <RosterActions matchId={match.id} viewer={viewerStateFor(match, user, now)} />
+              <>
+                {goingOpen && myEntry?.status === "REGISTERED" && (
+                  <GoingCard matchId={match.id} going={myEntry.goingAt != null} canLeave={!isOrganizer} />
+                )}
+                <RosterActions matchId={match.id} viewer={viewerStateFor(match, user, now)} />
+              </>
             )}
             {match.status === "PLAYED" && iPlayed && !isOrganizer && user && (
               <ResultVote
@@ -426,9 +494,12 @@ function Detail({ label, value, icon: Icon }: { label: string; value: string; ic
 function PlayerRow({
   p,
   isOrganizer = false,
+  going = false,
 }: {
   p: MatchDetail["participants"][number];
   isOrganizer?: boolean;
+  /** Confirmó que va ("¿Vas o no vas?"). */
+  going?: boolean;
 }) {
   const profile = p.user.profile;
   const name = profile?.nickname || profile?.displayName || p.user.name || "Jugador";
@@ -448,6 +519,11 @@ function PlayerRow({
           {profile ? POSITION_LABEL[profile.primaryPosition] : "Sin perfil"}
         </p>
       </div>
+      {going && (
+        <span className="inline-flex items-center gap-1 rounded-lg bg-secondary px-2 py-0.5 text-sm font-extrabold text-primary">
+          <Check className="size-4" aria-hidden strokeWidth={3} /> Va
+        </span>
+      )}
       {profile && <DivisionBadge rating={profile.rating} />}
     </>
   );

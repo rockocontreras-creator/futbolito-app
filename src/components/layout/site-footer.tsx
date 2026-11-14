@@ -25,6 +25,9 @@ export function SiteFooter() {
           <Link href="/equipos" className="hover:text-foreground">
             Equipos
           </Link>
+          <Link href="/desafios" className="hover:text-foreground">
+            Desafíos
+          </Link>
           <Link href="/ligas" className="hover:text-foreground">
             Ligas
           </Link>

@@ -21,7 +21,7 @@ const topItems = [
   { href: "/canchas", label: "Canchas" },
   { href: "/ranking", label: "Ranking" },
   { href: "/equipos", label: "Equipos" },
-  { href: "/ligas", label: "Ligas" },
+  { href: "/desafios", label: "Desafíos" },
   { href: "/torneos", label: "Torneos" },
 ] as const;
 

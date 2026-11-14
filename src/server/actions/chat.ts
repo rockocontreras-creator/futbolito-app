@@ -13,11 +13,21 @@ async function requireRoomMember(matchId: string) {
   const user = await requireUser();
   const match = await db.match.findFirst({
     where: { id: matchId, deletedAt: null },
-    select: { organizerId: true },
+    select: { organizerId: true, type: true, homeTeamId: true, awayTeamId: true },
   });
   if (!match) throw new AuthError("Ese partido no existe.");
   if (match.organizerId === user.id || user.role === "ADMIN")
     return { user, isOrganizer: match.organizerId === user.id };
+  if (match.type !== "PICKUP") {
+    // Partido entre equipos: la sala es de los dos planteles; moderan los capitanes.
+    const teamIds = [match.homeTeamId, match.awayTeamId].filter((t): t is string => Boolean(t));
+    const member = await db.teamMember.findFirst({
+      where: { userId: user.id, leftAt: null, teamId: { in: teamIds } },
+      orderBy: { role: "asc" },
+    });
+    if (!member) throw new AuthError("El chat es solo para los jugadores de los dos equipos.");
+    return { user, isOrganizer: member.role === "CAPTAIN" };
+  }
   const p = await db.matchParticipant.findUnique({ where: { matchId_userId: { matchId, userId: user.id } } });
   if (!p || p.status === "WITHDRAWN" || p.status === "KICKED") {
     throw new AuthError("El chat es solo para quienes están en el partido.");
