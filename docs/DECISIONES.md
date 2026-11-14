@@ -182,3 +182,11 @@ la silueta de las cartas de videojuegos).
 
 **La foto se elige al crear el perfil** y se sube justo después de crearlo. Si la subida falla, el perfil
 queda creado igual y se avisa.
+
+## 2026-11-13 · Errores claros al subir fotos
+
+La subida fallaba con un mensaje genérico y no se sabía por qué. Ahora `src/lib/storage-config.ts` revisa las
+variables antes de usarlas: acepta la dirección del proyecto aunque venga con `/rest/v1`, la del panel o la de
+la base de datos (saca el identificador del proyecto), y rechaza la llave pública. Las llaves nuevas de
+Supabase (`sb_secret_…`) van en la misma variable `SUPABASE_SERVICE_ROLE_KEY`. Al admin se le muestra la
+causa exacta; al resto, un mensaje simple. El detalle queda en los logs con la marca `[fotos]`.
