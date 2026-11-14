@@ -18,7 +18,17 @@ export async function finalizeDueResults(matchId?: string) {
   for (const m of due) await finalizeOne(m.id);
 }
 
-async function finalizeOne(matchId: string) {
+/**
+ * Cierre por un administrador: confirma el resultado guardado aunque no haya mayoría o esté en disputa.
+ * Devuelve true si el partido quedó confirmado.
+ */
+export async function forceConfirmResult(matchId: string): Promise<boolean> {
+  await finalizeOne(matchId, true);
+  const m = await db.match.findUnique({ where: { id: matchId }, select: { status: true } });
+  return m?.status === "RESULT_CONFIRMED";
+}
+
+async function finalizeOne(matchId: string, force = false) {
   await db.$transaction(async (tx) => {
     await tx.$queryRaw`SELECT id FROM "Match" WHERE id = ${matchId} FOR UPDATE`;
     const match = await tx.match.findUnique({
@@ -33,7 +43,8 @@ async function finalizeOne(matchId: string) {
         _count: { select: { objections: true, confirmations: true } },
       },
     });
-    if (!match || match.status !== "PLAYED") return;
+    if (!match) return;
+    if (match.status !== "PLAYED" && !(force && match.status === "DISPUTED")) return;
     if (match.scoreA == null || match.scoreB == null) return;
 
     const attended = match.participants.filter((p) => p.status === "ATTENDED" && p.user.profile);
@@ -42,10 +53,12 @@ async function finalizeOne(matchId: string) {
       objections: match._count.objections,
       attended: match.participants.filter((p) => p.status === "ATTENDED").length,
     });
-    if (decision === "WAIT") return;
-    if (decision === "DISPUTE") {
-      await tx.match.update({ where: { id: matchId }, data: { status: "DISPUTED" } });
-      return;
+    if (!force) {
+      if (decision === "WAIT") return;
+      if (decision === "DISPUTE") {
+        await tx.match.update({ where: { id: matchId }, data: { status: "DISPUTED" } });
+        return;
+      }
     }
 
     const toRated = (side: "A" | "B") =>

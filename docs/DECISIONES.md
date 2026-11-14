@@ -190,3 +190,15 @@ variables antes de usarlas: acepta la dirección del proyecto aunque venga con `
 la base de datos (saca el identificador del proyecto), y rechaza la llave pública. Las llaves nuevas de
 Supabase (`sb_secret_…`) van en la misma variable `SUPABASE_SERVICE_ROLE_KEY`. Al admin se le muestra la
 causa exacta; al resto, un mensaje simple. El detalle queda en los logs con la marca `[fotos]`.
+
+## 2026-11-13 · Panel de administración
+
+**Sin tablas nuevas.** El panel usa lo que ya existía (`Venue.status`, `Match.status`, `User.role`,
+`User.suspendedAt`, `Sector`). Los reportes de usuarios quedan para después: el modelo `Report` existe pero
+todavía no hay botón para reportar.
+
+**Resolver un resultado reutiliza el cierre normal** (`forceConfirmResult` en `finalize-results.ts`): mismo
+Elo, estadísticas e historial que cuando confirma la mayoría, solo que se salta la votación.
+
+**Acciones que no se deshacen piden dos toques** (anular, rechazar, suspender) en vez de una ventana de
+confirmación del navegador.
