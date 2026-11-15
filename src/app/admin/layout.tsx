@@ -50,7 +50,7 @@ async function Gate({ children }: { children: ReactNode }) {
     <div className="space-y-6">
       <PageHeader
         title="Administración"
-        description="Canchas, resultados, reportes, cuentas y sectores del club."
+        description="Partidos, cuentas, equipos, reportes, avisos y números del club."
       />
       <AdminNav
         badges={{

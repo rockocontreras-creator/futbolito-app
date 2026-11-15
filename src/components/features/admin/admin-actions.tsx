@@ -17,7 +17,7 @@ import {
   updateSector,
 } from "@/server/actions/admin";
 
-function ErrorText({ text }: { text: string | null }) {
+export function ErrorText({ text }: { text: string | null }) {
   if (!text) return null;
   return (
     <p role="alert" className="text-sm font-bold text-destructive">
@@ -27,7 +27,7 @@ function ErrorText({ text }: { text: string | null }) {
 }
 
 /** Botón de dos pasos para acciones que no se deshacen: el primer toque pregunta, el segundo actúa. */
-function ConfirmButton({
+export function ConfirmButton({
   label,
   confirmLabel,
   pending,

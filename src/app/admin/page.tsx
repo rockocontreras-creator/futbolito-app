@@ -86,6 +86,11 @@ export default async function AdminHome() {
             </span>
           ))}
         </p>
+        <p>
+          <Link href="/admin/numeros" className="font-extrabold text-primary hover:underline">
+            Ver los números de las últimas 8 semanas
+          </Link>
+        </p>
       </section>
     </div>
   );

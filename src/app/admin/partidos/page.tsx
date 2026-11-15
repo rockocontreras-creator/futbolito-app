@@ -1,15 +1,28 @@
 import { CalendarCheck } from "lucide-react";
 import Link from "next/link";
 import { CancelMatch, ResolveResult } from "@/components/features/admin/admin-actions";
+import { MatchAdmin } from "@/components/features/admin/admin-edit";
 import { EmptyState } from "@/components/features/empty-state";
+import { toLocalDateTimeValue } from "@/lib/dates";
 import { formatMatchDate } from "@/lib/format";
 import { MATCH_TYPE_LABEL } from "@/lib/labels";
-import { getAdmin, listResultsToReview, listUpcomingForAdmin } from "@/server/queries/admin";
+import {
+  getAdmin,
+  listResultsToReview,
+  listUpcomingForAdmin,
+  listVenueOptions,
+} from "@/server/queries/admin";
+import { getActiveComuna } from "@/server/queries/zones";
 import { confirmationsNeeded } from "@/server/services/match-result";
 
 export default async function AdminMatches() {
   if (!(await getAdmin())) return null;
-  const [results, upcoming] = await Promise.all([listResultsToReview(), listUpcomingForAdmin()]);
+  const comuna = await getActiveComuna();
+  const [results, upcoming, venues] = await Promise.all([
+    listResultsToReview(),
+    listUpcomingForAdmin(),
+    comuna ? listVenueOptions(comuna.id) : [],
+  ]);
   return (
     <div className="space-y-10">
       <section aria-labelledby="resultados" className="space-y-3">
@@ -115,12 +128,24 @@ export default async function AdminMatches() {
                       ? `Revoltijo ${m.playersPerSide}v${m.playersPerSide}`
                       : `${m.homeTeam?.name ?? "Local"} vs ${m.awayTeam?.name ?? "Visita"}`}
                     {m.venue ? ` en ${m.venue.name}` : ""}
+                    {m.isPrivate ? " · Privado" : ""}
                     {m.type === "PICKUP"
                       ? ` · ${m._count.participants} inscritos · Organiza ${m.organizer.profile?.displayName ?? m.organizer.name ?? "sin nombre"}`
                       : ""}
                   </span>
                 </p>
-                <CancelMatch matchId={m.id} />
+                <MatchAdmin
+                  matchId={m.id}
+                  startsAtLocal={toLocalDateTimeValue(m.startsAt)}
+                  venueId={m.venueId}
+                  venues={venues}
+                  maxPlayers={m.maxPlayers}
+                  minPlayers={m._count.participants}
+                  notes={m.notes}
+                  pickup={m.type === "PICKUP"}
+                >
+                  <CancelMatch matchId={m.id} />
+                </MatchAdmin>
               </li>
             ))}
           </ul>
