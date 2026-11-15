@@ -3,8 +3,11 @@ import { format } from "date-fns";
 import { es } from "date-fns/locale";
 import { ArrowLeft, Check, Clock3, Crown, MapPin, Navigation } from "lucide-react";
 import Link from "next/link";
+import { FormationPitch, type PitchPlayer } from "@/components/features/challenge/formation-pitch";
+import { LineupEditor } from "@/components/features/challenge/lineup-editor";
 import { TeamResultForm } from "@/components/features/challenge/team-result-form";
 import { MatchChat } from "@/components/features/match/match-chat";
+import { PointsAtStake } from "@/components/features/match/points-at-stake";
 import { WeatherBanner } from "@/components/features/match/weather-banner";
 import { PlayerAvatar } from "@/components/features/player/player-avatar";
 import { TeamCrest } from "@/components/features/team/team-crest";
@@ -12,6 +15,7 @@ import { VenueMap } from "@/components/features/venue/venue-map";
 import { Container } from "@/components/layout/container";
 import { Button } from "@/components/ui/button";
 import { TIMEZONE } from "@/config/site";
+import { getFormation, parseLineup, sanitizeLineup, slotsFor } from "@/lib/formation";
 import { MATCH_TYPE_LABEL } from "@/lib/labels";
 import { directionsUrl } from "@/lib/maps";
 import type { TeamMatch } from "@/server/queries/challenges";
@@ -56,6 +60,25 @@ export function TeamMatchView({
   const showScore = match.scoreA != null && match.scoreB != null && (confirmed || match.status === "PLAYED");
   const canReport =
     Boolean(captainOf) && started && ["CONFIRMED", "PLAYED", "DISPUTED"].includes(match.status);
+
+  // Formaciones: cada capitán arma la suya; los demás las ven.
+  const lineupOpen = !cancelled && !confirmed;
+  const lineupOf = (team: Team, side: "A" | "B") => {
+    const saved = match.lineups.find((l) => l.side === side);
+    const formation = getFormation(saved?.formation, match.playersPerSide);
+    const slots = slotsFor(formation);
+    const memberOf = new Map(team.members.map((m) => [m.userId, m]));
+    const entries = sanitizeLineup(parseLineup(saved?.slots), slots.length, new Set(memberOf.keys()));
+    const players = new Map<number, PitchPlayer>();
+    for (const e of entries) {
+      const m = e.userId ? memberOf.get(e.userId) : undefined;
+      if (m) players.set(e.slot, { name: memberName(m), photo: m.user.profile?.photoUrl ?? m.user.image });
+      else if (e.guest) players.set(e.slot, { name: e.guest, guest: true });
+    }
+    return { team, side, formation, slots, entries, players, guests: entries.filter((e) => e.guest).length };
+  };
+  const lineups = [lineupOf(home, "A"), lineupOf(away, "B")];
+  const showLineups = lineups.some((l) => l.entries.length > 0) || (lineupOpen && Boolean(captainOf));
 
   let status: string;
   if (cancelled) status = "Partido anulado.";
@@ -128,6 +151,66 @@ export function TeamMatchView({
               theirs={theirs}
               playedIds={captainOf.members.filter((m) => played.has(m.userId)).map((m) => m.userId)}
             />
+          )}
+
+          {!confirmed && !cancelled && (
+            <PointsAtStake
+              sides={[
+                { label: home.name, rating: home.rating },
+                { label: away.name, rating: away.rating },
+              ]}
+              note="Son los puntos del equipo. Cada jugador que juegue se mueve la mitad. No importa por cuántos goles."
+            />
+          )}
+
+          {showLineups && (
+            <div className="grid gap-4 sm:grid-cols-2">
+              {lineups.map((l) => {
+                const editable = lineupOpen && captainOf?.id === l.team.id;
+                return (
+                  <section
+                    key={l.team.id}
+                    className="space-y-3 rounded-2xl border-2 bg-card p-4"
+                    aria-label={`Formación de ${l.team.name}`}
+                  >
+                    <h2 className="text-lg font-extrabold">
+                      Formación de {l.team.name}
+                      {!editable && l.entries.length > 0 && (
+                        <span className="ml-2 text-base font-score text-muted-foreground">
+                          {l.formation.label}
+                        </span>
+                      )}
+                    </h2>
+                    {editable ? (
+                      <LineupEditor
+                        matchId={match.id}
+                        teamId={l.team.id}
+                        playersPerSide={match.playersPerSide}
+                        members={l.team.members.map((m) => ({
+                          userId: m.userId,
+                          name: memberName(m),
+                          photo: m.user.profile?.photoUrl ?? m.user.image ?? null,
+                        }))}
+                        initialFormation={l.entries.length > 0 ? l.formation.key : null}
+                        initialEntries={l.entries}
+                      />
+                    ) : l.entries.length > 0 ? (
+                      <>
+                        <FormationPitch slots={l.slots} players={l.players} />
+                        <p className="text-sm text-muted-foreground">
+                          {l.entries.length} de {l.slots.length} puestos
+                          {l.guests > 0 && ` · ${l.guests} ${l.guests === 1 ? "invitado" : "invitados"}`}
+                        </p>
+                      </>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">
+                        Su capitán todavía no arma la formación.
+                      </p>
+                    )}
+                  </section>
+                );
+              })}
+            </div>
           )}
 
           <div className="grid gap-4 sm:grid-cols-2">

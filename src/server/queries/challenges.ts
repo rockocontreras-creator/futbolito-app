@@ -106,6 +106,7 @@ export function getTeamMatch(id: string) {
       awayTeam: team,
       resultReports: { select: { side: true, scoreA: true, scoreB: true } },
       participants: { where: { status: "ATTENDED" }, select: { userId: true, side: true } },
+      lineups: { select: { side: true, formation: true, slots: true } },
     },
   });
 }
