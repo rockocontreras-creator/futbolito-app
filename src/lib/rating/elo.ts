@@ -1,4 +1,4 @@
-// Sistema de rango basado en Elo (CLAUDE.md §6).
+// Sistema de rango basado en Elo, con reparto tipo FACEIT (CLAUDE.md §6).
 // Todo aquí son funciones puras: sin BD, sin fechas, sin efectos. Fáciles de testear.
 
 export type SkillLevel = "BEGINNER" | "INTERMEDIATE" | "ADVANCED";
@@ -11,10 +11,13 @@ export const INITIAL_PLAYER_RATING: Record<SkillLevel, number> = {
 
 export const INITIAL_TEAM_RATING = 1000;
 
-/** Partidos con K alto antes de estabilizar el rango. */
-export const PROVISIONAL_MATCHES = 10;
-export const K_PROVISIONAL = 40;
-export const K_ESTABLISHED = 20;
+/**
+ * Puntos en juego por partido, al estilo FACEIT pero con menos puntaje:
+ * entre lados parejos se ganan o pierden 15 (allá son 25).
+ */
+export const MATCH_POINTS = 30;
+/** Nadie baja de aquí. */
+export const RATING_FLOOR = 100;
 
 /** Resultado real desde el punto de vista del lado A: 1 gana, 0.5 empata, 0 pierde. */
 export type Outcome = 1 | 0.5 | 0;
@@ -30,35 +33,35 @@ export function expectedScore(ratingA: number, ratingB: number): number {
   return 1 / (1 + 10 ** ((ratingB - ratingA) / 400));
 }
 
-/** K = 40 en los primeros 10 partidos con rango, 20 después. */
-export function kFactor(ratedMatches: number): number {
-  return ratedMatches < PROVISIONAL_MATCHES ? K_PROVISIONAL : K_ESTABLISHED;
-}
-
-/** M: 1 si dif ≤ 1, 1.5 si dif = 2, (11 + dif) / 8 si dif ≥ 3. */
-export function goalDiffMultiplier(scoreA: number, scoreB: number): number {
-  const diff = Math.abs(scoreA - scoreB);
-  if (diff <= 1) return 1;
-  if (diff === 2) return 1.5;
-  return (11 + diff) / 8;
-}
-
 /**
- * Cambio de rating (sin redondear) para el lado A: K · M · (S − E).
- * El lado B recibe el mismo valor con signo opuesto cuando ambos usan el mismo K.
+ * Cambio de puntos de un lado: MATCH_POINTS · (S − E), redondeado.
+ * No importa por cuántos goles: solo quién ganó y qué tan parejo era.
+ * El que gana siempre suma al menos 1 y el que pierde resta al menos 1.
  */
-export function ratingDelta(params: {
-  rating: number;
-  opponentRating: number;
-  scoreFor: number;
-  scoreAgainst: number;
-  k: number;
-}): number {
-  const { rating, opponentRating, scoreFor, scoreAgainst, k } = params;
-  const s = outcomeFromScore(scoreFor, scoreAgainst);
-  const e = expectedScore(rating, opponentRating);
-  const m = goalDiffMultiplier(scoreFor, scoreAgainst);
-  return k * m * (s - e);
+export function sideDelta(rating: number, opponentRating: number, outcome: Outcome): number {
+  const raw = Math.round(MATCH_POINTS * (outcome - expectedScore(rating, opponentRating)));
+  if (outcome === 1) return Math.max(1, raw);
+  if (outcome === 0) return Math.min(-1, raw);
+  return raw;
+}
+
+/** Lo que se juega un lado antes del partido: "+13 si ganan, −17 si pierden". */
+export function previewPoints(
+  rating: number,
+  opponentRating: number,
+): { win: number; draw: number; loss: number } {
+  return {
+    win: sideDelta(rating, opponentRating, 1),
+    draw: sideDelta(rating, opponentRating, 0.5),
+    loss: sideDelta(rating, opponentRating, 0),
+  };
+}
+
+/** Mitad del cambio (jugadores en partidos entre equipos), sin anular una victoria o derrota. */
+export function halfDelta(delta: number): number {
+  if (delta === 0) return 0;
+  const half = Math.round(Math.abs(delta) / 2) || 1;
+  return delta > 0 ? half : -half;
 }
 
 export function average(values: readonly number[]): number {
@@ -68,14 +71,14 @@ export function average(values: readonly number[]): number {
 
 // ─────────────────────────────────────────────────────────────
 // Revoltijo: rating de cada lado = promedio de sus jugadores.
-// Cada jugador recibe el cambio de su lado, con SU propio K.
-// Solo afecta ratings individuales.
+// Todo el lado gana o pierde lo mismo. Solo afecta ratings individuales.
 // ─────────────────────────────────────────────────────────────
 
 export interface RatedPlayer {
   id: string;
   rating: number;
-  ratedMatches: number;
+  /** Ya no cambia el cálculo; se conserva porque las estadísticas lo usan. */
+  ratedMatches?: number;
 }
 
 export interface RatingChange {
@@ -94,41 +97,25 @@ export function applyPickupResult(params: {
   const { sideA, sideB, scoreA, scoreB } = params;
   const avgA = average(sideA.map((p) => p.rating));
   const avgB = average(sideB.map((p) => p.rating));
+  // El lado B recibe exactamente lo contrario: suma cero entre lados.
+  const deltaA = sideDelta(avgA, avgB, outcomeFromScore(scoreA, scoreB));
 
-  const changesFor = (
-    players: readonly RatedPlayer[],
-    own: number,
-    opp: number,
-    scoreFor: number,
-    scoreAgainst: number,
-  ) =>
-    players.map((p) =>
-      toChange(
-        p.id,
-        p.rating,
-        ratingDelta({
-          rating: own,
-          opponentRating: opp,
-          scoreFor,
-          scoreAgainst,
-          k: kFactor(p.ratedMatches),
-        }),
-      ),
-    );
-
-  return [...changesFor(sideA, avgA, avgB, scoreA, scoreB), ...changesFor(sideB, avgB, avgA, scoreB, scoreA)];
+  return [
+    ...sideA.map((p) => toChange(p.id, p.rating, deltaA)),
+    ...sideB.map((p) => toChange(p.id, p.rating, -deltaA)),
+  ];
 }
 
 // ─────────────────────────────────────────────────────────────
-// Desafío / liga: se actualiza el rating del equipo y el de cada jugador
-// que participó. Los jugadores usan K a la mitad y su lado se mide con
-// el rating del equipo (no el promedio de jugadores).
+// Desafío / liga: el equipo se mueve con el cambio completo y cada
+// jugador que participó con la mitad. Los lados se miden con el rating
+// del equipo (no con el promedio de jugadores).
 // ─────────────────────────────────────────────────────────────
 
 export interface RatedTeam {
   id: string;
   rating: number;
-  ratedMatches: number;
+  ratedMatches?: number;
   players: readonly RatedPlayer[];
 }
 
@@ -144,30 +131,19 @@ export function applyTeamMatchResult(params: {
   scoreAway: number;
 }): TeamMatchRatingResult {
   const { home, away, scoreHome, scoreAway } = params;
-
-  const side = (team: RatedTeam, opp: RatedTeam, scoreFor: number, scoreAgainst: number) => {
-    const base = { rating: team.rating, opponentRating: opp.rating, scoreFor, scoreAgainst };
-    const teamChange = toChange(
-      team.id,
-      team.rating,
-      ratingDelta({ ...base, k: kFactor(team.ratedMatches) }),
-    );
-    const playerChanges = team.players.map((p) =>
-      toChange(p.id, p.rating, ratingDelta({ ...base, k: kFactor(p.ratedMatches) / 2 })),
-    );
-    return { teamChange, playerChanges };
-  };
-
-  const h = side(home, away, scoreHome, scoreAway);
-  const a = side(away, home, scoreAway, scoreHome);
+  const deltaHome = sideDelta(home.rating, away.rating, outcomeFromScore(scoreHome, scoreAway));
+  const deltaAway = -deltaHome;
 
   return {
-    teams: [h.teamChange, a.teamChange],
-    players: [...h.playerChanges, ...a.playerChanges],
+    teams: [toChange(home.id, home.rating, deltaHome), toChange(away.id, away.rating, deltaAway)],
+    players: [
+      ...home.players.map((p) => toChange(p.id, p.rating, halfDelta(deltaHome))),
+      ...away.players.map((p) => toChange(p.id, p.rating, halfDelta(deltaAway))),
+    ],
   };
 }
 
-function toChange(id: string, before: number, rawDelta: number): RatingChange {
-  const delta = Math.round(rawDelta);
-  return { id, before, after: before + delta, delta };
+function toChange(id: string, before: number, delta: number): RatingChange {
+  const after = Math.max(RATING_FLOOR, before + delta);
+  return { id, before, after, delta: after - before };
 }
