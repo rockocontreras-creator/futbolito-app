@@ -64,7 +64,21 @@ Fases cortas, cada una deployable. Marcar con [x] al terminar.
 ## Fase 4 · Pulido y comunidad
 
 - [x] Vista mapa (Leaflet)
-- [ ] Fair play: asistencia/no-shows y valoraciones entre pares
+- [x] Fair play: asistencia/no-shows y recomendaciones entre jugadores (Buen compañero, Líder, Crack)
 - [x] Moderación: panel `/admin` (canchas, resultados, reportes, usuarios, sectores) y reportar jugadores
 - [ ] PWA con push, íconos, modo offline básico
 - [ ] Abrir otras comunas
+
+## Hecho el 2026-11-15
+
+- [x] Rango tipo FACEIT: 15 puntos entre parejos, todo el lado igual, sin diferencia de goles
+- [x] Partidos públicos o privados, con solicitudes para entrar
+- [x] Recomendaciones en vez de estrellas
+- [x] Formación con invitados sin cuenta en partidos entre equipos
+- [x] Panel: números y gráficos, editar y borrar, historial, aviso a toda la comuna
+
+## Pendiente pedido por el equipo
+
+- [ ] Bot de WhatsApp ("¿Vas o no vas?" y ubicación de la cancha). Requiere cuenta de empresa en Meta,
+      número dedicado y plantillas aprobadas; Meta cobra por mensaje.
+- [ ] Invitados también en revoltijos (hoy solo en partidos entre equipos)

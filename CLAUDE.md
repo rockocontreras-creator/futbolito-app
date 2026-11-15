@@ -119,22 +119,22 @@ Aunque partimos solo en San Clemente, el modelo debe permitir crecer a otras com
 - Disponibilidad semanal (días y franjas horarias).
 - **Rango** (ver sección 6), estadísticas: partidos jugados, ganados/empatados/perdidos, goles,
   MVPs, % de asistencia.
-- **Fair play / reputación**: asistencia vs. inscripciones (no-shows bajan la reputación),
-  valoraciones de compañeros tras el partido (1–5, anónimas).
+- **Fair play / reputación**: asistencia vs. inscripciones (no-shows bajan la reputación) y
+  **recomendaciones** de quienes jugaron con él (ver 5.4).
 - Historial de partidos y equipos.
 - **Foto de perfil** en Supabase Storage (bucket público `avatars`); el navegador la recorta a 512 px. Se elige
   al crear el perfil (se sube apenas se crea) y se cambia en el perfil o en `/perfil/editar`. Si la cuenta
   viene de Google, el perfil parte con esa foto.
 - **Carta de jugador** (`src/lib/player-card.ts`, funciones puras; no se guarda nada): número general que sale
   del rango (1000 → 65, +6 cada 100 puntos, entre 40 y 99) y seis atributos de 40 a 99: `GOL` goles por
-  partido, `VIC` victorias, `MVP` veces figura, `ASI` asistencia, `VAL` valoración de compañeros, `EXP`
+  partido, `VIC` victorias, `MVP` veces figura, `ASI` asistencia, `REC` recomendaciones por partido, `EXP`
   partidos jugados. Con pocos partidos parten de un valor neutro. El color de la carta es el de la división.
   Se ve en el perfil y se comparte por WhatsApp.
 - El apodo ("¿Cómo te dicen en la cancha?") se pregunta **una sola vez**, en el perfil; en el registro solo se
   pide nombre y apellido.
 - **Comentarios en el perfil** (máx. 280 caracteres). Los borra su autor, el dueño del perfil o un admin.
 - **Apodos de la cancha** automáticos (ej. "La Abeja", "El Alérgico al Gol"): reglas puras en
-  `src/lib/nicknames.ts` a partir de estadísticas, etiquetas de las valoraciones y palabras de los comentarios.
+  `src/lib/nicknames.ts` a partir de estadísticas, recomendaciones y palabras de los comentarios.
   No se guardan; se recalculan.
 - URL pública: `/jugador/[username]`.
 
@@ -153,6 +153,10 @@ Aunque partimos solo en San Clemente, el modelo debe permitir crecer a otras com
 - Cualquier jugador lo publica: cancha, fecha/hora, formato (5v5, 6v6, 7v7…), cupos totales,
   rango mínimo/máximo opcional, costo por persona opcional, notas.
 - Otros jugadores se inscriben hasta llenar cupos; luego hay **lista de espera**.
+- **Público o privado** (`Match.isPrivate`, se elige al publicar). Público: se suma cualquiera. Privado:
+  aparece en la lista con un candado; para entrar se manda una **solicitud** (`JoinRequest`) y quien
+  organiza (o un admin) la acepta o rechaza. Al aceptar, el jugador queda inscrito (o en lista de espera si
+  está lleno). El rechazado no puede volver a pedir en ese partido; el aceptado que se baja puede volver.
 - Al cerrar inscripciones, el organizador pulsa **"Armar equipos"**: el sistema balancea los
   equipos por rating (algoritmo tipo _snake draft_, repartiendo arqueros primero). El organizador
   puede ajustar manualmente.
@@ -182,6 +186,12 @@ Aunque partimos solo en San Clemente, el modelo debe permitir crecer a otras com
   página propia (los dos planteles, sala de chat para ambos equipos, clima). La contrapropuesta todavía no
   existe: se coordina en la sala.
 - También se puede desafiar directamente a un equipo desde su perfil; ahí solo ese equipo puede aceptar.
+- **Formación con invitados** (`MatchLineup`, reglas en `src/lib/formation.ts`): cada capitán arma la de su
+  equipo en una cancha dibujada, con los puestos según el formato (3 formaciones por formato). En cada puesto
+  va alguien del plantel o un **invitado sin cuenta** (solo el nombre). Los invitados no tienen rango ni
+  estadísticas. Todos ven las formaciones; solo el capitán edita la suya, hasta que se confirma el resultado.
+- **Puntos en juego**: antes del partido se muestra cuánto gana o pierde cada lado (también en revoltijos
+  con los equipos armados).
 
 **c) Partido de liga (`LEAGUE`)**
 
@@ -203,8 +213,11 @@ Aunque partimos solo en San Clemente, el modelo debe permitir crecer a otras com
   jugaron (`floor(n/2)+1`). Si la mitad o más lo rechaza → `DISPUTED` (lo resuelve un admin o el organizador
   corrige el reporte, que reinicia la votación). Si no se llega a mayoría, **queda pendiente** (sin plazo).
   Hay que tener los equipos armados (lado A/B) para reportar.
-- Después del partido, quienes jugaron se valoran entre sí (1–5 estrellas + hasta 3 etiquetas `PlayerTag`)
-  durante 7 días. Es anónimo para el valorado.
+- Después del partido, quienes jugaron se **recomiendan** entre sí durante 7 días, como en Counter-Strike:
+  **Buen compañero, Líder y Crack** (`src/lib/commendations.ts`; se guardan en `PeerReview.commends`). Se
+  puede dar una, varias o ninguna a cada jugador y cambiarlas. Es anónimo. El perfil muestra cuántas tiene
+  de cada una. Reemplazan a las estrellas; las valoraciones antiguas se convirtieron (4–5 estrellas = Buen
+  compañero, 5 = Crack, etiqueta "Líder" = Líder) y sus etiquetas siguen contando para los apodos.
 
 ### 5.5 Ligas
 
@@ -262,11 +275,22 @@ Aunque partimos solo en San Clemente, el modelo debe permitir crecer a otras com
   - **Resumen**: qué hay por revisar y números del club.
   - **Canchas**: aprobar o rechazar las propuestas, y quitar una del mapa. Se le avisa a quien la propuso.
   - **Partidos**: resultados en disputa o esperando mayoría: el admin confirma el marcador (puede
-    corregirlo; si lo cambia se borran los goleadores reportados) o anula el partido. También puede anular
-    partidos por jugar. Un resultado ya confirmado no se anula, porque ya movió los rangos.
+    corregirlo; si lo cambia se borran los goleadores reportados) o anula el partido. En los partidos por
+    jugar puede **editar** (día y hora, cancha, cupos, notas; si cambia día, hora o cancha se avisa a los
+    inscritos), **anular** o **borrar**. Un resultado ya confirmado no se anula ni se borra, porque ya movió
+    los rangos.
   - **Usuarios**: buscar, suspender/reactivar y cambiar el rol (jugador, organizador, admin). Nadie se
     cambia a sí mismo; los admin de `ADMIN_EMAILS` no se pueden bajar desde el panel; para suspender a un
-    admin primero se le quita el rol. Reglas en `src/lib/admin.ts`.
+    admin primero se le quita el rol. Reglas en `src/lib/admin.ts`. También se puede **editar el perfil**
+    (nombre, apodo, quitar la foto).
+  - **Equipos**: buscar, editar nombre y descripción, y borrar (se anulan sus partidos por jugar, se cierran
+    sus desafíos abiertos y se avisa a los jugadores).
+  - **Comentarios**: lo último escrito en perfiles y en salas de partido, con botón para borrar.
+  - **Avisos**: un mensaje para toda la comuna (campana y celular). Máximo 3 cada 24 horas.
+  - **Números**: últimas 8 semanas: partidos jugados y cuentas nuevas por semana, horarios, canchas más
+    usadas y jugadores más activos (`src/lib/admin-stats.ts`). Cada gráfico se puede ver como tabla.
+  - **Historial** (`AdminLog`, `src/server/services/admin-log.ts`): toda acción del panel queda anotada con
+    quién la hizo. Una acción nueva del panel tiene que llamar a `logAdmin`.
   - **Sectores**: agregar, renombrar y ocultar los sectores de la comuna.
   - **Reportes**: los que mandan los jugadores. El admin suspende la cuenta, lo marca como visto o lo
     descarta, y ve cuántos reportes acumula cada cuenta.
@@ -278,18 +302,19 @@ Aunque partimos solo en San Clemente, el modelo debe permitir crecer a otras com
 
 ## 6. Sistema de rango
 
-Basado en **Elo**, simple de explicar y robusto.
+Basado en **Elo**, con reparto de puntos **tipo FACEIT** (pero con menos puntaje y sin niveles 1–10).
 
 - Rating inicial jugador según nivel autodeclarado: Principiante 900, Intermedio 1000, Avanzado 1100.
 - Rating inicial equipo: 1000.
 - Resultado esperado: `E = 1 / (1 + 10^((Rb - Ra) / 400))`.
-- Actualización: `R' = R + K · M · (S - E)`, donde `S` = 1 / 0.5 / 0 (gana/empata/pierde),
-  `K` = 40 en los primeros 10 partidos y 20 después, y `M` = multiplicador por diferencia de
-  goles (1 si dif ≤ 1, 1.5 si dif = 2, `(11 + dif) / 8` si dif ≥ 3).
-- **Revoltijo**: el rating de cada lado es el promedio de sus jugadores; cada jugador recibe el
-  cambio de su lado (solo afecta ratings individuales).
-- **Desafío / liga**: se actualiza el rating del equipo **y** el de cada jugador que participó
-  (los jugadores con K reducido a la mitad).
+- Cambio de un lado: `Δ = round(30 · (S − E))`, donde `S` = 1 / 0.5 / 0 (gana/empata/pierde). Entre lados
+  parejos se ganan o pierden **15** (en FACEIT son 25); ganarle a uno mejor da más y ser favorito da menos.
+  **La diferencia de goles no cuenta** y no hay K distinto para jugadores nuevos.
+- El que gana suma al menos 1 y el que pierde resta al menos 1. Nadie baja de 100.
+- **Revoltijo**: el rating de cada lado es el promedio de sus jugadores; **todo el lado recibe el mismo
+  cambio** y el otro lado, el contrario (solo afecta ratings individuales).
+- **Desafío / liga**: el equipo se mueve con el cambio completo y cada jugador que participó, con la mitad.
+- Antes del partido se muestran los "puntos en juego" de cada lado (`previewPoints`).
 - Solo cambian ratings los partidos `RESULT_CONFIRMED`.
 - Divisiones visibles:
 
@@ -315,7 +340,9 @@ inscrito/espera/asistió/no-show) · `Challenge` (propuestas entre equipos) · `
 `ResultObjection` · `ResultConfirmation` · `MatchMessage` (chat) · `ProfileComment` · `PlayerRequest` · `PlayerRequestResponse` · `League` · `Season` ·
 `SeasonTeam` · `Notification` · `Report` (moderación) · `EmailCode` (código para confirmar el correo) ·
 `MatchSeries` (pichanga fija) · `PushSubscription` (avisos al celular) · `AppSetting` (valores internos:
-llaves de avisos y secreto del reloj; nunca se muestran).
+llaves de avisos y secreto del reloj; nunca se muestran) · `JoinRequest` (solicitud para entrar a un partido
+privado) · `MatchLineup` (formación de un equipo en un partido, con invitados) · `AdminLog` (historial del
+panel).
 
 Reglas: IDs `cuid()`, `createdAt`/`updatedAt` en todas las tablas, soft-delete (`deletedAt`)
 en usuarios, equipos y partidos, índices en campos de búsqueda (zona, fecha, estado).
