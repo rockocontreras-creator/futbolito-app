@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { COMMENDATION_IDS } from "@/lib/commendations";
 import { parseLocalDateTime } from "@/lib/dates";
 import { idSchema } from "./common";
 
@@ -51,6 +52,8 @@ export const createPickupSchema = z
       .default("#ffd23f"),
     // Pichanga fija: se vuelve a publicar sola cada semana, el mismo día y a la misma hora.
     weekly: z.boolean().default(false),
+    // Privado: aparece con candado y para entrar hay que pedirlo.
+    isPrivate: z.boolean().default(false),
   })
   .refine((d) => d.maxPlayers >= d.playersPerSide * 2, {
     message: "Los cupos no alcanzan para dos equipos completos",
@@ -74,21 +77,7 @@ export type CreatePickupInput = z.input<typeof createPickupSchema>;
 export const matchIdSchema = z.object({ matchId: idSchema });
 export const answerGoingSchema = z.object({ matchId: idSchema, going: z.boolean() });
 export const seriesIdSchema = z.object({ seriesId: idSchema });
-
-const playerTag = z.enum([
-  "GOLEADOR",
-  "MURALLA",
-  "PASADOR",
-  "HABILIDOSO",
-  "INCANSABLE",
-  "ATAJADOR",
-  "LIDER",
-  "FAIR_PLAY",
-  "CHUPON",
-  "MOCHILA",
-  "RECLAMON",
-  "PIERNA_FUERTE",
-]);
+export const answerJoinRequestSchema = z.object({ requestId: idSchema, accept: z.boolean() });
 
 // Gestión del partido por el organizador
 export const participantActionSchema = z.object({ matchId: idSchema, userId: idSchema });
@@ -109,11 +98,13 @@ export const reportResultSchema = z.object({
 });
 export type ReportResultInput = z.input<typeof reportResultSchema>;
 
-// Valoración entre jugadores del mismo partido
-export const peerReviewSchema = z.object({
+// Recomendar a otro jugador del mismo partido (reemplaza a las estrellas). Lista vacía = quitarlas.
+export const commendSchema = z.object({
   matchId: idSchema,
   targetId: idSchema,
-  score: z.coerce.number().int().min(1, "Elige de 1 a 5 estrellas").max(5),
-  tags: z.array(playerTag).max(3, "Máximo 3 etiquetas").default([]),
+  commends: z
+    .array(z.enum(COMMENDATION_IDS))
+    .max(COMMENDATION_IDS.length)
+    .transform((list) => [...new Set(list)]),
 });
-export type PeerReviewInput = z.input<typeof peerReviewSchema>;
+export type CommendInput = z.input<typeof commendSchema>;

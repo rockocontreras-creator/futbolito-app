@@ -1,3 +1,4 @@
+import { totalCommends } from "@/lib/commendations";
 import { CalendarDays, LogOut, Pencil, Share2, ShieldCheck } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -86,7 +87,7 @@ async function ProfileGate({ searchParams }: { searchParams: PageProps<"/perfil"
           </Link>
         </p>
       )}
-      <ProfileView profile={profile} reviews={community.reviews} />
+      <ProfileView profile={profile} commends={totalCommends(community.commends)} />
       <section aria-labelledby="foto" className="space-y-4 rounded-2xl border-2 bg-card p-5">
         <h2 id="foto" className="text-xl font-extrabold">
           Foto de perfil

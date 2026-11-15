@@ -3,10 +3,11 @@ import {
   applyPickupResult,
   applyTeamMatchResult,
   expectedScore,
-  goalDiffMultiplier,
-  kFactor,
+  halfDelta,
   outcomeFromScore,
-  ratingDelta,
+  previewPoints,
+  RATING_FLOOR,
+  sideDelta,
 } from "./elo";
 
 describe("expectedScore", () => {
@@ -21,27 +22,6 @@ describe("expectedScore", () => {
   });
 });
 
-describe("kFactor", () => {
-  it("40 en los primeros 10 partidos, 20 después", () => {
-    expect(kFactor(0)).toBe(40);
-    expect(kFactor(9)).toBe(40);
-    expect(kFactor(10)).toBe(20);
-    expect(kFactor(50)).toBe(20);
-  });
-});
-
-describe("goalDiffMultiplier", () => {
-  it.each([
-    [0, 0, 1],
-    [2, 1, 1],
-    [3, 1, 1.5],
-    [4, 1, 1.75], // (11+3)/8
-    [0, 5, 2], // (11+5)/8
-  ])("%i-%i → %f", (a, b, m) => {
-    expect(goalDiffMultiplier(a, b)).toBe(m);
-  });
-});
-
 describe("outcomeFromScore", () => {
   it("gana / empata / pierde", () => {
     expect(outcomeFromScore(3, 1)).toBe(1);
@@ -50,64 +30,119 @@ describe("outcomeFromScore", () => {
   });
 });
 
-describe("ratingDelta", () => {
-  it("ganar entre iguales por 1 gol con K=40 da +20", () => {
-    expect(ratingDelta({ rating: 1000, opponentRating: 1000, scoreFor: 1, scoreAgainst: 0, k: 40 })).toBe(20);
+describe("sideDelta", () => {
+  it("entre lados parejos se ganan o pierden 15 y el empate no mueve nada", () => {
+    expect(sideDelta(1000, 1000, 1)).toBe(15);
+    expect(sideDelta(1000, 1000, 0)).toBe(-15);
+    expect(sideDelta(1000, 1000, 0.5)).toBe(0);
+  });
+  it("ganarle a uno mejor da más; ganarle a uno peor da menos", () => {
+    expect(sideDelta(1000, 1200, 1)).toBe(23);
+    expect(sideDelta(1200, 1000, 1)).toBe(7);
+    expect(sideDelta(1200, 1000, 0)).toBe(-23);
   });
   it("empatar contra uno más fuerte sube el rating", () => {
-    expect(
-      ratingDelta({ rating: 900, opponentRating: 1100, scoreFor: 2, scoreAgainst: 2, k: 20 }),
-    ).toBeGreaterThan(0);
+    expect(sideDelta(1000, 1200, 0.5)).toBeGreaterThan(0);
+    expect(sideDelta(1200, 1000, 0.5)).toBeLessThan(0);
   });
-  it("es de suma cero con el mismo K", () => {
-    const a = ratingDelta({ rating: 1050, opponentRating: 980, scoreFor: 5, scoreAgainst: 1, k: 20 });
-    const b = ratingDelta({ rating: 980, opponentRating: 1050, scoreFor: 1, scoreAgainst: 5, k: 20 });
-    expect(a + b).toBeCloseTo(0, 10);
+  it("el que gana siempre suma al menos 1 y el que pierde resta al menos 1", () => {
+    expect(sideDelta(2000, 900, 1)).toBe(1);
+    expect(sideDelta(900, 2000, 0)).toBe(-1);
+  });
+  it("no depende de la diferencia de goles", () => {
+    const a = applyPickupResult({
+      sideA: [{ id: "a", rating: 1000 }],
+      sideB: [{ id: "b", rating: 1000 }],
+      scoreA: 1,
+      scoreB: 0,
+    });
+    const b = applyPickupResult({
+      sideA: [{ id: "a", rating: 1000 }],
+      sideB: [{ id: "b", rating: 1000 }],
+      scoreA: 9,
+      scoreB: 0,
+    });
+    expect(a.map((c) => c.delta)).toEqual(b.map((c) => c.delta));
+  });
+});
+
+describe("previewPoints", () => {
+  it("muestra lo que se juega cada lado", () => {
+    expect(previewPoints(1000, 1000)).toEqual({ win: 15, draw: 0, loss: -15 });
+    expect(previewPoints(1100, 1000)).toEqual({ win: 11, draw: -4, loss: -19 });
+  });
+});
+
+describe("halfDelta", () => {
+  it("es la mitad, sin anular el resultado", () => {
+    expect(halfDelta(15)).toBe(8);
+    expect(halfDelta(-15)).toBe(-8);
+    expect(halfDelta(1)).toBe(1);
+    expect(halfDelta(-1)).toBe(-1);
+    expect(halfDelta(0)).toBe(0);
   });
 });
 
 describe("applyPickupResult", () => {
-  it("usa el promedio de cada lado y el K propio de cada jugador", () => {
+  it("usa el promedio de cada lado y todo el lado recibe lo mismo", () => {
     const changes = applyPickupResult({
       sideA: [
         { id: "nuevo", rating: 1000, ratedMatches: 0 },
         { id: "veterano", rating: 1000, ratedMatches: 30 },
       ],
       sideB: [
-        { id: "b1", rating: 900, ratedMatches: 30 },
-        { id: "b2", rating: 1100, ratedMatches: 30 },
+        { id: "b1", rating: 900 },
+        { id: "b2", rating: 1100 },
       ],
       scoreA: 4,
       scoreB: 3,
     });
     const byId = Object.fromEntries(changes.map((c) => [c.id, c]));
-    // Promedios iguales (1000 vs 1000), gana A por 1 → S−E = 0.5
-    expect(byId.nuevo!.delta).toBe(20); // K 40
-    expect(byId.veterano!.delta).toBe(10); // K 20
-    expect(byId.b1!.delta).toBe(-10);
-    expect(byId.b2!.after).toBe(1090);
+    expect(byId.nuevo!.delta).toBe(15);
+    expect(byId.veterano!.delta).toBe(15);
+    expect(byId.b1!.delta).toBe(-15);
+    expect(byId.b2!.after).toBe(1085);
+  });
+  it("es de suma cero entre lados del mismo tamaño", () => {
+    const changes = applyPickupResult({
+      sideA: [
+        { id: "a1", rating: 1037 },
+        { id: "a2", rating: 1113 },
+      ],
+      sideB: [
+        { id: "b1", rating: 964 },
+        { id: "b2", rating: 1011 },
+      ],
+      scoreA: 2,
+      scoreB: 5,
+    });
+    expect(changes.reduce((sum, c) => sum + c.delta, 0)).toBe(0);
+  });
+  it("nadie baja del piso", () => {
+    const [low] = applyPickupResult({
+      sideA: [{ id: "a", rating: RATING_FLOOR + 3 }],
+      sideB: [{ id: "b", rating: RATING_FLOOR + 3 }],
+      scoreA: 0,
+      scoreB: 1,
+    });
+    expect(low!.after).toBe(RATING_FLOOR);
+    expect(low!.delta).toBe(-3);
   });
 });
 
 describe("applyTeamMatchResult", () => {
-  it("actualiza equipos con K completo y jugadores con K a la mitad", () => {
+  it("mueve a los equipos con el cambio completo y a los jugadores con la mitad", () => {
     const res = applyTeamMatchResult({
-      home: {
-        id: "H",
-        rating: 1000,
-        ratedMatches: 20,
-        players: [{ id: "h1", rating: 1200, ratedMatches: 20 }],
-      },
-      away: { id: "A", rating: 1000, ratedMatches: 0, players: [{ id: "a1", rating: 800, ratedMatches: 0 }] },
+      home: { id: "H", rating: 1000, players: [{ id: "h1", rating: 1200 }] },
+      away: { id: "A", rating: 1000, players: [{ id: "a1", rating: 800 }] },
       scoreHome: 2,
       scoreAway: 0,
     });
     const teams = Object.fromEntries(res.teams.map((c) => [c.id, c.delta]));
     const players = Object.fromEntries(res.players.map((c) => [c.id, c.delta]));
-    // dif 2 → M 1.5; S−E = ±0.5
-    expect(teams.H).toBe(15); // 20 · 1.5 · 0.5
-    expect(teams.A).toBe(-30); // 40 · 1.5 · 0.5
-    expect(players.h1).toBe(8); // 10 · 1.5 · 0.5 = 7.5 → 8
-    expect(players.a1).toBe(-15); // 20 · 1.5 · 0.5
+    expect(teams.H).toBe(15);
+    expect(teams.A).toBe(-15);
+    expect(players.h1).toBe(8);
+    expect(players.a1).toBe(-8);
   });
 });

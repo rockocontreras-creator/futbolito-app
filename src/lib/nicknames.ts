@@ -2,6 +2,7 @@
 // Funciones puras: se calculan a partir de estadísticas, etiquetas de las valoraciones y palabras clave de
 // los comentarios. No se guardan en la BD: cambian solos a medida que el jugador juega.
 
+import type { CommendCounts } from "./commendations";
 import type { PlayerTagId } from "./labels";
 
 export interface NicknameInput {
@@ -14,8 +15,8 @@ export interface NicknameInput {
   attendances: number;
   /** Cuántas veces le pusieron cada etiqueta. */
   tags: Partial<Record<PlayerTagId, number>>;
-  /** Cantidad de valoraciones recibidas y su promedio (1–5). */
-  reviews: { count: number; average: number | null };
+  /** Recomendaciones recibidas por categoría. */
+  commends: CommendCounts;
   /** Texto de los comentarios recibidos (se buscan palabras clave). */
   comments: readonly string[];
 }
@@ -47,10 +48,15 @@ const KEYWORDS: Record<PlayerTagId, RegExp> = {
 };
 
 /** Suma las etiquetas de las valoraciones con las que aparecen en los comentarios (1 por comentario). */
-export function tagScores(input: Pick<NicknameInput, "tags" | "comments">): Record<PlayerTagId, number> {
+export function tagScores(
+  input: Pick<NicknameInput, "tags" | "comments"> & { commends?: CommendCounts },
+): Record<PlayerTagId, number> {
   const scores = Object.fromEntries(
     (Object.keys(KEYWORDS) as PlayerTagId[]).map((t) => [t, input.tags[t] ?? 0]),
   ) as Record<PlayerTagId, number>;
+  // Las recomendaciones cuentan como votos: "Líder" y "Buen compañero" (buena onda).
+  scores.LIDER += input.commends?.LIDER ?? 0;
+  scores.FAIR_PLAY += input.commends?.COMPANERO ?? 0;
   for (const text of input.comments) {
     for (const tag of Object.keys(KEYWORDS) as PlayerTagId[]) {
       if (KEYWORDS[tag].test(text)) scores[tag] += 1;
@@ -140,12 +146,12 @@ export function nicknamesFor(p: NicknameInput, limit = 3): Nickname[] {
   if (attendance != null && p.registrations >= 4 && attendance < 0.6) {
     add({ id: "fantasma", title: "El Fantasma", reason: "Se inscribe y no aparece", tone: "banter" }, 8);
   }
-  if (p.reviews.count >= 5 && (p.reviews.average ?? 0) >= 4.5) {
+  if (p.commends.CRACK >= 5) {
     add(
       {
         id: "crack",
         title: "El Crack del Barrio",
-        reason: "Lo mejor evaluado por sus compañeros",
+        reason: `${p.commends.CRACK} veces recomendado como crack`,
         tone: "good",
       },
       9,

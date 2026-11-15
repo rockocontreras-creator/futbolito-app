@@ -226,3 +226,37 @@ por un aviso que no vieron. El organizador ve quién falta y decide.
 en la sala del partido. El rango de los jugadores se mueve solo para quienes el capitán marca que jugaron.
 
 **Reportes anónimos para el reportado**, con tope diario, para que se usen sin miedo y sin abuso.
+
+## 2026-11-15 · Rango tipo FACEIT, partidos privados, recomendaciones, formaciones y panel ampliado
+
+**Rango tipo FACEIT, con 15 puntos entre parejos.** Pedido del equipo: "parecido al de FACEIT pero con menor
+puntaje y no con niveles". Todo el lado gana o pierde lo mismo y la diferencia de goles deja de contar, que
+es lo que hace reconocible a ese sistema. Se quitó el K doble de los primeros 10 partidos: hacía que dos
+compañeros ganaran distinto por el mismo partido. Las divisiones (Bronce a Diamante) se quedan; "sin
+niveles" es no agregar los niveles 1–10. Nadie pierde los puntos que ya tenía.
+
+**Privado = con solicitud, no oculto.** El pedido habla de "enviar una solicitud para entrar", así que el
+partido privado se ve en la lista (con candado) y el organizador decide. Un partido oculto que solo se abre
+con link queda para después si hace falta.
+
+**Las recomendaciones reutilizan `PeerReview`** (columna `commends`) en vez de una tabla nueva: es la misma
+idea (lo que un jugador dice de otro en un partido) y así el historial no se parte en dos. `score` quedó
+opcional y ya no se pide. Las etiquetas antiguas no se borran: siguen alimentando los apodos.
+
+**Los invitados son solo un nombre dentro de la formación.** No son cuentas ni participantes: no tienen
+rango, no cuentan en el resultado y no se pueden reportar. Así un capitán completa su equipo sin crear
+cuentas falsas. La formación se guarda como JSON por lado (`MatchLineup.slots`) y siempre se limpia con
+`sanitizeLineup` al guardar y al mostrar.
+
+**El aviso a toda la comuna tiene tope (3 cada 24 horas)** y pide dos toques, porque llega al celular de
+todos y no se puede deshacer.
+
+**Borrar no borra de verdad.** Partidos, equipos, comentarios y mensajes se marcan con `deletedAt`. Un
+resultado confirmado no se puede borrar porque ya movió los rangos.
+
+**Gráficos sin librería nueva.** Son columnas y barras de una sola serie hechas con HTML y CSS; cada una
+trae su tabla. No justifica sumar una dependencia.
+
+**Bot de WhatsApp: pospuesto por decisión del equipo.** Necesita una cuenta de empresa en Meta, un número
+dedicado y plantillas aprobadas, y Meta cobra por cada mensaje que el bot manda primero. Mientras tanto el
+"¿Vas o no vas?" sigue llegando como aviso al celular.

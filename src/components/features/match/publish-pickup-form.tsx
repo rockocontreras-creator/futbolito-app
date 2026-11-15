@@ -53,6 +53,7 @@ export function PublishPickupForm({
       pricePerPerson: "",
       notes: "",
       weekly: false,
+      isPrivate: false,
       colorA: "#0e5a36",
       colorB: "#ffd23f",
     },
@@ -64,6 +65,7 @@ export function PublishPickupForm({
   const [newLat, newLng] = useWatch({ control: form.control, name: ["newVenueLat", "newVenueLng"] });
   const newPoint = newLat != null && newLng != null ? { lat: Number(newLat), lng: Number(newLng) } : null;
   const playersPerSide = Number(useWatch({ control: form.control, name: "playersPerSide" }));
+  const isPrivate = useWatch({ control: form.control, name: "isPrivate" }) ?? false;
 
   const onSubmit = form.handleSubmit(() => {
     setServerError(null);
@@ -314,6 +316,40 @@ export function PublishPickupForm({
         >
           <Textarea id="notes" rows={3} {...register("notes")} {...aria("notes")} />
         </Field>
+        <fieldset className="space-y-2">
+          <legend className="text-sm font-extrabold">¿Quién puede entrar?</legend>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {[
+              {
+                value: false,
+                title: "Público",
+                text: "Se suma cualquiera de la comuna, hasta llenar los cupos.",
+              },
+              {
+                value: true,
+                title: "Privado",
+                text: "Aparece con un candado. Te piden entrar y tú aceptas o rechazas.",
+              },
+            ].map((option) => (
+              <label
+                key={option.title}
+                className="flex cursor-pointer items-start gap-3 rounded-2xl border-2 bg-secondary/50 p-4 has-checked:border-primary has-checked:bg-secondary"
+              >
+                <input
+                  type="radio"
+                  name="isPrivate"
+                  className="mt-1 size-5 accent-(--pasto)"
+                  checked={isPrivate === option.value}
+                  onChange={() => setValue("isPrivate", option.value, { shouldDirty: true })}
+                />
+                <span>
+                  <span className="block font-extrabold">{option.title}</span>
+                  <span className="text-sm text-muted-foreground">{option.text}</span>
+                </span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
         <label className="flex cursor-pointer items-start gap-3 rounded-2xl border-2 bg-secondary/50 p-4 has-checked:border-primary has-checked:bg-secondary">
           <input type="checkbox" className="mt-1 size-5 accent-(--pasto)" {...register("weekly")} />
           <span>

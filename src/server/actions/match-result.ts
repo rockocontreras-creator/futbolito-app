@@ -2,7 +2,7 @@
 
 import { refresh } from "next/cache";
 import { db } from "@/lib/db";
-import { matchIdSchema, peerReviewSchema, reportResultSchema } from "@/lib/validations/match";
+import { commendSchema, matchIdSchema, reportResultSchema } from "@/lib/validations/match";
 import { runAction } from "@/server/action-result";
 import { AuthError, requireUser } from "@/server/permissions";
 import { finalizeDueResults } from "@/server/services/finalize-results";
@@ -166,29 +166,32 @@ export async function objectResult(input: unknown) {
   });
 }
 
-/** Valorar a otro jugador del mismo partido: 1–5 estrellas y hasta 3 etiquetas. Se puede cambiar. */
-export async function reviewPlayer(input: unknown) {
-  return runAction(peerReviewSchema, input, async ({ matchId, targetId, score, tags }) => {
+/**
+ * Recomendar a otro jugador del mismo partido: Buen compañero, Líder y/o Crack.
+ * Es anónimo y se puede cambiar durante una semana.
+ */
+export async function commendPlayer(input: unknown) {
+  return runAction(commendSchema, input, async ({ matchId, targetId, commends }) => {
     const user = await requireUser();
-    if (targetId === user.id) throw new AuthError("No puedes valorarte a ti mismo.");
+    if (targetId === user.id) throw new AuthError("No puedes recomendarte a ti mismo.");
     const match = await db.match.findFirst({
       where: { id: matchId, deletedAt: null, status: { in: ["PLAYED", "RESULT_CONFIRMED", "DISPUTED"] } },
     });
-    if (!match) throw new AuthError("Este partido todavía no se puede valorar.");
+    if (!match) throw new AuthError("Todavía no se puede recomendar en este partido.");
     const limit = new Date(match.startsAt.getTime() + REVIEW_WINDOW_DAYS * 86400_000);
-    if (new Date() > limit) throw new AuthError("Ya pasó una semana: este partido no se puede valorar.");
+    if (new Date() > limit) throw new AuthError("Ya pasó una semana: se cerraron las recomendaciones.");
 
     const both = await db.matchParticipant.findMany({
       where: { matchId, userId: { in: [user.id, targetId] }, status: "ATTENDED" },
     });
-    if (both.length !== 2) throw new AuthError("Solo pueden valorarse quienes jugaron este partido.");
+    if (both.length !== 2) throw new AuthError("Solo pueden recomendarse quienes jugaron este partido.");
 
     await db.peerReview.upsert({
       where: { matchId_authorId_targetId: { matchId, authorId: user.id, targetId } },
-      create: { matchId, authorId: user.id, targetId, score, tags },
-      update: { score, tags },
+      create: { matchId, authorId: user.id, targetId, commends },
+      update: { commends },
     });
     refresh();
-    return { score };
+    return { commends };
   });
 }

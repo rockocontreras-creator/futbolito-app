@@ -11,8 +11,7 @@ const fresh: CardInput = {
   mvps: 0,
   registrations: 0,
   attendances: 0,
-  reviewAverage: null,
-  reviewCount: 0,
+  commends: 0,
 };
 const stat = (p: CardInput, id: string) => cardStats(p).find((s) => s.id === id)!.value;
 
@@ -38,12 +37,11 @@ describe("cardStats", () => {
       mvps: 3,
       registrations: 3,
       attendances: 3,
-      reviewAverage: 5,
-      reviewCount: 30,
+      commends: 30,
     };
     for (const p of [fresh, wild]) {
       const stats = cardStats(p);
-      expect(stats.map((s) => s.id)).toEqual(["GOL", "VIC", "MVP", "ASI", "VAL", "EXP"]);
+      expect(stats.map((s) => s.id)).toEqual(["GOL", "VIC", "MVP", "ASI", "REC", "EXP"]);
       for (const s of stats) {
         expect(s.value).toBeGreaterThanOrEqual(CARD_MIN);
         expect(s.value).toBeLessThanOrEqual(CARD_MAX);
@@ -54,7 +52,7 @@ describe("cardStats", () => {
     expect(stat(fresh, "GOL")).toBe(40);
     expect(stat(fresh, "EXP")).toBe(40);
     expect(stat(fresh, "VIC")).toBeLessThan(65);
-    expect(stat(fresh, "VAL")).toBe(70);
+    expect(stat(fresh, "REC")).toBe(70);
   });
   it("un partido ganado no dispara las victorias", () => {
     const one = { ...fresh, matchesPlayed: 1, wins: 1 };
@@ -73,11 +71,13 @@ describe("cardStats", () => {
     expect(stat(flaky, "ASI")).toBeLessThan(50);
     expect(stat(solid, "ASI")).toBeGreaterThan(90);
   });
-  it("la valoración sigue la nota de los compañeros", () => {
-    const loved = { ...fresh, reviewAverage: 5, reviewCount: 20 };
-    const meh = { ...fresh, reviewAverage: 2, reviewCount: 20 };
-    expect(stat(loved, "VAL")).toBeGreaterThan(90);
-    expect(stat(meh, "VAL")).toBeLessThan(60);
+  it("las recomendaciones por partido suben el atributo", () => {
+    const loved = { ...fresh, matchesPlayed: 20, commends: 40 };
+    const ignored = { ...fresh, matchesPlayed: 20, commends: 2 };
+    expect(stat(loved, "REC")).toBeGreaterThan(90);
+    expect(stat(ignored, "REC")).toBeLessThan(50);
+    // Sin partidos parte en la mitad de la escala.
+    expect(stat(fresh, "REC")).toBe(70);
   });
   it("la experiencia sube con los partidos", () => {
     expect(stat({ ...fresh, matchesPlayed: 25 }, "EXP")).toBe(77);

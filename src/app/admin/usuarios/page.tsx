@@ -1,6 +1,7 @@
 import { Search } from "lucide-react";
 import Link from "next/link";
 import { UserActions } from "@/components/features/admin/admin-actions";
+import { ProfileAdmin } from "@/components/features/admin/admin-edit";
 import { PlayerAvatar } from "@/components/features/player/player-avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -88,6 +89,14 @@ export default async function AdminUsers({ searchParams }: PageProps<"/admin/usu
                     locked === null ? null : u.id === admin.id ? "Esta es tu cuenta." : "Admin fijo."
                   }
                 />
+                {u.profile && (
+                  <ProfileAdmin
+                    userId={u.id}
+                    displayName={u.profile.displayName}
+                    nickname={u.profile.nickname}
+                    hasPhoto={Boolean(u.profile.photoUrl)}
+                  />
+                )}
               </li>
             );
           })}

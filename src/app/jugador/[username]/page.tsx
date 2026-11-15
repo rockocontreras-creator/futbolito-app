@@ -1,3 +1,4 @@
+import { totalCommends } from "@/lib/commendations";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
@@ -30,7 +31,7 @@ async function PublicProfile({ params }: { params: PageProps<"/jugador/[username
   const community = await getPlayerCommunity(profile.userId);
   return (
     <div className="space-y-8">
-      <ProfileView profile={profile} reviews={community.reviews} />
+      <ProfileView profile={profile} commends={totalCommends(community.commends)} />
       <PlayerCommunity
         profile={profile}
         community={community}

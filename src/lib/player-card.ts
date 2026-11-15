@@ -11,12 +11,11 @@ export interface CardInput {
   mvps: number;
   registrations: number;
   attendances: number;
-  /** Promedio de valoraciones de compañeros (1–5), o null si no tiene. */
-  reviewAverage: number | null;
-  reviewCount: number;
+  /** Recomendaciones recibidas después de los partidos (todas las categorías). */
+  commends: number;
 }
 
-export type CardStatId = "GOL" | "VIC" | "MVP" | "ASI" | "VAL" | "EXP";
+export type CardStatId = "GOL" | "VIC" | "MVP" | "ASI" | "REC" | "EXP";
 
 export interface CardStat {
   id: CardStatId;
@@ -54,10 +53,8 @@ export function cardStats(p: CardInput): CardStat[] {
   // Asistencia: bajo 50 % es el mínimo; parte en 75 %.
   const attendance = (p.attendances + 1.5) / (p.registrations + 2);
   const asi = (attendance - 0.5) / 0.5;
-  // Valoración de compañeros (1–5), partiendo de 3.
-  const reviews = Math.max(0, p.reviewCount);
-  const score = ((p.reviewAverage ?? 3) * reviews + 3 * 2) / (reviews + 2);
-  const val = (score - 1) / 4;
+  // Recomendaciones por partido: 2 por partido es el tope; parte en la mitad.
+  const rec = (Math.max(0, p.commends) + 2) / (n + 2) / 2;
   // Experiencia: sube rápido al principio y se aplana (25 partidos ≈ 77).
   const exp = 1 - Math.exp(-n / 25);
 
@@ -66,7 +63,7 @@ export function cardStats(p: CardInput): CardStat[] {
     { id: "VIC", label: "Victorias", help: "Partidos ganados", value: toCard(vic) },
     { id: "MVP", label: "Figura", help: "Veces figura del partido", value: toCard(mvp) },
     { id: "ASI", label: "Asistencia", help: "Llega cuando se inscribe", value: toCard(asi) },
-    { id: "VAL", label: "Valoración", help: "Nota de sus compañeros", value: toCard(val) },
+    { id: "REC", label: "Recomendado", help: "Recomendaciones por partido", value: toCard(rec) },
     { id: "EXP", label: "Experiencia", help: "Partidos jugados", value: toCard(exp) },
   ];
 }

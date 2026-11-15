@@ -11,7 +11,12 @@ const tabs = [
   { href: "/admin/partidos", label: "Partidos" },
   { href: "/admin/reportes", label: "Reportes" },
   { href: "/admin/usuarios", label: "Usuarios" },
+  { href: "/admin/equipos", label: "Equipos" },
+  { href: "/admin/contenido", label: "Comentarios" },
+  { href: "/admin/avisos", label: "Avisos" },
+  { href: "/admin/numeros", label: "Números" },
   { href: "/admin/sectores", label: "Sectores" },
+  { href: "/admin/historial", label: "Historial" },
 ] as const;
 
 type Badges = Partial<Record<(typeof tabs)[number]["href"], number>>;
@@ -32,7 +37,7 @@ function Live({ badges }: { badges: Badges }) {
 function View({ active, badges }: { active: string | null; badges: Badges }) {
   return (
     <nav aria-label="Panel de administración" className="relative -mx-4 overflow-x-auto px-4 pb-1">
-      <ul className="flex gap-2">
+      <ul className="flex gap-2 lg:flex-wrap">
         {tabs.map(({ href, label }) => {
           const on = active === href;
           const n = badges[href] ?? 0;

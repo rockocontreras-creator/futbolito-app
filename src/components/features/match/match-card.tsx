@@ -1,7 +1,7 @@
 import { TZDate } from "@date-fns/tz";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { CloudRain, MapPin, Repeat } from "lucide-react";
+import { CloudRain, Lock, MapPin, Repeat } from "lucide-react";
 import Link from "next/link";
 import { DivisionBadge } from "@/components/features/player/division-badge";
 import { TIMEZONE } from "@/config/site";
@@ -50,6 +50,11 @@ export function MatchCard({ match }: { match: MatchCardData }) {
             </span>
           ) : null}
         </div>
+        {match.isPrivate && (
+          <p className="flex items-center gap-1.5 text-sm font-bold text-muted-foreground">
+            <Lock className="size-4 shrink-0" aria-hidden /> Privado: se entra con solicitud
+          </p>
+        )}
         {match.weekly && (
           <p className="flex items-center gap-1.5 text-sm font-bold text-primary">
             <Repeat className="size-4 shrink-0" aria-hidden /> Pichanga fija, todas las semanas
@@ -72,7 +77,7 @@ export function MatchCard({ match }: { match: MatchCardData }) {
             <div className="flex items-center justify-between">
               {match.avgRating ? <DivisionBadge rating={match.avgRating} showRating /> : <span />}
               <span className="rounded-xl bg-primary px-3.5 py-1.5 text-sm font-extrabold text-primary-foreground">
-                {missing > 0 ? "Sumarme" : "Lista de espera"}
+                {match.isPrivate ? "Pedir entrar" : missing > 0 ? "Sumarme" : "Lista de espera"}
               </span>
             </div>
           </>

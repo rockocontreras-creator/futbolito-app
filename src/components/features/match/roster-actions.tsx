@@ -1,10 +1,10 @@
 "use client";
 
-import { Check, Clock, LogIn, UserRound } from "lucide-react";
+import { Check, Clock, Lock, LogIn, UserRound } from "lucide-react";
 import Link from "next/link";
 import { useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
-import { joinMatch, leaveMatch } from "@/server/actions/match";
+import { cancelJoinRequest, joinMatch, leaveMatch, requestJoin } from "@/server/actions/match";
 
 export type ViewerState =
   | { kind: "anonymous" }
@@ -13,6 +13,10 @@ export type ViewerState =
   | { kind: "registered" }
   | { kind: "waitlist"; position: number }
   | { kind: "can-join"; full: boolean }
+  // Partido privado
+  | { kind: "can-request" }
+  | { kind: "requested" }
+  | { kind: "rejected" }
   | { kind: "closed"; reason: string };
 
 /** Botón principal del partido: sumarse, bajarse o el paso previo que falte. */
@@ -23,14 +27,14 @@ export function RosterActions({ matchId, viewer }: { matchId: string; viewer: Vi
 
   type Action = (input: {
     matchId: string;
-  }) => Promise<{ ok: true; data: object } | { ok: false; error: string }>;
+  }) => Promise<{ ok: true; data: object | null } | { ok: false; error: string }>;
 
   function run(action: Action, okText: (status?: string) => string) {
     setMessage(null);
     startTransition(async () => {
       const res = await action({ matchId });
       if (res.ok) {
-        const status = "status" in res.data ? String(res.data.status) : undefined;
+        const status = res.data && "status" in res.data ? String(res.data.status) : undefined;
         setMessage({ tone: "ok", text: okText(status) });
       } else {
         setMessage({ tone: "error", text: res.error });
@@ -114,6 +118,47 @@ export function RosterActions({ matchId, viewer }: { matchId: string; viewer: Vi
         >
           {pending ? "Guardando…" : viewer.full ? "Anotarme en la lista de espera" : "Sumarme"}
         </Button>
+      );
+      break;
+    case "can-request":
+      body = (
+        <div className="space-y-2">
+          <p className="flex items-center justify-center gap-2 text-sm font-bold text-muted-foreground">
+            <Lock className="size-4" aria-hidden /> Partido privado: quien organiza decide quién entra
+          </p>
+          <Button
+            size="lg"
+            className="w-full"
+            disabled={pending}
+            onClick={() => run(requestJoin, () => "Solicitud enviada. Te avisamos cuando respondan.")}
+          >
+            {pending ? "Enviando…" : "Pedir entrar"}
+          </Button>
+        </div>
+      );
+      break;
+    case "requested":
+      body = (
+        <div className="space-y-2">
+          <p className="flex items-center justify-center gap-2 rounded-2xl bg-foco/30 py-3 text-sm font-extrabold">
+            <Clock className="size-4" aria-hidden /> Solicitud enviada, falta que te respondan
+          </p>
+          <Button
+            variant="ghost"
+            className="w-full"
+            disabled={pending}
+            onClick={() => run(cancelJoinRequest, () => "Retiraste tu solicitud.")}
+          >
+            Retirar la solicitud
+          </Button>
+        </div>
+      );
+      break;
+    case "rejected":
+      body = (
+        <p className="rounded-2xl bg-secondary px-3 py-3 text-center text-sm font-extrabold text-muted-foreground">
+          No aceptaron tu solicitud para este partido
+        </p>
       );
       break;
     case "closed":

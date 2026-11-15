@@ -1,3 +1,4 @@
+import { GUEST_NAME_MAX } from "@/lib/formation";
 import { z } from "zod";
 import { parseLocalDateTime } from "@/lib/dates";
 import { idSchema } from "./common";
@@ -39,3 +40,20 @@ export const teamResultSchema = z.object({
   playerIds: z.array(idSchema).min(1, "Marca al menos a un jugador").max(30),
 });
 export type TeamResultInput = z.input<typeof teamResultSchema>;
+
+// Formación de un equipo para un partido: cada puesto lo ocupa alguien del plantel o un invitado sin cuenta.
+export const saveLineupSchema = z.object({
+  matchId: idSchema,
+  teamId: idSchema,
+  formation: z.string().max(20),
+  slots: z
+    .array(
+      z.object({
+        slot: z.number().int().min(0).max(10),
+        userId: idSchema.optional(),
+        guest: z.string().trim().max(GUEST_NAME_MAX, "Nombre muy largo").optional(),
+      }),
+    )
+    .max(11),
+});
+export type SaveLineupInput = z.input<typeof saveLineupSchema>;

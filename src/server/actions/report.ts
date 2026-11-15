@@ -8,6 +8,7 @@ import { MAX_REPORTS_PER_DAY, reportCategoryLabel } from "@/lib/reports";
 import { reportPlayerSchema, resolveReportSchema } from "@/lib/validations/report";
 import { runAction } from "@/server/action-result";
 import { AuthError, requireAdmin, requireUser } from "@/server/permissions";
+import { logAdmin } from "@/server/services/admin-log";
 import { notifyUsers } from "@/server/services/notify";
 
 /** Reportar a un jugador. Llega al panel de administración; el reportado no sabe quién lo reportó. */
@@ -89,6 +90,16 @@ export async function resolveReport(input: unknown) {
         resolution: suspend ? "Cuenta suspendida" : outcome === "RESOLVED" ? "Revisado" : "Descartado",
       },
     });
+    await logAdmin(
+      admin.id,
+      "report",
+      suspend
+        ? "Suspendió una cuenta por un reporte"
+        : outcome === "RESOLVED"
+          ? "Marcó un reporte como visto"
+          : "Descartó un reporte",
+      reportId,
+    );
     refresh();
     return null;
   });
