@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 
 export default function PrivacyPage() {
   return (
-    <LegalPage title="Privacidad" updated="14 de noviembre de 2026">
+    <LegalPage title="Privacidad" updated="15 de noviembre de 2026">
       <p>
         {APP_NAME} sirve para organizar partidos de futbolito en San Clemente. Acá explicamos, sin letra
         chica, qué datos guardamos, para qué y quién los ve.
@@ -28,8 +28,13 @@ export default function PrivacyPage() {
           </li>
           <li>
             <strong>Lo que haces en la página:</strong> partidos que publicas o juegas, equipos, resultados,
-            goles, rango, mensajes en la sala de un partido, comentarios en perfiles y valoraciones a otros
+            goles, rango, mensajes en la sala de un partido, comentarios en perfiles y recomendaciones a otros
             jugadores.
+          </li>
+          <li>
+            <strong>Solicitudes e invitados:</strong> si pides entrar a un partido privado, guardamos esa
+            solicitud y su respuesta. Si un capitán te anota como invitado en su formación, se guarda solo el
+            nombre que él escribió.
           </li>
           <li>
             <strong>Avisos al celular:</strong> si los activas, guardamos la dirección técnica de ese
@@ -65,7 +70,15 @@ export default function PrivacyPage() {
             <strong>Tu correo y tu fecha de nacimiento:</strong> no se muestran a nadie.
           </li>
           <li>
-            <strong>Valoraciones:</strong> quien las recibe no ve quién las hizo.
+            <strong>Recomendaciones:</strong> quien las recibe no ve quién las hizo.
+          </li>
+          <li>
+            <strong>Formaciones:</strong> las ve cualquiera que abra el partido, con los nombres de los
+            invitados.
+          </li>
+          <li>
+            <strong>Administradores:</strong> pueden corregir el nombre o el apodo de un perfil, quitar una
+            foto y borrar comentarios o mensajes. Cada cosa que hacen queda anotada en un historial interno.
           </li>
         </ul>
       </LegalSection>

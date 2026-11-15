@@ -10,7 +10,7 @@ const base: NicknameInput = {
   registrations: 0,
   attendances: 0,
   tags: {},
-  reviews: { count: 0, average: null },
+  commends: { COMPANERO: 0, LIDER: 0, CRACK: 0 },
   comments: [],
 };
 const titles = (p: Partial<NicknameInput>) => nicknamesFor({ ...base, ...p }).map((n) => n.title);

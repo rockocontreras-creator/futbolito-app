@@ -6,6 +6,7 @@ import {
   Banknote,
   Check,
   Clock3,
+  Lock,
   MapPin,
   MessageCircle,
   Navigation,
@@ -19,11 +20,13 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { TeamMatchView } from "@/components/features/challenge/team-match-view";
 import { GoingCard, SeriesNote } from "@/components/features/match/going-card";
+import { JoinRequests } from "@/components/features/match/join-requests";
 import { ManageRoster } from "@/components/features/match/manage-roster";
+import { PointsAtStake } from "@/components/features/match/points-at-stake";
 import { MatchChat } from "@/components/features/match/match-chat";
 import { ReportResultForm } from "@/components/features/match/report-result-form";
 import { ResultVote } from "@/components/features/match/result-panel";
-import { ReviewPlayers } from "@/components/features/match/review-players";
+import { CommendPlayers } from "@/components/features/match/review-players";
 import type { RosterPlayer } from "@/components/features/match/roster-types";
 import { SlotBar } from "@/components/features/match/slot-bar";
 import { TeamsView } from "@/components/features/match/teams-view";
@@ -43,7 +46,7 @@ import { goingWindowOpen } from "@/lib/match-timing";
 import { seriesLabel } from "@/lib/series";
 import { pickupShareText, whatsappUrl } from "@/lib/share";
 import { getTeamMatch } from "@/server/queries/challenges";
-import { getMatchDetail, listMyReviews, type MatchDetail } from "@/server/queries/matches";
+import { getMatchDetail, listMyCommends, type MatchDetail } from "@/server/queries/matches";
 import { finalizeDueResults } from "@/server/services/finalize-results";
 import { getMatchWeather } from "@/server/weather";
 import { confirmationsNeeded } from "@/server/services/match-result";
@@ -73,6 +76,13 @@ function viewerStateFor(match: MatchDetail, user: CurrentUser | null, now: Date)
     return { kind: "closed", reason: "Inscripciones cerradas" };
   }
   if (!user.profile) return { kind: "no-profile" };
+  if (match.isPrivate) {
+    const request = match.joinRequests.find((r) => r.userId === user.id);
+    if (request?.status === "PENDING") return { kind: "requested" };
+    if (request?.status === "REJECTED") return { kind: "rejected" };
+    // Sin solicitud a la vista: o nunca pidió, o ya lo aceptaron antes y se bajó (joinMatch lo deja volver).
+    if (!mine) return { kind: "can-request" };
+  }
   return { kind: "can-join", full: match.status === "FULL" };
 }
 
@@ -106,12 +116,19 @@ async function MatchDetailView({ params }: { params: PageProps<"/partidos/[id]">
   const me = players.find((p) => p.userId === user?.id);
   const iPlayed = me?.status === "ATTENDED";
   const reviewOpen = reported && iPlayed && now.getTime() < match.startsAt.getTime() + 7 * 86400_000;
-  const myReviews = reviewOpen && user ? await listMyReviews(match.id, user.id) : [];
+  const myCommends = reviewOpen && user ? await listMyCommends(match.id, user.id) : [];
   const goalsOf = new Map(match.goals.map((g) => [g.scorerId, g.count]));
   const mvpId = match.resultReports[0]?.mvpId ?? null;
   const hasSides = players.some((p) => p.side != null);
   const lineup = players.filter((p) => p.status !== "WAITLIST");
   const colors = { A: match.colorA, B: match.colorB };
+  // Puntos en juego: promedio de rango de cada lado, cuando los equipos ya están armados.
+  const sideAverage = (side: "A" | "B") => {
+    const ratings = lineup.filter((p) => p.side === side && p.rating != null).map((p) => p.rating!);
+    return ratings.length ? Math.round(ratings.reduce((sum, r) => sum + r, 0) / ratings.length) : null;
+  };
+  const avgA = sideAverage("A");
+  const avgB = sideAverage("B");
   const weather =
     reported || match.status === "CANCELLED"
       ? null
@@ -138,6 +155,16 @@ async function MatchDetailView({ params }: { params: PageProps<"/partidos/[id]">
   const myEntry = match.participants.find((p) => p.userId === user?.id);
   const going = registered.filter((p) => p.goingAt != null);
   const notAnswered = registered.filter((p) => p.goingAt == null);
+  const pendingRequests = match.joinRequests
+    .filter((r) => r.status === "PENDING")
+    .map((r) => ({
+      id: r.id,
+      name: r.user.profile?.nickname || r.user.profile?.displayName || r.user.name || "Jugador",
+      username: r.user.profile?.username ?? null,
+      photo: r.user.profile?.photoUrl ?? r.user.image ?? null,
+      rating: r.user.profile?.rating ?? null,
+      position: r.user.profile ? POSITION_LABEL[r.user.profile.primaryPosition] : null,
+    }));
   const organizerName = match.organizer.profile?.displayName ?? match.organizer.name ?? "Un jugador";
   const ratingRange =
     match.minRating != null || match.maxRating != null
@@ -155,8 +182,15 @@ async function MatchDetailView({ params }: { params: PageProps<"/partidos/[id]">
             <ArrowLeft className="size-4" aria-hidden /> Partidos
           </Link>
           <div className="space-y-3">
-            <p className="inline-flex rounded-xl bg-foco px-3 py-1 text-sm font-extrabold text-accent-foreground">
-              {MATCH_TYPE_LABEL[match.type]} {match.playersPerSide}v{match.playersPerSide}
+            <p className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex rounded-xl bg-foco px-3 py-1 text-sm font-extrabold text-accent-foreground">
+                {MATCH_TYPE_LABEL[match.type]} {match.playersPerSide}v{match.playersPerSide}
+              </span>
+              {match.isPrivate && (
+                <span className="inline-flex items-center gap-1.5 rounded-xl bg-white/15 px-3 py-1 text-sm font-extrabold">
+                  <Lock className="size-4" aria-hidden /> Privado
+                </span>
+              )}
             </p>
             <h1 className="text-5xl font-display sm:text-6xl">
               {capitalizeFirst(format(local, "EEEE d 'de' MMMM", { locale: es }))}
@@ -229,6 +263,13 @@ async function MatchDetailView({ params }: { params: PageProps<"/partidos/[id]">
             )}
           </section>
 
+          {(isOrganizer || user?.role === "ADMIN") &&
+            manageable &&
+            !started &&
+            pendingRequests.length > 0 && (
+              <JoinRequests requests={pendingRequests} full={match.status === "FULL"} />
+            )}
+
           {reported && match.scoreA != null && match.scoreB != null && (
             <ResultBoard
               scoreA={match.scoreA}
@@ -260,10 +301,10 @@ async function MatchDetailView({ params }: { params: PageProps<"/partidos/[id]">
           )}
 
           {reviewOpen && user && (
-            <ReviewPlayers
+            <CommendPlayers
               matchId={match.id}
               players={players.filter((p) => p.status === "ATTENDED" && p.userId !== user.id)}
-              given={myReviews}
+              given={myCommends}
             />
           )}
 
@@ -295,6 +336,15 @@ async function MatchDetailView({ params }: { params: PageProps<"/partidos/[id]">
                 ))}
               </ul>
             </section>
+          )}
+
+          {!reported && match.status !== "CANCELLED" && avgA != null && avgB != null && (
+            <PointsAtStake
+              sides={[
+                { label: `Equipo A · ${colorName(colors.A)}`, rating: avgA },
+                { label: `Equipo B · ${colorName(colors.B)}`, rating: avgB },
+              ]}
+            />
           )}
 
           {!(isOrganizer && manageable) && waitlist.length > 0 && (

@@ -68,6 +68,7 @@ async function publishSeriesMatches(now: Date): Promise<number> {
           notes: s.notes,
           colorA: s.colorA,
           colorB: s.colorB,
+          isPrivate: s.isPrivate,
           participants: { create: { userId: s.organizerId, status: "REGISTERED" } },
         },
         include: { venue: { select: { name: true } } },

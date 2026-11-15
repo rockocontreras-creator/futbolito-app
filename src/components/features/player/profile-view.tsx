@@ -18,18 +18,18 @@ function nextDivision(rating: number) {
 
 export function ProfileView({
   profile,
-  reviews,
+  commends = 0,
 }: {
   profile: Profile;
-  /** Valoraciones de compañeros: alimentan el atributo VAL de la carta. */
-  reviews?: { count: number; average: number | null };
+  /** Recomendaciones recibidas: alimentan el atributo REC de la carta. */
+  commends?: number;
 }) {
   const division = divisionFor(profile.rating);
   const next = nextDivision(profile.rating);
   const attendance =
     profile.registrations > 0 ? Math.round((profile.attendances / profile.registrations) * 100) : null;
   const badges = profileBadges(profile);
-  const card = { ...profile, reviewAverage: reviews?.average ?? null, reviewCount: reviews?.count ?? 0 };
+  const card = { ...profile, commends };
   return (
     <div className="space-y-8">
       <section className="grid gap-6 md:grid-cols-[300px_1fr] md:items-center md:gap-10">

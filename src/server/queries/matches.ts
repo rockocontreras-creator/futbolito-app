@@ -15,6 +15,7 @@ const cardSelect = {
   minRating: true,
   maxRating: true,
   seriesId: true,
+  isPrivate: true,
   venue: { select: { name: true, latitude: true, longitude: true } },
   homeTeam: { select: { name: true } },
   awayTeam: { select: { name: true } },
@@ -41,6 +42,8 @@ export interface MatchCardData {
   longitude: number | null;
   /** Pichanga fija: se repite cada semana. */
   weekly: boolean;
+  /** Privado: para entrar hay que pedirlo. */
+  isPrivate: boolean;
   /** Se completa aparte (withWeather) solo cuando hay alerta. */
   weather?: { level: "watch" | "bad"; title: string } | null;
 }
@@ -59,6 +62,7 @@ function toCard(m: RawCard): MatchCardData {
         ? `Revoltijo ${m.playersPerSide}v${m.playersPerSide}`
         : `${m.homeTeam?.name ?? "Por definir"} vs ${m.awayTeam?.name ?? "Rival por definir"}`,
     weekly: m.seriesId != null,
+    isPrivate: m.isPrivate,
     taken: m.participants.length,
     total,
     pricePerPerson: m.pricePerPerson,
@@ -113,6 +117,32 @@ export function getMatchDetail(id: string) {
       resultReports: { orderBy: { createdAt: "desc" }, take: 1, select: { mvpId: true } },
       objections: { select: { userId: true } },
       confirmations: { select: { userId: true } },
+      // Solicitudes para entrar (partido privado). Las aceptadas ya son participantes.
+      joinRequests: {
+        where: { status: { in: ["PENDING", "REJECTED"] } },
+        orderBy: { createdAt: "asc" },
+        select: {
+          id: true,
+          userId: true,
+          status: true,
+          user: {
+            select: {
+              name: true,
+              image: true,
+              profile: {
+                select: {
+                  displayName: true,
+                  nickname: true,
+                  username: true,
+                  rating: true,
+                  primaryPosition: true,
+                  photoUrl: true,
+                },
+              },
+            },
+          },
+        },
+      },
       participants: {
         where: { status: { in: ["REGISTERED", "WAITLIST", "ATTENDED", "NO_SHOW"] } },
         orderBy: { joinedAt: "asc" },
@@ -142,10 +172,10 @@ export function getMatchDetail(id: string) {
 
 export type MatchDetail = NonNullable<Awaited<ReturnType<typeof getMatchDetail>>>;
 
-/** Valoraciones que el usuario ya dio en un partido (para mostrar qué le falta valorar). */
-export function listMyReviews(matchId: string, authorId: string) {
+/** Recomendaciones que el usuario ya dio en un partido. */
+export function listMyCommends(matchId: string, authorId: string) {
   return db.peerReview.findMany({
     where: { matchId, authorId },
-    select: { targetId: true, score: true, tags: true },
+    select: { targetId: true, commends: true },
   });
 }
